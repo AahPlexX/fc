@@ -5,6 +5,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
+- Semantic React application shell with accessible skip navigation, local-processing status messaging, and a real Vite entry point.
+- Permanent pinned GitHub Actions validation for frozen install, lint/typecheck, unit tests, and production build.
 - Verified `pnpm-lock.yaml` committed by the registry-connected runner and strict TypeScript 7 configuration completing the toolchain phase.
 - Corrected repository governance and <=3-new-files phase ledger for `AahPlexX/fc` on `main`.
 - Exact-pinned browser conversion/test stack and pnpm 12.15.0 package manager policy.

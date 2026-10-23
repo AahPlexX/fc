@@ -1,19 +1,15 @@
-name: Bootstrap lockfile
+name: Validate
 
 on:
   push:
     branches:
       - main
-    paths:
-      - package.json
-      - pnpm-workspace.yaml
-      - .github/workflows/bootstrap-lockfile.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  lockfile:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -28,29 +24,14 @@ jobs:
       - name: Install pinned pnpm
         run: npm install --global pnpm@12.15.0
 
-      - name: Verify toolchain
-        run: |
-          node --version
-          pnpm --version
-
-      - name: Generate lockfile
-        run: pnpm install --lockfile-only
-
-      - name: Verify frozen install
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Commit verified lockfile
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pnpm-lock.yaml
-          git diff --cached --quiet || git commit -m 'chore: add verified pnpm lockfile'
-          git push origin HEAD:main
+      - name: Lint and typecheck
+        run: pnpm check
 
-      - name: Upload verified lockfile
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: verified-lockfile
-          path: pnpm-lock.yaml
-          retention-days: 1
-          if-no-files-found: error
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Production build
+        run: pnpm build
