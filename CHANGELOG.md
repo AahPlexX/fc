@@ -12,7 +12,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Verified deterministic lockfile generation/frozen install on Node.js 22.13.0; runner now commits the verified output directly to `main` to avoid transcription risk.
 
 ### Fixed
-- Corrected the bootstrap pnpm argument typo from `--lockifile-only` to `--lockfile-only`; the failed run wrote no repository files.
+- Corrected bootstrap pnpm argument typos from `--lockifile-only` / `--frozen-lockifile` to `--lockfile-only` / `--frozen-lockfile`; failed runs wrote no generated repository files.
 
 ### Changed
 - Raised Node floor to >=22.13.0 to satisfy Vite 8 and `pdfjs-dist@6.4.299`.

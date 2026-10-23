@@ -56,4 +56,4 @@ Next: runner commits verified `pnpm-lock.yaml` to `main`; then commit strict `ts
 
 - Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
 - No fabricated lockfiles or dependency results.
-- Bootstrap runner argument typo (`--lockifile-only`) found from CI logs and corrected to `--lockfile-only` before any generated file was committed.
+- Bootstrap runner argument typos (`--lockifile-only`, `--frozen-lockifile`) were found from CI logs and corrected to `--lockfile-only`, `--frozen-lockfile` before any generated file was committed.
