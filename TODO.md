@@ -24,7 +24,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
 | 6 | Import/queue UI | COMPLETE | RED observed; install/check/test/build green on run 40027877824. |
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
-| 8 | Tabular worker + test + fixture | ACTIVE | Red-first CSV/TSV/JSON detection + conversion contract committed; targeted unit RED required. |
+| 8 | Tabular worker + test + fixture | ACTIVE | RED observed with check green; implementation + importer structural text detection committed and awaiting CI. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
 | 10 | Media adapter + progress + test | INCOMPLETE | Lazy FFmpeg/cancel/honest progress. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
@@ -42,12 +42,12 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Node.js >=22.13.0.
 - Binary signatures are authoritative first-stage evidence; ambiguous containers require deeper probing.
 - Image workers verify returned encoder MIME and safely normalize limited metadata groups.
-- Tabular detection must be content-structural, not extension/MIME based; Papa Parse stays lazy and exports must escape spreadsheet formulae.
+- Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
 
 ## Active checkpoint
 Phase 8 — tabular conversion.  
 New files (3/3): `src/workers/tabular.worker.ts`, `tests/unit/tabularWorker.test.ts`, `tests/fixtures/tabular.ts`.  
-Next: observe CI RED with install/check green. Then implement structural UTF-8 CSV/TSV/JSON detection, canonical table parsing, safe CSV/TSV/JSON/Markdown/HTML rendering, and wire text detection into import without adding Phase 8 files.
+Next: require permanent CI install/check/test/build to pass structural CSV/TSV/JSON detection, canonical parsing, and safe CSV/TSV/JSON/Markdown/HTML rendering. On green, mark Phase 8 COMPLETE and begin Phase 9 PDF/document RED contracts.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.

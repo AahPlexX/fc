@@ -28,33 +28,17 @@ const match = (
 ): DetectedFormat => ({ format, mime, domain, evidence, needsProbe });
 
 export const detectBinaryFormat = (bytes: Uint8Array): DetectedFormat | null => {
-  if (hasBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
-    return match("png", "image/png", "image");
-  }
-  if (hasBytes(bytes, [0xff, 0xd8, 0xff])) {
-    return match("jpeg", "image/jpeg", "image");
-  }
-  if (hasBytes(bytes, ASCII.GIF87A) || hasBytes(bytes, ASCII.GIF89A)) {
-    return match("gif", "image/gif", "image");
-  }
-  if (hasBytes(bytes, ASCII.RIFF) && hasBytes(bytes, ASCII.WEBP, 8)) {
-    return match("webp", "image/webp", "image");
-  }
-  if (hasBytes(bytes, ASCII.RIFF) && hasBytes(bytes, ASCII.WAVE, 8)) {
-    return match("wav", "audio/wav", "audio");
-  }
+  if (hasBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return match("png", "image/png", "image");
+  if (hasBytes(bytes, [0xff, 0xd8, 0xff])) return match("jpeg", "image/jpeg", "image");
+  if (hasBytes(bytes, ASCII.GIF87A) || hasBytes(bytes, ASCII.GIF89A)) return match("gif", "image/gif", "image");
+  if (hasBytes(bytes, ASCII.RIFF) && hasBytes(bytes, ASCII.WEBP, 8)) return match("webp", "image/webp", "image");
+  if (hasBytes(bytes, ASCII.RIFF) && hasBytes(bytes, ASCII.WAVE, 8)) return match("wav", "audio/wav", "audio");
   if (hasBytes(bytes, ASCII.FTYP, 4) && (hasBytes(bytes, ASCII.AVIF, 8) || hasBytes(bytes, ASCII.AVIS, 8))) {
     return match("avif", "image/avif", "image", "container");
   }
-  if (hasBytes(bytes, ASCII.BM)) {
-    return match("bmp", "image/bmp", "image");
-  }
-  if (hasBytes(bytes, [0x00, 0x00, 0x01, 0x00])) {
-    return match("ico", "image/x-icon", "image");
-  }
-  if (hasBytes(bytes, ASCII.PDF)) {
-    return match("pdf", "application/pdf", "document");
-  }
+  if (hasBytes(bytes, ASCII.BM)) return match("bmp", "image/bmp", "image");
+  if (hasBytes(bytes, [0x00, 0x00, 0x01, 0x00])) return match("ico", "image/x-icon", "image");
+  if (hasBytes(bytes, ASCII.PDF)) return match("pdf", "application/pdf", "document");
   if (
     hasBytes(bytes, [0x50, 0x4b, 0x03, 0x04]) ||
     hasBytes(bytes, [0x50, 0x4b, 0x05, 0x06]) ||
@@ -62,16 +46,68 @@ export const detectBinaryFormat = (bytes: Uint8Array): DetectedFormat | null => 
   ) {
     return match("zip", "application/zip", "archive");
   }
-  if (hasBytes(bytes, ASCII.FLAC)) {
-    return match("flac", "audio/flac", "audio");
-  }
-  if (hasBytes(bytes, ASCII.ID3)) {
-    return match("mp3", "audio/mpeg", "audio");
-  }
-  if (hasBytes(bytes, ASCII.OGG)) {
-    return match("ogg", "application/ogg", null, "container", true);
-  }
+  if (hasBytes(bytes, ASCII.FLAC)) return match("flac", "audio/flac", "audio");
+  if (hasBytes(bytes, ASCII.ID3)) return match("mp3", "audio/mpeg", "audio");
+  if (hasBytes(bytes, ASCII.OGG)) return match("ogg", "application/ogg", null, "container", true);
   return null;
 };
 
-export const detectTextFormat = (_bytes: Uint8Array): DetectedFormat | null => null;
+const countDelimitedColumns = (line: string, delimiter: string): number => {
+  let columns = 1;
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    if (character === '"') {
+      if (quoted && line[index + 1] === '"') {
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (character === delimiter && !quoted) {
+      columns += 1;
+    }
+  }
+  return columns;
+};
+
+const hasStableDelimitedShape = (text: string, delimiter: string): boolean => {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+  if (lines.length < 2) return false;
+  const widths = lines.map((line) => countDelimitedColumns(line, delimiter));
+  return (widths[0] ?? 0) > 1 && widths.every((width) => width === widths[0]);
+};
+
+export const detectTextFormat = (bytes: Uint8Array): DetectedFormat | null => {
+  if (bytes.length === 0 || bytes.includes(0)) return null;
+
+  let text: string;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/, "").trim();
+  } catch {
+    return null;
+  }
+  if (!text) return null;
+
+  if (text.startsWith("[") || text.startsWith("{")) {
+    try {
+      const parsed: unknown = JSON.parse(text);
+      if (parsed !== null && typeof parsed === "object") {
+        return match("json", "application/json", "tabular", "structural");
+      }
+    } catch {
+      // Continue to delimited structural checks.
+    }
+  }
+
+  if (hasStableDelimitedShape(text, "\t")) {
+    return match("tsv", "text/tab-separated-values", "tabular", "structural");
+  }
+  if (hasStableDelimitedShape(text, ",")) {
+    return match("csv", "text/csv", "tabular", "structural");
+  }
+  return null;
+};
