@@ -5,19 +5,20 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Signature-first binary detector for unambiguous PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, and ID3-tagged MP3 inputs, with Ogg explicitly flagged for deeper stream probing.
-- Phase 4 red-first domain contracts and magic-byte test suite covering supported signatures plus truncated/unknown bytes.
-- Responsive dark-slate workbench foundation, durable `AGENTS.md`, semantic React shell, permanent pinned validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
+- Phase 5 red-first compatibility-routing tests for image, audio, video/audio-extraction, tabular, source-specific document routes, AVIF capability gating, unresolved-container blocking, and immutable job-store updates.
+- Signature-first binary detector with tested support for PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, MP3/ID3, Ogg ambiguity, and unknown/truncated bytes.
+- Responsive workbench foundation, durable `AGENTS.md`, semantic React shell, permanent validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
 
 ### Fixed
-- Added Vite client type declarations for CSS side-effect imports and replaced broad reduced-motion `!important` overrides with scoped cascade-safe rules.
-- Corrected bootstrap pnpm argument typos before generated files were accepted.
+- Vite CSS declarations/reduced-motion cascade issues found by CI.
+- Bootstrap pnpm flag typos before generated files were accepted.
 
 ### Changed
-- Binary format detection is two-stage: authoritative signatures establish unambiguous domains; ambiguous containers remain `needsProbe` until structural/stream inspection.
-- Runtime floor is Node.js >=22.13.0; PDF.js renders pages, pdf-lib edits structure; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
-- `@ffmpeg/core@0.12.10` license record is GPL-2.0-or-later; wrapper remains MIT.
-- axe remains regression assistance, not proof of complete WCAG 2.2 AA conformance.
+- Compatibility routing is defined from canonical detected format/domain; unresolved containers expose zero conversion targets and AVIF export requires a positive runtime capability.
+- Binary detection is two-stage; ambiguous containers require structural/stream probing.
+- Runtime floor is Node.js >=22.13.0; PDF.js renders, pdf-lib edits; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
+- `@ffmpeg/core@0.12.10` license is GPL-2.0-or-later; wrapper MIT.
+- axe remains regression assistance, not complete WCAG proof.
 
 ## [1.0.0] - 2026-10-23
 
