@@ -14,7 +14,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Bootstrap pnpm flag typos before generated files were accepted.
 
 ### Changed
-- Compatibility routing is defined from canonical detected format/domain; unresolved containers expose zero conversion targets and AVIF export requires a positive runtime capability.
+- Phase 5 compatibility routing now implements the tested canonical domain/source matrix, capability-gated AVIF export, and zero-target behavior for unresolved containers; full CI verification is pending for this implementation commit.
 - Binary detection is two-stage; ambiguous containers require structural/stream probing.
 - Runtime floor is Node.js >=22.13.0; PDF.js renders, pdf-lib edits; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
 - `@ffmpeg/core@0.12.10` license is GPL-2.0-or-later; wrapper MIT.
