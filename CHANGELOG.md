@@ -5,6 +5,7 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 ## [Unreleased]
 
 ### Added
+- Pinned GitHub Actions lockfile bootstrap harness using immutable action commit SHAs and read-only repository permissions.
 - Exact-pinned dependency manifest synchronized to `AahPlexX/fc` on `main`.
 - Repository target corrected to `AahPlexX/fc` after direct GitHub verification.
 - Exact-pinned `package.json` dependency manifest verified against primary registry/release sources on 2026-10-23.
@@ -12,6 +13,7 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 - Primary-source package/version baseline dated 2026-10-23.
 
 ### Changed
+- Replaced the local-registry blocker with a GitHub-hosted registry verification path while retaining pnpm-only project dependency installation.
 - Corrected the FFmpeg core license record: `@ffmpeg/core@0.12.10` declares GPL-2.0-or-later; the JavaScript wrapper `@ffmpeg/ffmpeg` is MIT.
 - Aligned the Node.js floor with Vite 8 official support at Node.js 22.12+.
 - Preserved phase ordering by deferring lockfile and TypeScript configuration until a pnpm registry-connected runtime is available.

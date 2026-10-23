@@ -23,6 +23,10 @@ Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
 - [COMPLETE] `TODO.md`
 - Exit: PRD contradictions and corrected implementation ordering are durably recorded.
 
+### Phase 1A — Registry-connected verification harness
+- [ACTIVE] `.github/workflows/bootstrap-lockfile.yml` — pinned GitHub-hosted verification runner used to generate and frozen-install the pnpm lockfile.
+- Verify: Node.js 22.12.0, pnpm 12.15.0, registry resolution, and frozen install in GitHub Actions.
+
 ### Phase 1 — Installable toolchain
 - [COMPLETE] `package.json`
 - [BLOCKED] `pnpm-lock.yaml` — local execution sandbox cannot resolve external package hosts; generate with pnpm 12.15.0 once registry access is available.
@@ -115,10 +119,10 @@ Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
 
 ## Active checkpoint
 
-Current phase: Phase 1 — Installable toolchain.
-Current file: `pnpm-lock.yaml`.
-Next step: generate the lockfile with pnpm 12.15.0 in a registry-connected environment and verify a frozen install. Only after that gate passes, create `tsconfig.json`.
+Current phase: Phase 1A — Registry-connected verification harness.
+Current file: `.github/workflows/bootstrap-lockfile.yml`.
+Next step: run the pinned GitHub Actions harness, capture the generated `pnpm-lock.yaml`, verify the frozen install, then commit the lockfile and advance Phase 1 to `tsconfig.json`.
 
 ## Known blockers
 
-- [BLOCKED] Local lockfile generation: the execution sandbox cannot resolve registry/GitHub package hosts. Package versions were independently verified against primary registry/release sources; no lockfile is being fabricated.
+- [MITIGATED] Local package-host DNS is unavailable in the execution sandbox. GitHub Actions is the registry-connected verification environment; no lockfile is fabricated locally.

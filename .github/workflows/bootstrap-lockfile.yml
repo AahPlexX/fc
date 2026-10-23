@@ -1,0 +1,47 @@
+name: Bootstrap lockfile
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - .github/workflows/bootstrap-lockfile.yml
+
+permissions:
+  contents: read
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.12.0
+
+      - name: Install pinned pnpm
+        run: npm install --global pnpm@12.15.0
+
+      - name: Verify toolchain
+        run: |
+          node --version
+          pnpm --version
+
+      - name: Generate lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Verify frozen install
+        run: pnpm install --frozen-lockfile
+
+      - name: Emit lockfile for repository bootstrap
+        shell: bash
+        run: |
+          echo 'LOCKFILE_BASE64_START'
+          base64 -w 0 pnpm-lock.yaml
+          echo
+          echo 'LOCKFILE_BASE64_END'
