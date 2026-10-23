@@ -22,7 +22,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 3 | Handoff/design | COMPLETE | Responsive foundation CI green. |
 | 4 | Types + magic-byte detector + test | COMPLETE | RED observed then CI green for supported signatures/unknown bytes. |
 | 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
-| 6 | Import/queue UI | ACTIVE | Valid RED observed; full import/queue/batch/progress implementation committed and awaiting full CI green. |
+| 6 | Import/queue UI | ACTIVE | Valid RED observed; implementation lint defect corrected with semantic batch grouping and full CI is pending. |
 | 7 | Image + metadata workers + test | INCOMPLETE | Raster/metadata/cancel/AVIF gate. |
 | 8 | Tabular worker + test + fixture | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
@@ -45,7 +45,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Active checkpoint
 Phase 6 — import/queue UI.  
 Current files: `src/App.tsx`, `src/components/DropzoneHeader.tsx`, `src/components/JobCard.tsx`, `src/styles/tokens.css`, `tests/unit/importQueue.test.tsx`.  
-Next: require permanent CI to pass install/check/test/build against the implementation. On green, mark Phase 6 COMPLETE and begin Phase 7 red-first image/metadata worker contracts without adding further Phase 6 files.
+Next: rerun permanent CI after replacing the unsupported generic ARIA label with native fieldset/legend semantics. If install/check/test/build pass, mark Phase 6 COMPLETE and begin Phase 7 red-first image/metadata worker contracts.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.

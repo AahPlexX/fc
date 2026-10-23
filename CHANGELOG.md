@@ -12,6 +12,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Responsive workbench foundation, durable `AGENTS.md`, semantic React shell, permanent validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
 
 ### Fixed
+- Phase 6 batch controls now use native `fieldset`/`legend` grouping instead of an unsupported `aria-label` on a generic element, resolving the accessibility lint failure while preserving the responsive control layout.
 - Phase 6 red-first stub no longer attaches drag handlers to a static section; this preserves the accessibility lint gate so the intended behavior assertions reach the unit-test stage.
 - Vite CSS declarations/reduced-motion cascade issues found by CI.
 - Bootstrap pnpm flag typos before generated files were accepted.

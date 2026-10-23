@@ -295,6 +295,18 @@ h3 {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   gap: var(--space-2);
   align-items: end;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.batch-controls > legend {
+  grid-column: 1 / -1;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.82em;
+  font-weight: 750;
 }
 
 .field-control {

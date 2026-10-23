@@ -86,7 +86,8 @@ export const DropzoneHeader = ({
           </div>
         </div>
 
-        <div className="batch-controls" aria-label="Batch controls">
+        <fieldset className="batch-controls">
+          <legend>Batch controls</legend>
           <label className="field-control" htmlFor="batch-target">
             <span>Batch target</span>
             <select
@@ -113,7 +114,7 @@ export const DropzoneHeader = ({
             />
             <span>Strip metadata</span>
           </label>
-        </div>
+        </fieldset>
       </section>
 
       {activeCount >= 2 ? (
