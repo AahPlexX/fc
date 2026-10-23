@@ -27,7 +27,7 @@ All package versions are exact pins. Heavy conversion libraries must remain lazy
 ## Architectural corrections to PRD v1.0.0
 
 1. `@ffmpeg/ffmpeg` already runs transcoding through its own worker. OmniConvert will not add a redundant parent media worker around the FFmpeg instance unless a measured browser-specific isolation need appears.
-2. FFmpeg.wasm's `progress` event is experimental. User-facing determinate progress must degrade safely to indeterminate/phase telemetry when reliable duration-based progress cannot be derived.
+2. FFmpeg.wasm's `progress  event is experimental. User-facing determinate progress must degrade safely to indeterminate/phase telemetry when reliable duration-based progress cannot be derived.
 3. `pdf-lib` creates and edits PDF structure but is not a PDF page renderer. PDF-to-image routes use PDF.js.
 4. WCAG conformance requires automated **and** manual evaluation. axe is an automated regression gate, not proof of complete WCAG 2.2 AA conformance.
 5. The original eight-phase file plan omitted required runtime/config/test files. `TODO.md` contains the corrected <=3-new-files-per-phase sequence.
@@ -37,7 +37,7 @@ All package versions are exact pins. Heavy conversion libraries must remain lazy
 
 Prerequisites:
 
-- Node.js >= 22.12.0
+- Node.js >= 22.13.0
 - pnpm 12.15.0
 
 ```bash

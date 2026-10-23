@@ -14,10 +14,11 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 - Primary-source package/version baseline dated 2026-10-23.
 
 ### Changed
+- Switched verified lockfile transfer from console-encoded output to a one-day GitHub Actions artifact pinned to `actions/upload-artifact@v7.0.2` by immutable commit SHA.
 - Hardened the lockfile bootstrap workflow to treat dependency lifecycle scripts as an explicit allow/deny policy rather than approving builds merely to satisfy installation.
 - Replaced the local-registry blocker with a GitHub-hosted registry verification path while retaining pnpm-only project dependency installation.
 - Corrected the FFmpeg core license record: `@ffmpeg/core@0.12.10` declares GPL-2.0-or-later; the JavaScript wrapper `@ffmpeg/ffmpeg` is MIT.
-- Aligned the Node.js floor with Vite 8 official support at Node.js 22.12+.
+- Raised the Node.js floor to 22.13+ so it satisfies both Vite 8 and `pdfjs-dist@6.4.299` engine requirements.
 - Preserved phase ordering by deferring lockfile and TypeScript configuration until a pnpm registry-connected runtime is available.
 - Corrected ExifReader target from 4.45.0 to 4.51.0.
 - Added PDF.js as the required PDF page-rendering dependency.

@@ -26,11 +26,11 @@ Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
 ### Phase 1A — Registry-connected verification harness
 - [ACTIVE] `.github/workflows/bootstrap-lockfile.yml` — pinned GitHub-hosted verification runner used to generate and frozen-install the pnpm lockfile.
 - [ACTIVE] `pnpm-workspace.yaml` — explicit least-privilege lifecycle-script policy; ExifReader custom postinstall is denied because OmniConvert has no custom ExifReader build configuration.
-- Verify: Node.js 22.12.0, pnpm 12.15.0, registry resolution, lifecycle policy, and frozen install in GitHub Actions.
+- Verify: Node.js 22.13.0, pnpm 12.15.0, registry resolution, lifecycle policy, and frozen install in GitHub Actions.
 
 ### Phase 1 — Installable toolchain
 - [COMPLETE] `package.json`
-- [BLOCKED] `pnpm-lock.yaml` — local execution sandbox cannot resolve external package hosts; generate with pnpm 12.15.0 once registry access is available.
+- [ACTIVE] `pnpm-lock.yaml` — registry-connected generation and frozen install passed in GitHub Actions; commit the exact verified artifact from the pinned runner.
 - [INCOMPLETE] `tsconfig.json` — intentionally not started until the lockfile gate clears.
 - Verify: exact dependency resolution, clean install, no caret/tilde ranges.
 
@@ -122,7 +122,7 @@ Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
 
 Current phase: Phase 1A — Registry-connected verification harness.
 Current file: `.github/workflows/bootstrap-lockfile.yml`.
-Next step: rerun the pinned GitHub Actions harness with the explicit ExifReader build denial, capture the generated `pnpm-lock.yaml`, verify the frozen install, then commit the lockfile and advance Phase 1 to `tsconfig.json`.
+Next step: rerun the pinned GitHub Actions harness on Node.js 22.13.0, retrieve the verified `pnpm-lock.yaml` artifact, commit it, create `tsconfig.json`, and close Phase 1.
 
 ## Known blockers
 
