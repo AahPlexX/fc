@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import { detectTextFormat } from "../../src/core/magicBytes";
+import { convertTabular, parseTabular, renderTabular } from "../../src/workers/tabular.worker";
+import { PLAIN_PROSE, SAMPLE_CSV, SAMPLE_JSON, SAMPLE_TSV } from "../fixtures/tabular";
+
+const encode = (text: string) => new TextEncoder().encode(text);
+
+describe("Phase 8 tabular worker contracts", () => {
+  it("detects structured UTF-8 tabular content without extension or MIME guessing", () => {
+    expect(detectTextFormat(encode(SAMPLE_CSV))?.format).toBe("csv");
+    expect(detectTextFormat(encode(SAMPLE_TSV))?.format).toBe("tsv");
+    expect(detectTextFormat(encode(SAMPLE_JSON))?.format).toBe("json");
+    expect(detectTextFormat(encode(PLAIN_PROSE))).toBeNull();
+  });
+
+  it("parses quoted CSV cells into a canonical table", async () => {
+    await expect(parseTabular(SAMPLE_CSV, "csv")).resolves.toEqual({
+      columns: ["name", "note", "amount"],
+      rows: [
+        ["Alice", "Hello, world", "42"],
+        ["Bob", "=SUM(1,2)", "7"],
+      ],
+    });
+  });
+
+  it("renders safe delimited exports with spreadsheet formula escaping", async () => {
+    const table = await parseTabular(SAMPLE_CSV, "csv");
+    const csv = await renderTabular(table, "csv");
+    expect(csv).toContain("'=SUM(1,2)");
+  });
+
+  it("round-trips object JSON and escapes Markdown/HTML output", async () => {
+    const table = await parseTabular(SAMPLE_JSON, "json");
+    const json = await renderTabular(table, "json");
+    expect(JSON.parse(json)).toEqual(JSON.parse(SAMPLE_JSON));
+
+    const markdown = await renderTabular(table, "md");
+    expect(markdown).toContain("\\|pipe");
+
+    const html = await convertTabular(SAMPLE_JSON, "json", "html");
+    expect(html).toContain("A&amp;B");
+    expect(html).toContain("&lt;admin&gt;|pipe");
+    expect(html).not.toContain("<admin>");
+  });
+});
