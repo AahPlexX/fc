@@ -6,7 +6,6 @@ Branch: `main` only
 Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
 ## Non-negotiable invariants
-
 - Maximum 3 **new** files per phase; edits to existing files are unlimited.
 - Executable/config changes update this file and `CHANGELOG.md` in the same commit; update `README.md` when public behavior, commands, architecture, support, or requirements change.
 - Exact dependency pins only; pnpm only.
@@ -15,17 +14,16 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Native/platform features before custom abstractions; heavy engines lazy-load.
 
 ## Phase ledger
-
 | Phase | Scope | Status | Verification / next gate |
 |---|---|---|---|
-| 0 | Governance correction (`README`, tracker, changelog) | COMPLETE | Corrected PRD contradictions are durable. |
-| 1A | Registry verification + lifecycle policy | COMPLETE | Node 22.13.0 + pnpm 12.15.0; frozen install passed; ExifReader postinstall explicitly denied. |
-| 1 | Toolchain (`package.json`, `pnpm-lock.yaml`, `tsconfig.json`) | COMPLETE | Verified lockfile + frozen install; strict TypeScript config committed. |
-| 2 | React shell (`index.html`, `src/main.tsx`, `src/App.tsx`) | COMPLETE | Permanent CI passed frozen install, check, tests, and production build. |
-| 3 | Handoff/design (`AGENTS.md`, `vite.config.ts`, `src/styles/tokens.css`) | ACTIVE | CI exposed CSS declaration/type and `!important` lint issues; root-cause fixes committed next and must pass full CI. |
-| 4 | Domain types + magic-byte detection + unit test | INCOMPLETE | FR-002 spoof/signature coverage. |
+| 0 | Governance correction | COMPLETE | Corrected PRD contradictions are durable. |
+| 1A | Registry verification + lifecycle policy | COMPLETE | Node 22.13.0 + pnpm 12.15.0; frozen install passed; ExifReader postinstall denied. |
+| 1 | Toolchain | COMPLETE | Verified lockfile + frozen install + strict TypeScript. |
+| 2 | React shell | COMPLETE | Permanent CI passed install/check/tests/build. |
+| 3 | Handoff/design | COMPLETE | CI passed after Vite CSS declarations and scoped reduced-motion fix. |
+| 4 | Domain types + magic-byte detection + unit test | ACTIVE | RED committed: detector contract/tests exist; stub returns `null`; CI must fail assertions before implementation. |
 | 5 | Compatibility matrix + test + job store | INCOMPLETE | FR-003 domain-bound target sets. |
-| 6 | Import/queue UI (3 components) | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
+| 6 | Import/queue UI | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
 | 7 | Image + metadata workers + test | INCOMPLETE | Raster conversion/metadata/cancel/AVIF capability gate. |
 | 8 | Tabular worker + test + fixtures | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js page rasterization. |
@@ -37,23 +35,20 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 15 | 3 ADRs | INCOMPLETE | ADRs reflect shipped implementation. |
 
 ## Verified corrections carried into implementation
-
 - `@ffmpeg/ffmpeg` already owns its transcode worker; no redundant wrapper worker by default.
-- FFmpeg.wasm `progress` is experimental; use determinate progress only when trustworthy, otherwise phase/indeterminate status.
+- FFmpeg.wasm `progress` is experimental; determinate progress only when trustworthy, otherwise phase/indeterminate status.
 - `pdf-lib` edits PDF structure; PDF.js renders PDF pages.
 - axe is an automated regression gate, not complete WCAG 2.2 AA proof; manual checks remain required.
 - PWA status requires both manifest and verified service-worker/offline behavior.
 - `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper is MIT.
-- Runtime floor is Node.js >=22.13.0 to satisfy the pinned toolchain including PDF.js.
+- Runtime floor is Node.js >=22.13.0.
+- Binary signatures are authoritative first-stage evidence; ambiguous containers remain unclassified until a deeper structural/stream probe.
 
 ## Active checkpoint
-
-Phase 3 — Handoff/design foundation.  
-Current files: `tsconfig.json`, `src/styles/tokens.css`.  
-Next: rerun permanent CI after adding Vite client declarations for CSS imports and replacing broad `!important` reduced-motion overrides with source-order, component-scoped rules. On green, mark Phase 3 COMPLETE and begin test-first Phase 4.
+Phase 4 — Domain contracts / magic bytes.  
+Current file: `tests/unit/magicBytes.test.ts`.  
+Next: observe CI RED against the intentional `detectBinaryFormat()` null stub, then implement only enough signature logic to make the tests green; keep text formats and ambiguous stream/container probing for their owning phases.
 
 ## Environment notes
-
 - Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
 - No fabricated lockfiles or dependency results.
-- Bootstrap runner argument typos (`--lockifile-only`, `--frozen-lockifile`) were caught from CI logs and corrected before generated files were accepted.
