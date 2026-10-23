@@ -12,6 +12,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Phase 6 import/queue workbench; Phase 5 compatibility routing; Phase 4 signature detector; responsive React/TypeScript foundation and permanent validation workflow.
 
 ### Fixed
+- PDF.js cleanup now destroys the `PDFDocumentLoadingTask`, matching the current API ownership model instead of calling a non-existent `PDFDocumentProxy.destroy()` method.
 - Phase 6 batch controls use native `fieldset`/`legend` grouping instead of unsupported generic ARIA labeling.
 - Validation-discovered CSS/toolchain bootstrap defects.
 

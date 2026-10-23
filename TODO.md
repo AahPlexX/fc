@@ -25,7 +25,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 6 | Import/queue UI | COMPLETE | RED observed; install/check/test/build green on run 40027877824. |
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
-| 9 | PDF/document worker + test + fixture | ACTIVE | RED observed with check green; metadata + page-raster implementation committed and awaiting full CI. |
+| 9 | PDF/document worker + test + fixture | ACTIVE | RED observed; first implementation check exposed PDF.js loading-task destruction ownership and the root fix is committed for rerun. |
 | 10 | Media adapter + progress + test | INCOMPLETE | Lazy FFmpeg/cancel/honest progress. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
@@ -39,7 +39,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - PDF inspection loads with `updateMetadata:false`; null metadata overrides serialize as empty info fields and normalize back to null.
 - PDF page numbers are 1-based at the PDF.js boundary and are range-validated before rendering.
 - PDF.js worker assets are bundled/same-origin via Vite `?url`; no CDN fallback is permitted.
-- Page and document resources are released in `finally`, including failed/range-invalid operations.
+- PDF.js lifetime ownership belongs to `PDFDocumentLoadingTask.destroy()`; `PDFDocumentProxy` exposes cleanup but not destroy.
+- Page cleanup plus loading-task destruction occur in `finally`, including failed/range-invalid operations.
 - axe supplements manual WCAG 2.2 AA evaluation.
 - PWA requires manifest + verified service worker/offline behavior.
 - `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper MIT.
@@ -51,7 +52,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Active checkpoint
 Phase 9 — PDF/document worker.  
 New files (3/3): `src/workers/document.worker.ts`, `tests/unit/documentWorker.test.ts`, `tests/fixtures/pdf.ts`.  
-Next: require permanent CI install/check/test/build to pass metadata round-trips, page bounds validation, cleanup, local PDF.js worker bundling, and PNG/JPEG page-raster contracts. On green, mark Phase 9 COMPLETE and begin Phase 10 media adapter/progress RED contracts.
+Next: rerun permanent CI after correcting PDF.js destruction ownership to the loading task. Require install/check/test/build green before Phase 9 completion and Phase 10 media work.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
+- No fabricated lockfiles/dependency results.

@@ -185,7 +185,7 @@ const createBrowserRenderDependencies = async (): Promise<PdfRenderDependencies>
           };
         },
         destroy: async () => {
-          await document.destroy();
+          await loadingTask.destroy();
         },
       };
     },
