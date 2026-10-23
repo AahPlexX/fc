@@ -4,7 +4,9 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Foundation implementation is in progress. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`. The repository was confirmed empty and writable on `main` on 2026-10-23. The local execution sandbox lacks outbound package-registry DNS, so the deterministic pnpm lockfile is intentionally not fabricated.
+Core format detection/routing is implemented and the import/queue workbench is under CI verification. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+
+The current UI accepts files through the native multi-file picker, a keyboard-operable drop target, or clipboard paste. Imported bytes are inspected locally before a job is added. Unsupported signatures are skipped rather than guessed from extensions or browser MIME values. Queue controls support per-file target selection/cancellation, batch target selection, batch metadata stripping policy, and aggregate progress for multiple active jobs.
 
 ## Verified foundation stack — 2026-10-23
 
@@ -14,7 +16,7 @@ Foundation implementation is in progress. The authoritative implementation track
 - pnpm 12.15.0
 - Vitest 5.0.5
 - Playwright 1.64.1 and `@axe-core/playwright` 4.14.0
-- FFmpeg.wasm: `@ffmpeg/ffmpeg` 0.12.15, `@ffmpeg/core` 0.12.10, `@ffmpeg/util` 0.12.2. Note: the wrapper is MIT; the published core package declares GPL-2.0-or-later and must be handled accordingly when distributed.
+- FFmpeg.wasm: `@ffmpeg/ffmpeg` 0.12.15, `@ffmpeg/core` 0.12.10, `@ffmpeg/util` 0.12.2. The wrapper is MIT; the published core package declares GPL-2.0-or-later and must be handled accordingly when distributed.
 - Papa Parse 5.7.0
 - ExifReader 4.51.0
 - pdf-lib 1.17.1 and PDF.js (`pdfjs-dist`) 6.4.299
@@ -27,7 +29,7 @@ All package versions are exact pins. Heavy conversion libraries must remain lazy
 ## Architectural corrections to PRD v1.0.0
 
 1. `@ffmpeg/ffmpeg` already runs transcoding through its own worker. OmniConvert will not add a redundant parent media worker around the FFmpeg instance unless a measured browser-specific isolation need appears.
-2. FFmpeg.wasm's `progress  event is experimental. User-facing determinate progress must degrade safely to indeterminate/phase telemetry when reliable duration-based progress cannot be derived.
+2. FFmpeg.wasm's `progress` event is experimental. User-facing determinate progress must degrade safely to indeterminate/phase telemetry when reliable duration-based progress cannot be derived.
 3. `pdf-lib` creates and edits PDF structure but is not a PDF page renderer. PDF-to-image routes use PDF.js.
 4. WCAG conformance requires automated **and** manual evaluation. axe is an automated regression gate, not proof of complete WCAG 2.2 AA conformance.
 5. The original eight-phase file plan omitted required runtime/config/test files. `TODO.md` contains the corrected <=3-new-files-per-phase sequence.

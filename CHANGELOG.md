@@ -5,7 +5,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Phase 6 red-first import/queue UI contract now covers native file input parity, drop/paste guidance, batch target selection, strip-metadata policy, aggregate progress for multi-file activity, per-file target selection, progress semantics, and cancellation; component stubs intentionally remain red before implementation.
+- Phase 6 import/queue implementation: native multi-file chooser, pointer/keyboard drop target, clipboard paste intake, signature-first local queue creation, per-file target/progress/cancel controls, batch target and strip-metadata policy, responsive queue cards, and sticky aggregate progress for 2+ active files; full CI verification is pending for this implementation commit.
+- Phase 6 red-first import/queue UI contract covering native file input parity, drop/paste guidance, batch target selection, strip-metadata policy, aggregate progress for multi-file activity, per-file target selection, progress semantics, and cancellation.
 - Phase 5 red-first compatibility-routing tests for image, audio, video/audio-extraction, tabular, source-specific document routes, AVIF capability gating, unresolved-container blocking, and immutable job-store updates.
 - Signature-first binary detector with tested support for PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, MP3/ID3, Ogg ambiguity, and unknown/truncated bytes.
 - Responsive workbench foundation, durable `AGENTS.md`, semantic React shell, permanent validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
