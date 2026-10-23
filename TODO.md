@@ -23,7 +23,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 4 | Types + magic-byte detector + test | COMPLETE | RED observed then CI green for supported signatures/unknown bytes. |
 | 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
 | 6 | Import/queue UI | COMPLETE | RED observed; install/check/test/build green on run 40027877824. |
-| 7 | Image + metadata workers + test | ACTIVE | Red-first worker contract committed; must fail only targeted raster/metadata assertions before implementation. |
+| 7 | Image + metadata workers + test | ACTIVE | RED observed with check green; implementation committed and awaiting full CI green. |
 | 8 | Tabular worker + test + fixture | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
 | 10 | Media adapter + progress + test | INCOMPLETE | Lazy FFmpeg/cancel/honest progress. |
@@ -41,13 +41,13 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper MIT.
 - Node.js >=22.13.0.
 - Binary signatures are authoritative first-stage evidence; ambiguous containers require deeper probing before targets unlock.
-- Image raster workers use `createImageBitmap` + `OffscreenCanvas`; AVIF support must be capability-probed because unsupported `convertToBlob()` types fall back to PNG.
-- Metadata parsing receives bytes, never untrusted strings/URLs, and initially limits ExifReader groups to reduce attack surface.
+- Image raster workers use `createImageBitmap` + `OffscreenCanvas`; requested encoder MIME must match the returned Blob MIME so unsupported AVIF cannot pass through PNG fallback.
+- Metadata parsing accepts bytes, never untrusted strings/URLs, and initially loads only file/EXIF/GPS/composite groups.
 
 ## Active checkpoint
 Phase 7 — image + metadata workers.  
 New files (3/3): `src/workers/image.worker.ts`, `src/workers/metadata.worker.ts`, `tests/unit/imageWorkers.test.ts`.  
-Next: observe CI RED with lint/typecheck green. Then implement MIME mapping, cooperative cancellation, bitmap disposal, AVIF fallback rejection/capability semantics, safe metadata normalization, and byte-only ExifReader inspection without adding Phase 7 files.
+Next: require permanent CI install/check/test/build to pass the implemented cancellation, disposal, AVIF fallback, and safe metadata contracts. On green, mark Phase 7 COMPLETE and begin Phase 8 red-first tabular conversion.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
