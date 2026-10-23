@@ -5,6 +5,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
+- Responsive dark-slate workbench design foundation with fluid 320–3840px sizing, focus-visible treatment, reduced-motion handling, semantic status styling, and browser-surface theming.
+- Durable `AGENTS.md` handoff contract and minimal Vite React configuration with ES-module worker output.
 - Semantic React application shell with accessible skip navigation, local-processing status messaging, and a real Vite entry point.
 - Permanent pinned GitHub Actions validation for frozen install, lint/typecheck, unit tests, and production build.
 - Verified `pnpm-lock.yaml` committed by the registry-connected runner and strict TypeScript 7 configuration completing the toolchain phase.

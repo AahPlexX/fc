@@ -21,30 +21,39 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 0 | Governance correction (`README`, tracker, changelog) | COMPLETE | Corrected PRD contradictions are durable. |
 | 1A | Registry verification + lifecycle policy | COMPLETE | Node 22.13.0 + pnpm 12.15.0; frozen install passed; ExifReader postinstall explicitly denied. |
 | 1 | Toolchain (`package.json`, `pnpm-lock.yaml`, `tsconfig.json`) | COMPLETE | Verified lockfile + frozen install; strict TypeScript config committed. |
-| 2 | React shell (`index.html`, `src/main.tsx`, `src/App.tsx`) | ACTIVE | Shell½µµ¥ÑÑ•ìÁ•Éµ…¹•¹Ð$µÕÍÐÁ…ÍÌÁ¹Á´¡•¬€˜˜Á¹´Ñ•ÍÐ€˜˜Á¹Á´‰Õ¥±‘€¸ð)ð€Ìð!…¹‘½™˜½‘•Í¥¸€¡9QL¹µ‘€°Ù¥Ñ”¹½¹™¥œ¹ÑÍ€°ÍÉŒ½ÍÑå±•Ì½Ñ½­•¹Ì¹ÍÍ€¤ð%9=5A1QðI•ÍÁ½¹Í¥Ù”€ÌÈÃŠLÎ›ØÝ\ËÜ™YXÙY[[Ý[Ûˆ˜\Ù[[™KˆŸÛXZ[ˆ\\È
-ÈXYÚXËXž]H]XÝ[Ûˆ
-È[š]\ÝSÓÓTUH”‹LˆÜÛÙ‹ÜÚYÛ˜]\™HÛÝ™\˜YÙKˆŸHÛÛ\]Xš[]HX]š^
-È\Ý
-È›ØˆÝÜ™HSÓÓTUH”‹LÈÛXZ[‹X›Ý[™\™Ù]Ù]ËˆŸˆ[\ÜÜ]Y]YHRH
-ÈÛÛ\Û™[ÊHSÓÓTUH”‹LKÌÌ‹ÌÎÈÙ^X›Ø\™ÜÚ[\ˆ\š]KˆŸÈ[XYÙH
-ÈY]Y]HÛÜšÙ\œÈ
-È\ÝSÓÓTUH˜\Ý\ˆÛÛ™\œÚ[Û‹ÛY]Y]KØØ[˜Ù[ÐU’QˆØ\Xš[]HØ]KˆŸX[\ˆÛÜšÙ\ˆ
-È\Ý
-Èš^\™\ÈSÓÓTUHÔÕ‹ÕÕ‹Ò”ÓÓ‹ÓQÒS]X›H›Ý[™š\ËˆŸH‹ÙØÝ[Y[ÛÜšÙ\ˆ
-È\Ý
-Èš^\™HSÓÓTUH‹[XˆY]Y]H
-È‹šœÈYÙH˜\Ý\š^˜][Û‹ˆŸLYYXHY\\ˆ
-È›ÙÜ™\ÜÈ[Ù[
-È\ÝSÓÓTUH^žH‘›\YËØ[˜Ù[][Û‹][›ÙÜ™\ÜÈYÜ˜Y][Û‹ˆŸLHY]Y]H˜]Ù\ˆ
-È™]šY]È
-È˜]ÚXÝ[ÛœÈSÓÓTUHX[ÙÈ›ØÝ\ËÑ\ØØ\KÛY]Y]KÜš]˜XÞKÜ™]šY]ÜËˆŸLˆ^Ü
-È\Ý
-Èš^\™\ÈSÓÓTUH›ØˆÝÛ›ØY
-È’TÛÛ\Ú[Ûˆ[™[™ËˆŸLÈÐHX[šY™\Ý
-ÈÙ\šXÙHÛÜšÙ\ˆ
-ÈÙ™›[™H\ÝSÓÓTUHÙ™›[™HÚ[Ú]Ý]ØXÚ[™È\Ù\ˆš[H^[ØYËˆŸM^]ÜšYÚÛÛ™šYÈ
-ÈÛÛ™\œÚ[Û‹ØLL^HL‘HSÓÓTUHÚ›ÛZ][KÑš\™Y›ÞÕÙX’Ú]
-È™\]Z\™YšY]ÜÜØ^KÛX[X[ÚXÚÜËˆŸMHÈQœÈSÓÓTUHQœÈ™Y›XÝÚ\Y[\[Y[][Û‹ˆ‚ˆÈÈ™\šYšYYÛÜœ™XÝ[ÛœÈØ\œšYY[È[\[Y[][Û‚‚‹H™›\YËÙ™›\YØ[™XYHÝÛœÈ]È˜[œØÛÙHÛÜšÙ\ŽÈ›È™Y[™[Ü˜\\ˆÛÜšÙ\ˆžHY˜][‚‹H‘›\YËØ\ÛH›ÙÜ™\ÜØ\È^\š[Y[[È\ÙH]\›Z[˜]H›ÙÜ™\ÜÈÛ›HÚ[ˆ\ÝÛÜKÝ\Ú\ÙH\ÙKÚ[™]\›Z[˜]HÝ]\Ë‚‹H‹[X˜Y]ÈˆÝXÝ\™NÈ‹šœÈ™[™\œÈˆYÙ\Ë‚‹H^H\È[ˆ]]ÛX]Y™YÜ™\ÜÚ[ÛˆØ]K›ÝÛÛ\]HÐÐQÈ‹ŒˆPH›ÛÙŽÈX[X[ÚXÚÜÈ™[XZ[ˆ™\]Z\™Y‚‹HÐHÝ]\È™\]Z\™\È›ÝX[šY™\Ý[™Ù\šXÙK]ÛÜšÙ\‹ÛÙ™›[™H™Z]š[Ü‹‚‹H™›\YËØÛÜ™PŒL‹ŒL\ÈÔL‹Œ[Ü‹[]\ŽÈÜ˜\\ˆ\ÈRU‚‹H[[YH›ÛÜˆ\È›ÙKšœÈLŒ‹ŒLËŒÈØ]\ÙžHH[›™YÛÛÚZ[ˆ[˜ÛY[™È‹šœË‚‚ˆÈÈXÝ]™HÚXÚÜÚ[‚”\ÙHˆ8 %™XXÝÚ[ˆÝ\œ™[š[Nˆ™Ú]X‹ÝÛÜšÙ›ÝÜËØ›ÛÝÝ˜\[ØÚÙš[Kž[[
-\›X[™[˜[Y][ÛˆÛÜšÙ›ÝÊKˆ“™^ˆ™\]Z\™HHÚ[ÛÛ[Z]È\ÜÈœ›Þ™[ˆ[œÝ[[Ý\XÚXÚË\ÝË[™›ÙXÝ[ÛˆZ[È[ˆÛÜÙH\ÙHˆ[™™YÚ[ˆH™\ÜÛœÚ]™H\ÚYÛˆ›Ý[™][Û‹‚‚ˆÈÈ[š\›Û›Y[›Ý\Â‚‹HØØ[^XÝ][ÛˆØ[™›Þ\È›È^\›˜[XÚØYÙKZÜÝ”ÎÈÚ]XˆXÝ[ÛœÈ\ÈH™YÚ\ÝžKXÛÛ›™XÝY™\šYšXØ][Ûˆ[š\›Û›Y[‚‹H›È˜XœšXØ]YØÚÙš[\ÈÜˆ\[™[˜ÞH™\Ý[Ë‚‹H›ÛÝÝ˜\[›™\ˆ\™Ý[Y[\ÜÈ
-K[ØÚÚYš[K[Û›XKYœ›Þ™[‹[ØÚÙš[X
-HÙ\™H›Ý[™œ›ÛHÒHÙÜÈ[™ÛÜœ™XÝYÈK[ØÚÙš[K[Û›XKYœ›Þ™[‹[ØÚÙš[X™Y›Ü™H[žHÙ[™\˜]Yš[HØ\ÈÛÛ[Z]Y‚
+| 2 | React shell (`index.html`, `src/main.tsx`, `src/App.tsx`) | COMPLETE | Permanent CI passed frozen install, check, tests, and production build. |
+| 3 | Handoff/design (`AGENTS.md`, `vite.config.ts`, `src/styles/tokens.css`) | ACTIVE | Responsive design foundation committed; CI must pass before phase closes. |
+| 4 | Domain types + magic-byte detection + unit test | INCOMPLETE | FR-002 spoof/signature coverage. |
+| 5 | Compatibility matrix + test + job store | INCOMPLETE | FR-003 domain-bound target sets. |
+| 6 | Import/queue UI (3 components) | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
+| 7 | Image + metadata workers + test | INCOMPLETE | Raster conversion/metadata/cancel/AVIF capability gate. |
+| 8 | Tabular worker + test + fixtures | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
+| 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js page rasterization. |
+| 10 | Media adapter + progress model + test | INCOMPLETE | Lazy FFmpeg, cancellation, truthful progress degradation. |
+| 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog focus/Escape/metadata/privacy/previews. |
+| 12 | Export + test + fixtures | INCOMPLETE | Blob download + ZIP + collision handling. |
+| 13 | PWA manifest + service worker + offline test | INCOMPLETE | Offline shell without caching user file payloads. |
+| 14 | Playwright config + conversion/a11y E2E | INCOMPLETE | Chromium/Firefox/WebKit + required viewport/axe/manual checks. |
+| 15 | 3 ADRs | INCOMPLETE | ADRs reflect shipped implementation. |
+
+## Verified corrections carried into implementation
+
+- `@ffmpeg/ffmpeg` already owns its transcode worker; no redundant wrapper worker by default.
+- FFmpeg.wasm `progress` is experimental; use determinate progress only when trustworthy, otherwise phase/indeterminate status.
+- `pdf-lib` edits PDF structure; PDF.js renders PDF pages.
+- axe is an automated regression gate, not complete WCAG 2.2 AA proof; manual checks remain required.
+- PWA status requires both manifest and service-worker/offline behavior.
+- `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper is MIT.
+- Runtime floor is Node.js >=22.13.0 to satisfy the pinned toolchain including PDF.js.
+
+## Active checkpoint
+
+Phase 3 â€” Handoff/design foundation.  
+Current file: `src/styles/tokens.css`.  
+Next: require the responsive design foundation to pass permanent CI, then close Phase 3 and begin test-first magic-byte/domain contracts.
+
+## Environment notes
+
+- Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
+- No fabricated lockfiles or dependency results.
+- Bootstrap runner argument typos (`--lockifile-only`, `--frozen-lockifile`) were found from CI logs and corrected to `--lockfile-only`, `--frozen-lockifile` before any generated file was committed.
