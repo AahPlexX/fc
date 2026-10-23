@@ -4,13 +4,15 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, the import/queue workbench, and image/metadata worker contracts are CI-verified. Tabular CSV/TSV/JSON conversion is implemented and under validation. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Core format detection/routing, import/queue behavior, image/metadata workers, and tabular conversion are CI-verified. PDF metadata editing and page rasterization are implemented and under validation. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The UI accepts files through the native multi-file picker, a keyboard-operable drop target, or clipboard paste. Imported bytes are inspected locally before a job is added. Binary formats are signature-detected; CSV/TSV/JSON are identified from structured UTF-8 content. Unsupported files are skipped rather than guessed from extensions or browser MIME values. Queue controls support per-file target selection/cancellation, batch target selection, batch metadata stripping policy, and aggregate progress for multiple active jobs.
 
 Image conversion uses `createImageBitmap()` plus `OffscreenCanvas` inside a dedicated worker. Requested output MIME types are verified against the Blob returned by the browser so unsupported AVIF cannot silently succeed as PNG. Bitmaps are closed after every conversion attempt. Metadata inspection runs separately, receives raw bytes rather than paths/URLs, and initially exposes only normalized file, EXIF, GPS, and composite values.
 
 Tabular conversion uses a canonical row/column model. Papa Parse is dynamically imported only for CSV/TSV parsing or serialization. CSV/TSV exports enable formula escaping, while Markdown and HTML outputs escape cell content before rendering.
+
+PDF operations are split by responsibility: pdf-lib reads/updates document-info metadata and serializes bytes, while PDF.js renders pages. PDFs are always loaded from in-memory bytes. The PDF.js worker asset is bundled with the application and resolved same-origin; OmniConvert does not use a CDN fallback. Page numbers are validated as 1-based before rendering, rendered page dimensions are derived from PDF.js viewports, and page/document resources are cleaned up even when rendering fails.
 
 ## Verified foundation stack — 2026-10-23
 
