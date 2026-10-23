@@ -14,9 +14,11 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Exact-pinned browser conversion/test stack and pnpm 12.15.0 package manager policy.
 - Pinned GitHub Actions registry-verification harness with immutable action SHAs.
 - Explicit pnpm lifecycle policy denying ExifReader's unnecessary custom postinstall.
-- Verified deterministic lockfile generation/frozen install on Node.js 22.13.0; runner now commits the verified output directly to `main` to avoid transcription risk.
+- Verified deterministic lockfile generation/frozen install on Node.js 22.13.0.
 
 ### Fixed
+- Added Vite client type declarations to the strict TypeScript program so CSS side-effect imports are resolved rather than silently ignored.
+- Replaced broad reduced-motion `!important` overrides with source-order, component-scoped rules that preserve reduced motion without defeating the cascade or Biome's no-important rule.
 - Corrected bootstrap pnpm argument typos from `--lockifile-only` / `--frozen-lockifile` to `--lockfile-only` / `--frozen-lockfile`; failed runs wrote no generated repository files.
 
 ### Changed

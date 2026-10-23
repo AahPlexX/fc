@@ -135,7 +135,7 @@ h2 {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   min-height: 2.75rem;
   margin: 0;
   padding: 0.55rem 0.8rem;
@@ -152,7 +152,7 @@ h2 {
   height: 0.55rem;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0.25rem 0.7rem rgb(52 211 153 / 0.25);
+  box-shadow: 0 0.25rem 0.7rem rgb(52 211 153 / 25%);
 }
 
 .workbench {
@@ -165,7 +165,7 @@ h2 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.18);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 18%);
 }
 
 @media (max-width: 44rem) {
@@ -184,12 +184,7 @@ h2 {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.001ms !important;
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
+  .skip-link {
+    transition: none;
   }
 }
