@@ -20,7 +20,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 |---|---|---|---|
 | 0 | Governance correction (`README`, tracker, changelog) | COMPLETE | Corrected PRD contradictions are durable. |
 | 1A | Registry verification + lifecycle policy | COMPLETE | Node 22.13.0 + pnpm 12.15.0; frozen install passed; ExifReader postinstall explicitly denied. |
-| 1 | Toolchain (`package.json`, `pnpm-lock.yaml`, `tsconfig.json`) | ACTIVE | Runner will commit its verified lockfile; then commit strict `tsconfig.json`. |
+| 1 | Toolchain (`package.json`, `pnpm-lock.yaml`, `tsconfig.json`) | COMPLETE | Verified lockfile + frozen install; strict TypeScript config committed. |
 | 2 | React shell (`index.html`, `src/main.tsx`, `src/App.tsx`) | INCOMPLETE | `pnpm check && pnpm test && pnpm build`. |
 | 3 | Handoff/design (`AGENTS.md`, `vite.config.ts`, `src/styles/tokens.css`) | INCOMPLETE | Responsive 320–3840px, focus/reduced-motion baseline. |
 | 4 | Domain types + magic-byte detection + unit test | INCOMPLETE | FR-002 spoof/signature coverage. |
@@ -31,7 +31,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js page rasterization. |
 | 10 | Media adapter + progress model + test | INCOMPLETE | Lazy FFmpeg, cancellation, truthful progress degradation. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog focus/Escape/metadata/privacy/previews. |
-| 12 | Export + test + fixtures | INCOMPLETE | Blob download + ZIP + collision handling. |
+| 12 | Export + test + fixtures | INCOMPLETE | Blob download + ZIP collision handling. |
 | 13 | PWA manifest + service worker + offline test | INCOMPLETE | Offline shell without caching user file payloads. |
 | 14 | Playwright config + conversion/a11y E2E | INCOMPLETE | Chromium/Firefox/WebKit + required viewport/axe/manual checks. |
 | 15 | 3 ADRs | INCOMPLETE | ADRs reflect shipped implementation. |
@@ -48,12 +48,12 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
 ## Active checkpoint
 
-Phase 1 — Toolchain.  
-Current file: `.github/workflows/bootstrap-lockfile.yml`.  
-Next: runner commits verified `pnpm-lock.yaml` to `main`; then commit strict `tsconfig.json`, convert CI to frozen-install/check/test/build, and start Phase 2.
+Phase 2 — React shell.  
+Current file: `index.html`.  
+Next: create the three-file shell (`index.html`, `src/main.tsx`, `src/App.tsx`) and convert CI to frozen-install/check/test/build verification.
 
 ## Environment notes
 
 - Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
 - No fabricated lockfiles or dependency results.
-- Bootstrap runner argument typos (`--lockifile-only`, `--frozen-lockifile`) were found from CI logs and corrected to `--lockfile-only`, `--frozen-lockfile` before any generated file was committed.
+- Bootstrap runner argument typos (`--lockifile-only`, `--frozen-lockfile`) were found from CI logs and corrected to `--lockfile-only`, `--frozen-lockfile` before any generated file was committed.
