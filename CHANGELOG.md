@@ -11,6 +11,9 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Explicit pnpm lifecycle policy denying ExifReader's unnecessary custom postinstall.
 - Verified deterministic lockfile generation/frozen install on Node.js 22.13.0; runner now commits the verified output directly to `main` to avoid transcription risk.
 
+### Fixed
+- Corrected the bootstrap pnpm argument typo from `--lockifile-only` to `--lockfile-only`; the failed run wrote no repository files.
+
 ### Changed
 - Raised Node floor to >=22.13.0 to satisfy Vite 8 and `pdfjs-dist@6.4.299`.
 - Corrected ExifReader to 4.51.0 and added PDF.js 6.4.299 for page rendering.
