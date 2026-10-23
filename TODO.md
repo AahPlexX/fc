@@ -1,130 +1,58 @@
 # OmniConvert Implementation Tracker
 
-Last updated: 2026-10-23
-Target branch: `main`
-Target repository: `AahPlexX/fc` (confirmed writable, empty, default branch `main` on 2026-10-23)
+Last updated: 2026-10-23  
+Repository: `AahPlexX/fc`  
+Branch: `main` only  
+Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
-Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
+## Non-negotiable invariants
 
-## Invariants
+- Maximum 3 **new** files per phase; edits to existing files are unlimited.
+- Executable/config changes update this file and `CHANGELOG.md` in the same commit; update `README.md` when public behavior, commands, architecture, support, or requirements change.
+- Exact dependency pins only; pnpm only.
+- User file payloads never leave the browser.
+- No phase is COMPLETE without its relevant automated/manual verification.
+- Native/platform features before custom abstractions; heavy engines lazy-load.
 
-- Maximum three **new** files per phase; edits to existing files are unlimited.
-- Every executable-code phase updates `TODO.md` and `CHANGELOG.md` in the same commit; update `README.md` when public commands, architecture, supported routes, or browser requirements change.
-- Exact dependency versions only.
-- Browser file payloads never leave the client.
-- `main` is the only implementation branch unless the user explicitly overrides it.
-- No requirement is marked complete until its tests and relevant manual verification pass.
+## Phase ledger
 
-## Corrected delivery sequence
+| Phase | Scope | Status | Verification / next gate |
+|---|---|---|---|
+| 0 | Governance correction (`README`, tracker, changelog) | COMPLETE | Corrected PRD contradictions are durable. |
+| 1A | Registry verification + lifecycle policy | COMPLETE | Node 22.13.0 + pnpm 12.15.0; frozen install passed; ExifReader postinstall explicitly denied. |
+| 1 | Toolchain (`package.json`, `pnpm-lock.yaml`, `tsconfig.json`) | ACTIVE | Runner will commit its verified lockfile; then commit strict `tsconfig.json`. |
+| 2 | React shell (`index.html`, `src/main.tsx`, `src/App.tsx`) | INCOMPLETE | `pnpm check && pnpm test && pnpm build`. |
+| 3 | Handoff/design (`AGENTS.md`, `vite.config.ts`, `src/styles/tokens.css`) | INCOMPLETE | Responsive 320–3840px, focus/reduced-motion baseline. |
+| 4 | Domain types + magic-byte detection + unit test | INCOMPLETE | FR-002 spoof/signature coverage. |
+| 5 | Compatibility matrix + test + job store | INCOMPLETE | FR-003 domain-bound target sets. |
+| 6 | Import/queue UI (3 components) | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
+| 7 | Image + metadata workers + test | INCOMPLETE | Raster conversion/metadata/cancel/AVIF capability gate. |
+| 8 | Tabular worker + test + fixtures | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
+| 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js page rasterization. |
+| 10 | Media adapter + progress model + test | INCOMPLETE | Lazy FFmpeg, cancellation, truthful progress degradation. |
+| 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog focus/Escape/metadata/privacy/previews. |
+| 12 | Export + test + fixtures | INCOMPLETE | Blob download + ZIP + collision handling. |
+| 13 | PWA manifest + service worker + offline test | INCOMPLETE | Offline shell without caching user file payloads. |
+| 14 | Playwright config + conversion/a11y E2E | INCOMPLETE | Chromium/Firefox/WebKit + required viewport/axe/manual checks. |
+| 15 | 3 ADRs | INCOMPLETE | ADRs reflect shipped implementation. |
 
-### Phase 0 — Governance correction
-- [COMPLETE] `README.md`
-- [COMPLETE] `CHANGELOG.md`
-- [COMPLETE] `TODO.md`
-- Exit: PRD contradictions and corrected implementation ordering are durably recorded.
+## Verified corrections carried into implementation
 
-### Phase 1A — Registry-connected verification harness
-- [ACTIVE] `.github/workflows/bootstrap-lockfile.yml` — pinned GitHub-hosted verification runner used to generate and frozen-install the pnpm lockfile.
-- [ACTIVE] `pnpm-workspace.yaml` — explicit least-privilege lifecycle-script policy; ExifReader custom postinstall is denied because OmniConvert has no custom ExifReader build configuration.
-- Verify: Node.js 22.13.0, pnpm 12.15.0, registry resolution, lifecycle policy, and frozen install in GitHub Actions.
-
-### Phase 1 — Installable toolchain
-- [COMPLETE] `package.json`
-- [ACTIVE] `pnpm-lock.yaml` — registry-connected generation and frozen install passed in GitHub Actions; commit the exact verified artifact from the pinned runner.
-- [INCOMPLETE] `tsconfig.json` — intentionally not started until the lockfile gate clears.
-- Verify: exact dependency resolution, clean install, no caret/tilde ranges.
-
-### Phase 2 — Buildable React shell
-- [INCOMPLETE] `index.html`
-- [INCOMPLETE] `src/main.tsx`
-- [INCOMPLETE] `src/App.tsx`
-- Verify: `pnpm build` and `pnpm check` exit 0.
-
-### Phase 3 — Agent handoff + design foundation
-- [INCOMPLETE] `AGENTS.md`
-- [INCOMPLETE] `vite.config.ts`
-- [INCOMPLETE] `src/styles/tokens.css`
-- Verify: responsive root shell at 320px through 3840px with visible keyboard focus and reduced-motion handling.
-
-### Phase 4 — Core domain contracts
-- [INCOMPLETE] `src/core/types.ts`
-- [INCOMPLETE] `src/core/magicBytes.ts`
-- [INCOMPLETE] `tests/unit/magicBytes.test.ts`
-- Verify FR-002 binary signatures and extension/MIME disagreement behavior.
-
-### Phase 5 — Compatibility routing
-- [INCOMPLETE] `src/core/compatibilityMatrix.ts`
-- [INCOMPLETE] `tests/unit/compatibilityMatrix.test.ts`
-- [INCOMPLETE] `src/core/jobStore.ts`
-- Verify FR-003 and all domain-bound target sets.
-
-### Phase 6 — Import + queue UI
-- [INCOMPLETE] `src/components/DropzoneHeader.tsx`
-- [INCOMPLETE] `src/components/JobCard.tsx`
-- [INCOMPLETE] `src/components/ConversionQueue.tsx`
-- Verify FR-001, FR-004, FR-006, FR-007 and keyboard/pointer parity.
-
-### Phase 7 — Image + metadata workers
-- [INCOMPLETE] `src/workers/image.worker.ts`
-- [INCOMPLETE] `src/workers/metadata.worker.ts`
-- [INCOMPLETE] `tests/unit/imageWorker.test.ts`
-- Verify raster conversion, metadata read/strip/write, cancellation, capability-gated AVIF output.
-
-### Phase 8 — Tabular worker
-- [INCOMPLETE] `src/workers/tabular.worker.ts`
-- [INCOMPLETE] `tests/unit/tabularWorker.test.ts`
-- [INCOMPLETE] `tests/fixtures/tabular.ts`
-- Verify CSV/TSV/JSON/Markdown/HTML-table round trips and malformed-input failures.
-
-### Phase 9 — PDF/document worker
-- [INCOMPLETE] `src/workers/document.worker.ts`
-- [INCOMPLETE] `tests/unit/documentWorker.test.ts`
-- [INCOMPLETE] `tests/fixtures/pdf.ts`
-- Verify pdf-lib metadata/editing and PDF.js page rasterization. Do not claim arbitrary HTML/CSS-to-PDF fidelity.
-
-### Phase 10 — Media engine adapter
-- [INCOMPLETE] `src/core/mediaEngine.ts`
-- [INCOMPLETE] `src/core/mediaProgress.ts`
-- [INCOMPLETE] `tests/unit/mediaProgress.test.ts`
-- Verify lazy FFmpeg hydration, single-thread fallback, cancellation, and trustworthy progress degradation.
-
-### Phase 11 — Metadata/preview UI
-- [INCOMPLETE] `src/components/MetadataDrawer.tsx`
-- [INCOMPLETE] `src/components/PreviewModal.tsx`
-- [INCOMPLETE] `src/components/BatchActions.tsx`
-- Verify dialog focus restoration, Escape behavior, editable fields, privacy strip policy, previews.
-
-### Phase 12 — ZIP export
-- [INCOMPLETE] `src/core/export.ts`
-- [INCOMPLETE] `tests/unit/export.test.ts`
-- [INCOMPLETE] `tests/fixtures/files.ts`
-- Verify individual Blob download and multi-result ZIP assembly with filename collision handling.
-
-### Phase 13 — PWA/offline completion
-- [INCOMPLETE] `public/manifest.webmanifest`
-- [INCOMPLETE] `src/sw.ts`
-- [INCOMPLETE] `tests/unit/offlinePolicy.test.ts`
-- Verify offline shell/core-asset policy without caching user file payloads.
-
-### Phase 14 — E2E, accessibility, responsive verification
-- [INCOMPLETE] `playwright.config.ts`
-- [INCOMPLETE] `tests/e2e/conversion.spec.ts`
-- [INCOMPLETE] `tests/e2e/accessibility.spec.ts`
-- Verify Chromium/Firefox/WebKit, required viewport matrix, automated axe scans, and documented manual WCAG checks.
-
-### Phase 15 — Architecture records
-- [INCOMPLETE] `docs/adr/0001-client-side-worker-wasm-topology.md`
-- [INCOMPLETE] `docs/adr/0002-domain-segmented-conversion-routing.md`
-- [INCOMPLETE] `docs/adr/0003-metadata-inspection-and-sanitization.md`
-- Verify ADRs reflect the shipped implementation rather than the pre-implementation PRD.
+- `@ffmpeg/ffmpeg` already owns its transcode worker; no redundant wrapper worker by default.
+- FFmpeg.wasm `progress` is experimental; use determinate progress only when trustworthy, otherwise phase/indeterminate status.
+- `pdf-lib` edits PDF structure; PDF.js renders PDF pages.
+- axe is an automated regression gate, not complete WCAG 2.2 AA proof; manual checks remain required.
+- PWA status requires both manifest and service-worker/offline behavior.
+- `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper is MIT.
+- Runtime floor is Node.js >=22.13.0 to satisfy the pinned toolchain including PDF.js.
 
 ## Active checkpoint
 
-Current phase: Phase 1A — Registry-connected verification harness.
-Current file: `.github/workflows/bootstrap-lockfile.yml`.
-Next step: rerun the pinned GitHub Actions harness on Node.js 22.13.0, retrieve the verified `pnpm-lock.yaml` artifact, commit it, create `tsconfig.json`, and close Phase 1.
+Phase 1 — Toolchain.  
+Current file: `.github/workflows/bootstrap-lockfile.yml`.  
+Next: runner commits verified `pnpm-lock.yaml` to `main`; then commit strict `tsconfig.json`, convert CI to frozen-install/check/test/build, and start Phase 2.
 
-## Known blockers
+## Environment notes
 
-- [MITIGATED] Local package-host DNS is unavailable in the execution sandbox. GitHub Actions is the registry-connected verification environment; no lockfile is fabricated locally.
-- [MITIGATED] pnpm 12 correctly blocked ExifReader 4.51.0 postinstall. Its script only custom-builds when the consumer declares an `exifreader` configuration; OmniConvert does not, so `pnpm-workspace.yaml` explicitly denies that lifecycle build.
+- Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
+- No fabricated lockfiles or dependency results.

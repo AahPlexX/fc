@@ -1,32 +1,25 @@
 # Changelog
 
-All notable changes to OmniConvert are documented here using the Keep a Changelog structure.
+All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ## [Unreleased]
 
 ### Added
-- Explicit pnpm lifecycle-script policy denying ExifReader custom postinstall because OmniConvert does not use ExifReader custom-build configuration.
-- Pinned GitHub Actions lockfile bootstrap harness using immutable action commit SHAs and read-only repository permissions.
-- Exact-pinned dependency manifest synchronized to `AahPlexX/fc` on `main`.
-- Repository target corrected to `AahPlexX/fc` after direct GitHub verification.
-- Exact-pinned `package.json` dependency manifest verified against primary registry/release sources on 2026-10-23.
-- Repository bootstrap documentation and corrected implementation sequencing.
-- Primary-source package/version baseline dated 2026-10-23.
+- Corrected repository governance and <=3-new-files phase ledger for `AahPlexX/fc` on `main`.
+- Exact-pinned browser conversion/test stack and pnpm 12.15.0 package manager policy.
+- Pinned GitHub Actions registry-verification harness with immutable action SHAs.
+- Explicit pnpm lifecycle policy denying ExifReader's unnecessary custom postinstall.
+- Verified deterministic lockfile generation/frozen install on Node.js 22.13.0; runner now commits the verified output directly to `main` to avoid transcription risk.
 
 ### Changed
-- Switched verified lockfile transfer from console-encoded output to a one-day GitHub Actions artifact pinned to `actions/upload-artifact@v7.0.2` by immutable commit SHA.
-- Hardened the lockfile bootstrap workflow to treat dependency lifecycle scripts as an explicit allow/deny policy rather than approving builds merely to satisfy installation.
-- Replaced the local-registry blocker with a GitHub-hosted registry verification path while retaining pnpm-only project dependency installation.
-- Corrected the FFmpeg core license record: `@ffmpeg/core@0.12.10` declares GPL-2.0-or-later; the JavaScript wrapper `@ffmpeg/ffmpeg` is MIT.
-- Raised the Node.js floor to 22.13+ so it satisfies both Vite 8 and `pdfjs-dist@6.4.299` engine requirements.
-- Preserved phase ordering by deferring lockfile and TypeScript configuration until a pnpm registry-connected runtime is available.
-- Corrected ExifReader target from 4.45.0 to 4.51.0.
-- Added PDF.js as the required PDF page-rendering dependency.
-- Clarified that FFmpeg.wasm already owns its transcoding worker and that its progress event is experimental.
-- Reframed automated accessibility checks as regression assistance rather than complete WCAG conformance proof.
+- Raised Node floor to >=22.13.0 to satisfy Vite 8 and `pdfjs-dist@6.4.299`.
+- Corrected ExifReader to 4.51.0 and added PDF.js 6.4.299 for page rendering.
+- Corrected FFmpeg architecture: wrapper already uses its own worker; progress is experimental and must degrade honestly.
+- Corrected `@ffmpeg/core@0.12.10` license record to GPL-2.0-or-later; wrapper remains MIT.
+- Clarified axe as regression assistance rather than proof of complete WCAG 2.2 AA conformance.
+- Compacted tracker/changelog to eliminate duplicated stale-prone prose while preserving every phase, invariant, correction, blocker, and resume point.
 
 ## [1.0.0] - 2026-10-23
 
 ### Added
-- Repository target corrected to `AahPlexX/fc` after direct GitHub verification.
-- Initial approved OmniConvert product requirements supplied for implementation.
+- Approved OmniConvert PRD baseline supplied for implementation.
