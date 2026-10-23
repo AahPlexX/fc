@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - package.json
+      - pnpm-workspace.yaml
       - .github/workflows/bootstrap-lockfile.yml
 
 permissions:

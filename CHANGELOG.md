@@ -5,6 +5,7 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 ## [Unreleased]
 
 ### Added
+- Explicit pnpm lifecycle-script policy denying ExifReader custom postinstall because OmniConvert does not use ExifReader custom-build configuration.
 - Pinned GitHub Actions lockfile bootstrap harness using immutable action commit SHAs and read-only repository permissions.
 - Exact-pinned dependency manifest synchronized to `AahPlexX/fc` on `main`.
 - Repository target corrected to `AahPlexX/fc` after direct GitHub verification.
@@ -13,6 +14,7 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 - Primary-source package/version baseline dated 2026-10-23.
 
 ### Changed
+- Hardened the lockfile bootstrap workflow to treat dependency lifecycle scripts as an explicit allow/deny policy rather than approving builds merely to satisfy installation.
 - Replaced the local-registry blocker with a GitHub-hosted registry verification path while retaining pnpm-only project dependency installation.
 - Corrected the FFmpeg core license record: `@ffmpeg/core@0.12.10` declares GPL-2.0-or-later; the JavaScript wrapper `@ffmpeg/ffmpeg` is MIT.
 - Aligned the Node.js floor with Vite 8 official support at Node.js 22.12+.
