@@ -116,8 +116,8 @@ Status vocabulary: `[COMPLETE]`, `[ACTIVE]`, `[INCOMPLETE]`, `[BLOCKED]`.
 ## Active checkpoint
 
 Current phase: Phase 1 — Installable toolchain.
-Current file: `package.json` repository synchronization, followed by `pnpm-lock.yaml`.
-Next step: commit the verified exact-pinned manifest to `AahPlexX/fc`, then generate the lockfile with pnpm 12.15.0 in a registry-connected environment and verify a frozen install. Only after that gate passes, create `tsconfig.json`.
+Current file: `pnpm-lock.yaml`.
+Next step: generate the lockfile with pnpm 12.15.0 in a registry-connected environment and verify a frozen install. Only after that gate passes, create `tsconfig.json`.
 
 ## Known blockers
 

@@ -5,6 +5,7 @@ All notable changes to OmniConvert are documented here using the Keep a Changelo
 ## [Unreleased]
 
 ### Added
+- Exact-pinned dependency manifest synchronized to `AahPlexX/fc` on `main`.
 - Repository target corrected to `AahPlexX/fc` after direct GitHub verification.
 - Exact-pinned `package.json` dependency manifest verified against primary registry/release sources on 2026-10-23.
 - Repository bootstrap documentation and corrected implementation sequencing.
