@@ -24,8 +24,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
 | 6 | Import/queue UI | COMPLETE | RED observed; install/check/test/build green on run 40027877824. |
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
-| 8 | Tabular worker + test + fixture | ACTIVE | RED observed with check green; implementation + importer structural text detection committed and awaiting CI. |
-| 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
+| 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
+| 9 | PDF/document worker + test + fixture | ACTIVE | Red-first pdf-lib metadata + PDF.js raster contract committed; targeted unit RED required. |
 | 10 | Media adapter + progress + test | INCOMPLETE | Lazy FFmpeg/cancel/honest progress. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
@@ -35,7 +35,9 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
 ## Carried corrections
 - FFmpeg wrapper owns its worker; experimental progress degrades honestly.
-- `pdf-lib` edits PDF structure; PDF.js renders pages.
+- `pdf-lib` edits PDF structure/metadata; PDF.js renders pages from byte data.
+- PDF page numbers are 1-based at the PDF.js boundary and must be range-validated before rendering.
+- PDF.js worker assets must be same-origin/bundled; no CDN fallback is permitted by the privacy invariant.
 - axe supplements manual WCAG 2.2 AA evaluation.
 - PWA requires manifest + verified service worker/offline behavior.
 - `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper MIT.
@@ -45,9 +47,9 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
 
 ## Active checkpoint
-Phase 8 — tabular conversion.  
-New files (3/3): `src/workers/tabular.worker.ts`, `tests/unit/tabularWorker.test.ts`, `tests/fixtures/tabular.ts`.  
-Next: require permanent CI install/check/test/build to pass structural CSV/TSV/JSON detection, canonical parsing, and safe CSV/TSV/JSON/Markdown/HTML rendering. On green, mark Phase 8 COMPLETE and begin Phase 9 PDF/document RED contracts.
+Phase 9 — PDF/document worker.  
+New files (3/3): `src/workers/document.worker.ts`, `tests/unit/documentWorker.test.ts`, `tests/fixtures/pdf.ts`.  
+Next: observe CI RED with install/check green. Then implement byte-only pdf-lib metadata read/write, PDF.js page rendering with page bounds validation, guaranteed page/document cleanup, same-origin bundled worker configuration, and PNG/JPEG raster output without adding Phase 9 files.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
