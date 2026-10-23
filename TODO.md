@@ -25,8 +25,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 6 | Import/queue UI | COMPLETE | RED observed; install/check/test/build green on run 40027877824. |
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
-| 9 | PDF/document worker + test + fixture | ACTIVE | RED observed; first implementation check exposed PDF.js loading-task destruction ownership and the root fix is committed for rerun. |
-| 10 | Media adapter + progress + test | INCOMPLETE | Lazy FFmpeg/cancel/honest progress. |
+| 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
+| 10 | Media adapter + progress + test | ACTIVE | Red-first lazy FFmpeg lifecycle/progress/cancellation contract committed; targeted unit RED required. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
@@ -34,13 +34,10 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 15 | 3 ADRs | INCOMPLETE | Reflect shipped implementation. |
 
 ## Carried corrections
-- FFmpeg wrapper owns its worker; experimental progress degrades honestly.
-- `pdf-lib` edits PDF structure/metadata; PDF.js renders pages from byte data.
-- PDF inspection loads with `updateMetadata:false`; null metadata overrides serialize as empty info fields and normalize back to null.
-- PDF page numbers are 1-based at the PDF.js boundary and are range-validated before rendering.
-- PDF.js worker assets are bundled/same-origin via Vite `?url`; no CDN fallback is permitted.
-- PDF.js lifetime ownership belongs to `PDFDocumentLoadingTask.destroy()`; `PDFDocumentProxy` exposes cleanup but not destroy.
-- Page cleanup plus loading-task destruction occur in `finally`, including failed/range-invalid operations.
+- `@ffmpeg/ffmpeg` owns its worker. Its API requires `load()` before use; `terminate()` invalidates the engine and requires a fresh load before later calls.
+- FFmpeg progress is determinate only for routes that explicitly preserve input/output media duration; otherwise UI progress stays indeterminate while time telemetry may remain visible.
+- Single-thread `@ffmpeg/core` is the default; core JS/WASM/class-worker assets must be bundled same-origin and never fetched from a CDN.
+- `pdf-lib` edits PDF structure/metadata; PDF.js renders pages from byte data with loading-task destruction.
 - axe supplements manual WCAG 2.2 AA evaluation.
 - PWA requires manifest + verified service worker/offline behavior.
 - `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper MIT.
@@ -50,9 +47,9 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
 
 ## Active checkpoint
-Phase 9 — PDF/document worker.  
-New files (3/3): `src/workers/document.worker.ts`, `tests/unit/documentWorker.test.ts`, `tests/fixtures/pdf.ts`.  
-Next: rerun permanent CI after correcting PDF.js destruction ownership to the loading task. Require install/check/test/build green before Phase 9 completion and Phase 10 media work.
+Phase 10 — media adapter/progress.  
+New files (3/3): `src/core/mediaAdapter.ts`, `src/core/mediaProgress.ts`, `tests/unit/mediaAdapter.test.ts`.  
+Next: observe CI RED with install/check green. Then implement one lazily created FFmpeg instance, same-origin core/WASM/class-worker loading, virtual-FS write/exec/read/delete cleanup, reliable-only determinate progress, active-job termination, and engine re-creation after cancellation without adding Phase 10 files.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.

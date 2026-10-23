@@ -5,24 +5,21 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Phase 9 PDF/document implementation: byte-only pdf-lib metadata reads/writes, metadata normalization, 1-based page validation, PDF.js raster rendering through locally bundled worker assets, PNG/JPEG output validation, and guaranteed page/document cleanup; full CI verification is pending.
-- Phase 9 red-first PDF/document contract for metadata reads/writes, page-count preservation, page rasterization, dimensions, and cleanup.
-- Phase 8 tabular conversion with structural UTF-8 detection, lazy Papa Parse, formula-safe CSV/TSV, JSON, escaped Markdown/HTML, and importer support.
-- Phase 7 image/metadata workers with native canvas rasterization, AVIF fallback rejection, cancellation, bitmap cleanup, and safe byte-only metadata inspection.
-- Phase 6 import/queue workbench; Phase 5 compatibility routing; Phase 4 signature detector; responsive React/TypeScript foundation and permanent validation workflow.
+- Phase 10 red-first media adapter contract for lazy FFmpeg loading, virtual-FS transcoding, reliable-only determinate progress, temp-file cleanup, cancellation via termination, and fresh-engine recovery after cancellation.
+- Phase 9 PDF/document worker with byte-only pdf-lib metadata editing, validated PDF.js page rasterization, same-origin worker assets, and cleanup.
+- Phase 8 tabular conversion; Phase 7 image/metadata workers; Phase 6 import/queue workbench; Phase 5 compatibility routing; Phase 4 signature detector; responsive React/TypeScript foundation and permanent validation workflow.
 
 ### Fixed
-- PDF.js cleanup now destroys the `PDFDocumentLoadingTask`, matching the current API ownership model instead of calling a non-existent `PDFDocumentProxy.destroy()` method.
-- Phase 6 batch controls use native `fieldset`/`legend` grouping instead of unsupported generic ARIA labeling.
+- PDF.js cleanup destroys the `PDFDocumentLoadingTask`, matching current API ownership rather than calling a non-existent proxy method.
+- Phase 6 batch controls use native `fieldset`/`legend` grouping.
 - Validation-discovered CSS/toolchain bootstrap defects.
 
 ### Changed
-- Phase 8 is CI-verified through install, check, unit tests, and production build (run 40028994454).
-- PDF metadata inspection uses `updateMetadata:false`; pdf-lib keyword strings are normalized to arrays for the application contract.
-- PDF.js worker code is bundled same-origin via Vite; no CDN worker fallback is allowed.
-- Metadata inspection excludes raw XMP, ICC, thumbnails, and binary-valued groups from its initial surface.
-- Import detection considers binary signatures first and structured UTF-8 tabular content second; it never trusts filename extensions or browser MIME alone.
-- Runtime floor is Node.js >=22.13.0; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
+- Phase 9 is CI-verified through install, check, unit tests, and production build (run 40029861086).
+- FFmpeg determinate progress is gated by a route-level reliability flag because upstream documents progress as accurate only when input/output media lengths match.
+- FFmpeg cancellation uses wrapper `terminate()`, which invalidates the instance; subsequent work must create/load a fresh engine.
+- Single-thread FFmpeg core remains the default and its assets must be bundled same-origin with no CDN fallback.
+- Runtime floor is Node.js >=22.13.0.
 - `@ffmpeg/core@0.12.10` license is GPL-2.0-or-later; wrapper MIT.
 - axe remains regression assistance, not complete WCAG proof.
 
