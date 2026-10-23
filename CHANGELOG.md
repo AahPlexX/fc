@@ -5,24 +5,19 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Phase 4 red-first domain contracts and magic-byte test suite covering PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, MP3/ID3, Ogg ambiguity, and truncated/unknown bytes.
-- Responsive dark-slate workbench design foundation with fluid 320–3840px sizing, focus-visible treatment, reduced-motion handling, semantic status styling, and browser-surface theming.
-- Durable `AGENTS.md` handoff contract and minimal Vite React configuration with ES-module worker output.
-- Semantic React application shell with accessible skip navigation, local-processing status messaging, and a real Vite entry point.
-- Permanent pinned GitHub Actions validation for frozen install, lint/typecheck, unit tests, and production build.
-- Verified `pnpm-lock.yaml` committed by the registry-connected runner and strict TypeScript 7 configuration completing the toolchain phase.
+- Signature-first binary detector for unambiguous PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, and ID3-tagged MP3 inputs, with Ogg explicitly flagged for deeper stream probing.
+- Phase 4 red-first domain contracts and magic-byte test suite covering supported signatures plus truncated/unknown bytes.
+- Responsive dark-slate workbench foundation, durable `AGENTS.md`, semantic React shell, permanent pinned validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
 
 ### Fixed
-- Added Vite client type declarations to the strict TypeScript program so CSS side-effect imports resolve explicitly.
-- Replaced broad reduced-motion `!important` overrides with source-order, component-scoped rules.
+- Added Vite client type declarations for CSS side-effect imports and replaced broad reduced-motion `!important` overrides with scoped cascade-safe rules.
 - Corrected bootstrap pnpm argument typos before generated files were accepted.
 
 ### Changed
-- Binary format detection is explicitly two-stage: authoritative signatures can establish unambiguous domains, while containers such as Ogg remain `needsProbe` instead of being assumed audio.
-- Raised Node floor to >=22.13.0 to satisfy Vite 8 and `pdfjs-dist@6.4.299`.
-- Corrected ExifReader to 4.51.0 and added PDF.js 6.4.299 for page rendering.
-- Corrected FFmpeg architecture and license records; experimental progress must degrade honestly.
-- Clarified axe as regression assistance rather than proof of complete WCAG 2.2 AA conformance.
+- Binary format detection is two-stage: authoritative signatures establish unambiguous domains; ambiguous containers remain `needsProbe` until structural/stream inspection.
+- Runtime floor is Node.js >=22.13.0; PDF.js renders pages, pdf-lib edits structure; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
+- `@ffmpeg/core@0.12.10` license record is GPL-2.0-or-later; wrapper remains MIT.
+- axe remains regression assistance, not proof of complete WCAG 2.2 AA conformance.
 
 ## [1.0.0] - 2026-10-23
 

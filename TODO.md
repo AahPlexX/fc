@@ -21,7 +21,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 1 | Toolchain | COMPLETE | Verified lockfile + frozen install + strict TypeScript. |
 | 2 | React shell | COMPLETE | Permanent CI passed install/check/tests/build. |
 | 3 | Handoff/design | COMPLETE | CI passed after Vite CSS declarations and scoped reduced-motion fix. |
-| 4 | Domain types + magic-byte detection + unit test | ACTIVE | RED committed: detector contract/tests exist; stub returns `null`; CI must fail assertions before implementation. |
+| 4 | Domain types + magic-byte detection + unit test | ACTIVE | RED observed: 4 detector assertions failed against intentional null stub; implementation committed and awaiting full green CI. |
 | 5 | Compatibility matrix + test + job store | INCOMPLETE | FR-003 domain-bound target sets. |
 | 6 | Import/queue UI | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
 | 7 | Image + metadata workers + test | INCOMPLETE | Raster conversion/metadata/cancel/AVIF capability gate. |
@@ -46,8 +46,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
 ## Active checkpoint
 Phase 4 — Domain contracts / magic bytes.  
-Current file: `tests/unit/magicBytes.test.ts`.  
-Next: observe CI RED against the intentional `detectBinaryFormat()` null stub, then implement only enough signature logic to make the tests green; keep text formats and ambiguous stream/container probing for their owning phases.
+Current file: `src/core/magicBytes.ts`.  
+Next: require permanent CI to pass check/tests/build against the signature implementation. On green, mark Phase 4 COMPLETE and start Phase 5 red-first compatibility routing; do not add text sniffing or ambiguous stream probing here.
 
 ## Environment notes
 - Local execution sandbox has no external package-host DNS; GitHub Actions is the registry-connected verification environment.
