@@ -5,13 +5,13 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Phase 6 red-first import/queue UI contract covering native file input parity, drop/paste guidance, per-file target selection, progress semantics, and cancellation; initial component stubs intentionally leave those assertions red before implementation.
+- Phase 6 red-first import/queue UI contract now covers native file input parity, drop/paste guidance, batch target selection, strip-metadata policy, aggregate progress for multi-file activity, per-file target selection, progress semantics, and cancellation; component stubs intentionally remain red before implementation.
 - Phase 5 red-first compatibility-routing tests for image, audio, video/audio-extraction, tabular, source-specific document routes, AVIF capability gating, unresolved-container blocking, and immutable job-store updates.
 - Signature-first binary detector with tested support for PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, MP3/ID3, Ogg ambiguity, and unknown/truncated bytes.
 - Responsive workbench foundation, durable `AGENTS.md`, semantic React shell, permanent validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
 
 ### Fixed
-- Phase 6 red-first stub no longer attaches drag handlers to a static section; this preserves the accessibility lint gate so the intended behavior assertions can reach the unit-test stage.
+- Phase 6 red-first stub no longer attaches drag handlers to a static section; this preserves the accessibility lint gate so the intended behavior assertions reach the unit-test stage.
 - Vite CSS declarations/reduced-motion cascade issues found by CI.
 - Bootstrap pnpm flag typos before generated files were accepted.
 

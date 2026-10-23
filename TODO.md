@@ -22,7 +22,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 3 | Handoff/design | COMPLETE | Responsive foundation CI green. |
 | 4 | Types + magic-byte detector + test | COMPLETE | RED observed then CI green for supported signatures/unknown bytes. |
 | 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
-| 6 | Import/queue UI | ACTIVE | Initial RED was blocked by accessibility lint; corrected stub must now reach and fail the targeted unit assertions before implementation. |
+| 6 | Import/queue UI | ACTIVE | Valid RED observed at unit tests; expanded contract now includes batch metadata/target controls and aggregate progress before implementation. |
 | 7 | Image + metadata workers + test | INCOMPLETE | Raster/metadata/cancel/AVIF gate. |
 | 8 | Tabular worker + test + fixture | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
@@ -45,7 +45,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Active checkpoint
 Phase 6 — import/queue UI.  
 Current files: `src/components/DropzoneHeader.tsx`, `src/components/JobCard.tsx`, `tests/unit/importQueue.test.tsx`.  
-Next: require lint/typecheck to pass and the unit test to fail only on the intentionally missing UI behavior. Then implement native file input + drag/drop/paste ingestion, queue target/progress/cancel semantics, batch target/metadata controls, and aggregate progress without adding more Phase 6 files.
+Next: keep CI RED at the unit-test stage with the expanded Phase 6 contract, then implement native file input + drag/drop/paste ingestion, queue target/progress/cancel semantics, batch target/metadata controls, and aggregate progress without adding more Phase 6 files.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
