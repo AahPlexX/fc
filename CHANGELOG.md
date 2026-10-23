@@ -5,6 +5,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
+- Phase 6 red-first import/queue UI contract covering native file input parity, drop/paste guidance, per-file target selection, progress semantics, and cancellation; initial component stubs intentionally leave those assertions red before implementation.
 - Phase 5 red-first compatibility-routing tests for image, audio, video/audio-extraction, tabular, source-specific document routes, AVIF capability gating, unresolved-container blocking, and immutable job-store updates.
 - Signature-first binary detector with tested support for PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, PDF, ZIP, WAV, FLAC, MP3/ID3, Ogg ambiguity, and unknown/truncated bytes.
 - Responsive workbench foundation, durable `AGENTS.md`, semantic React shell, permanent validation workflow, verified lockfile, and strict TypeScript 7 toolchain.
@@ -14,7 +15,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Bootstrap pnpm flag typos before generated files were accepted.
 
 ### Changed
-- Phase 5 compatibility routing now implements the tested canonical domain/source matrix, capability-gated AVIF export, and zero-target behavior for unresolved containers; full CI verification is pending for this implementation commit.
+- Phase 5 compatibility routing is CI-verified for canonical domain/source routes, capability-gated AVIF export, unresolved-container blocking, and immutable job-store updates.
 - Binary detection is two-stage; ambiguous containers require structural/stream probing.
 - Runtime floor is Node.js >=22.13.0; PDF.js renders, pdf-lib edits; FFmpeg wrapper owns its worker and experimental progress degrades honestly.
 - `@ffmpeg/core@0.12.10` license is GPL-2.0-or-later; wrapper MIT.

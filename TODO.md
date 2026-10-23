@@ -21,8 +21,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 2 | React shell | COMPLETE | CI install/check/test/build green. |
 | 3 | Handoff/design | COMPLETE | Responsive foundation CI green. |
 | 4 | Types + magic-byte detector + test | COMPLETE | RED observed then CI green for supported signatures/unknown bytes. |
-| 5 | Compatibility matrix + test + job store | ACTIVE | RED contract observed in CI; implementation committed and awaiting full green validation. |
-| 6 | Import/queue UI | INCOMPLETE | FR-001/004/006/007; keyboard/pointer parity. |
+| 5 | Compatibility matrix + test + job store | COMPLETE | RED observed then CI green for canonical routes, AVIF gate, unresolved containers, and immutable job updates. |
+| 6 | Import/queue UI | ACTIVE | Red-first component contract committed; must fail targeted assertions before implementation. |
 | 7 | Image + metadata workers + test | INCOMPLETE | Raster/metadata/cancel/AVIF gate. |
 | 8 | Tabular worker + test + fixture | INCOMPLETE | CSV/TSV/JSON/MD/HTML-table round trips. |
 | 9 | PDF/document worker + test + fixture | INCOMPLETE | pdf-lib metadata + PDF.js rasterization. |
@@ -43,9 +43,9 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Binary signatures are authoritative first-stage evidence; ambiguous containers require deeper probing before targets unlock.
 
 ## Active checkpoint
-Phase 5 — compatibility routing.  
-Current file: `src/core/compatibilityMatrix.ts`.  
-Next: require CI install/check/test/build to pass the tested routing implementation. On green, mark Phase 5 COMPLETE and start Phase 6 import/queue UI red-first without broadening the compatibility surface.
+Phase 6 — import/queue UI.  
+Current files: `src/components/DropzoneHeader.tsx`, `src/components/JobCard.tsx`, `tests/unit/importQueue.test.tsx`.  
+Next: observe CI RED against the intentionally incomplete component stubs, then implement native file input + drag/drop/paste ingestion, queue target/progress/cancel semantics, batch target/metadata controls, and aggregate progress without adding more Phase 6 files.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
