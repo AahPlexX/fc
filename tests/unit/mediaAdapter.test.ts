@@ -75,7 +75,8 @@ describe("Phase 10 media adapter contracts", () => {
     await expect(adapter.transcode(request("job-b"), progress)).resolves.toEqual(new Uint8Array([9, 8, 7]));
 
     expect(dependencies.createEngine).toHaveBeenCalledOnce();
-    expect(engine.load).toHaveBeenCalledOnceWith(loadConfig);
+    expect(engine.load).toHaveBeenCalledOnce();
+    expect(engine.load).toHaveBeenCalledWith(loadConfig);
     expect(engine.writeFile).toHaveBeenCalledTimes(2);
     expect(engine.exec).toHaveBeenCalledWith(["-i", "job-a.webm", "job-a.mp4"]);
     expect(progress).toHaveBeenCalledWith({ mode: "determinate", percent: 50, timeSeconds: 1 });
