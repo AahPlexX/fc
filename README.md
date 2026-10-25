@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; local continuation validation passes 75 unit tests and 54 production-browser scenarios (2026-10-25); permanent CI status is recorded in TODO. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; continuation Validate40214020264 passes 75 unit tests and 54 production-browser scenarios on b43e2a1 (2026-10-25); permanent CI evidence is recorded in TODO. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 

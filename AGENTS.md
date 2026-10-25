@@ -53,3 +53,5 @@ Read `docs/verification.md` for root-confirmed 75/54 gates, lab scopes and unsup
 Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while one native TextDecoder preserves UTF-8 across byte slices. Do not revert to independent FileReader.readAsText slices (corrupts boundary characters), drop the Unicode regression, or let worker progress messages settle the request as results. PDF date inspection entries remain read-only.
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
+
+Promoted source `b43e2a1` passed every step of Validate40214020264. No implementation task is active after the documentation closeout; resume at the exact conditional next file in TODO. Earlier counts/CI runs in handoff/history are historical evidence, not newer source validation.

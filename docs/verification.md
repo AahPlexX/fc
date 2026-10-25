@@ -1,6 +1,6 @@
 # Verification continuation — 2026-10-25
 
-Base checkpoint: `e2a8a33`. This document belongs to the continuation commit containing it. Root independently reviewed and ran the integrated candidate; individual builder reports were not release approval.
+Base checkpoint: `e2a8a33`. Promoted source: `b43e2a1`; [Validate40214020264](https://github.com/AahPlexX/fc/actions/runs/40214020264) passed all gates, including artifact retention, on 2026-10-25. This document belongs to the continuation commit containing it. Root independently reviewed and ran the integrated candidate; individual builder reports were not release approval.
 
 ## Automated gate
 - `pnpm check`: lint and strict TypeScript pass (38 checked source/test/config files).

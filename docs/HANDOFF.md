@@ -1,7 +1,7 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-25T16:54:00Z"
+updated_at: "2026-10-25T16:59:08Z"
 title: "OmniConvert integrated browser workbench"
 summary: "Continuation:75 unit/54 browser gates, cancellation/focus/input/worker-boundary fixes, lab measurements and stronger source traceability."
 keywords: ["omniconvert", "workers", "privacy", "offline", "handoff"]
@@ -35,3 +35,6 @@ Key updates: shared media slot/generation-owned cancellation; raw Matroska demux
 Final source details: PDF dates are inspected read-only. CSV/TSV is read in 1MiB slices through a persistent UTF-8 decoder plus Papa 5.7.0 ParserHandle; actual byte/row progress messages must not settle worker requests before the final Blob. Unit and real-worker tests split a Unicode character at the boundary; independent FileReader decoding would regress it. Final local gate is 75 unit/54 browser scenarios; TODO carries permanent CI status.
 
 Root final CSV review added LF/CRLF/CR and split-CRLF header regressions after reproducing column loss. Delay header capture until fields are present; keep the quote-aware incremental separator sniff because Papa5.7 limits its own newline guess to1MiB. The final input cap is not an output-memory cap. See TODO for the exact promoted revision and CI status.
+
+## Promoted source and closeout
+Executable source `b43e2a1` passed [Validate40214020264](https://github.com/AahPlexX/fc/actions/runs/40214020264), including install/check/75 unit/build/54 browser scenarios/budget/artifact retention. This documentation closeout changes no executable source. No task is currently active. TODO names the exact next files for release-source or environment/manual validation; those scopes remain explicitly unverified. The original PRD remains byte-for-byte unchanged throughout this continuation.
