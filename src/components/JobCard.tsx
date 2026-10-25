@@ -5,22 +5,32 @@ export interface JobCardProps {
   readonly targets: readonly FormatId[];
   readonly onTargetChange: (jobId: string, target: FormatId | null) => void;
   readonly onCancel: (jobId: string) => void;
+  readonly onConvert?: (jobId: string) => void;
+  readonly onMetadata?: (jobId: string) => void;
+  readonly onPreview?: (jobId: string) => void;
+  readonly onRemove?: (jobId: string) => void;
 }
 
 const TERMINAL_STATUSES = new Set<ConversionJob["status"]>(["COMPLETED", "CANCELLED", "FAILED"]);
 
 const formatBytes = (bytes: number): string => {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const JobCard = ({ job, targets, onTargetChange, onCancel }: JobCardProps) => {
+export const JobCard = ({
+  job,
+  targets,
+  onTargetChange,
+  onCancel,
+  onConvert,
+  onMetadata,
+  onPreview,
+  onRemove,
+}: JobCardProps) => {
   const isTerminal = TERMINAL_STATUSES.has(job.status);
+  const isRunning = !isTerminal && job.status !== "QUEUED";
   const targetId = `target-${job.id}`;
   const progressLabelId = `progress-${job.id}`;
 
@@ -42,7 +52,7 @@ export const JobCard = ({ job, targets, onTargetChange, onCancel }: JobCardProps
         <select
           id={targetId}
           value={job.targetFormat ?? ""}
-          disabled={isTerminal || targets.length === 0}
+          disabled={isRunning || job.status === "COMPLETED" || targets.length === 0}
           onChange={(event) => onTargetChange(job.id, (event.currentTarget.value || null) as FormatId | null)}
         >
           <option value="">Select target</option>
@@ -64,9 +74,26 @@ export const JobCard = ({ job, targets, onTargetChange, onCancel }: JobCardProps
         </progress>
       </div>
 
-      <div className="job-actions">
-        <button type="button" disabled={isTerminal} onClick={() => onCancel(job.id)}>
+      <div className="job-actions" aria-label={`Actions for ${job.sourceFile.name}`}>
+        <button type="button" disabled={!onMetadata || isRunning} onClick={() => onMetadata?.(job.id)}>
+          Metadata
+        </button>
+        <button type="button" disabled={!onPreview || !job.outputBlob} onClick={() => onPreview?.(job.id)}>
+          Preview
+        </button>
+        <button type="button" disabled={!onRemove || isRunning} onClick={() => onRemove?.(job.id)}>
+          Remove
+        </button>
+        <button type="button" disabled={!isRunning} onClick={() => onCancel(job.id)}>
           Cancel
+        </button>
+        <button
+          type="button"
+          className="primary-button"
+          disabled={!onConvert || !job.targetFormat || isRunning || job.status === "COMPLETED"}
+          onClick={() => onConvert?.(job.id)}
+        >
+          Convert
         </button>
       </div>
     </article>

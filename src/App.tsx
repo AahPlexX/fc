@@ -1,10 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DropzoneHeader } from "./components/DropzoneHeader";
 import { JobCard } from "./components/JobCard";
+import { MetadataDrawer } from "./components/MetadataDrawer";
+import { PreviewModal } from "./components/PreviewModal";
 import { getCompatibleTargets } from "./core/compatibilityMatrix";
 import { createQueuedJob, updateJob } from "./core/jobStore";
 import { detectBinaryFormat, detectTextFormat } from "./core/magicBytes";
-import type { ConversionJob, FormatId, JobStatus } from "./core/types";
+import type { ConversionJob, FormatId, JobStatus, MetadataPolicy } from "./core/types";
 
 const ACTIVE_STATUSES = new Set<JobStatus>([
   "QUEUED",
@@ -28,6 +30,10 @@ const readDetectedFormat = async (file: File) => {
 export const App = () => {
   const [jobs, setJobs] = useState<readonly ConversionJob[]>([]);
   const [importNotice, setImportNotice] = useState<string | null>(null);
+  const [metadataJobId, setMetadataJobId] = useState<string | null>(null);
+  const [previewJobId, setPreviewJobId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewText, setPreviewText] = useState<string | null>(null);
 
   const handleFiles = useCallback((files: readonly File[]) => {
     void (async () => {
@@ -53,9 +59,7 @@ export const App = () => {
         }
       }
 
-      if (created.length > 0) {
-        setJobs((current) => [...current, ...created]);
-      }
+      if (created.length > 0) setJobs((current) => [...current, ...created]);
 
       if (created.length === 0 && unsupportedCount > 0) {
         setImportNotice("No supported binary signature or structured text format was detected. Nothing was added to the queue.");
@@ -68,6 +72,33 @@ export const App = () => {
   }, []);
 
   const activeJobs = useMemo(() => jobs.filter((job) => ACTIVE_STATUSES.has(job.status)), [jobs]);
+  const metadataJob = useMemo(() => jobs.find((job) => job.id === metadataJobId) ?? null, [jobs, metadataJobId]);
+  const previewJob = useMemo(() => jobs.find((job) => job.id === previewJobId) ?? null, [jobs, previewJobId]);
+
+  useEffect(() => {
+    const blob = previewJob?.outputBlob;
+    if (!blob) {
+      setPreviewUrl(null);
+      setPreviewText(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    setPreviewUrl(objectUrl);
+    setPreviewText(null);
+
+    let ignoreText = false;
+    if (previewJob.detectedFormat.domain === "tabular") {
+      void blob.text().then((text) => {
+        if (!ignoreText) setPreviewText(text.split(/\r?\n/).slice(0, 50).join("\n"));
+      });
+    }
+
+    return () => {
+      ignoreText = true;
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [previewJob]);
 
   const batchTargets = useMemo<readonly FormatId[]>(() => {
     if (activeJobs.length === 0) return [];
@@ -101,32 +132,48 @@ export const App = () => {
     setJobs((current) => {
       const job = current.find((item) => item.id === jobId);
       if (!job || TERMINAL_STATUSES.has(job.status)) return current;
-      return updateJob(current, jobId, {
-        status: "CANCELLED",
-        statusMessage: "Cancelled",
-        progressPercent: null,
-      });
+      return updateJob(current, jobId, { status: "CANCELLED", statusMessage: "Cancelled", progressPercent: null });
     });
   }, []);
 
   const handleBatchTargetChange = useCallback((target: FormatId | null) => {
-    setJobs((current) =>
-      current.map((job) => {
-        if (TERMINAL_STATUSES.has(job.status)) return job;
-        if (target !== null && !getCompatibleTargets(job.detectedFormat).includes(target)) return job;
-        return { ...job, targetFormat: target };
-      }),
-    );
+    setJobs((current) => current.map((job) => {
+      if (TERMINAL_STATUSES.has(job.status)) return job;
+      if (target !== null && !getCompatibleTargets(job.detectedFormat).includes(target)) return job;
+      return { ...job, targetFormat: target };
+    }));
   }, []);
 
   const handleStripMetadataChange = useCallback((strip: boolean) => {
-    setJobs((current) =>
-      current.map((job) =>
-        TERMINAL_STATUSES.has(job.status)
-          ? job
-          : { ...job, metadataPolicy: { ...job.metadataPolicy, stripAllMetadata: strip } },
-      ),
-    );
+    setJobs((current) => current.map((job) =>
+      TERMINAL_STATUSES.has(job.status)
+        ? job
+        : { ...job, metadataPolicy: { ...job.metadataPolicy, stripAllMetadata: strip } },
+    ));
+  }, []);
+
+  const applyMetadataPolicy = useCallback((jobId: string, policy: MetadataPolicy) => {
+    setJobs((current) => updateJob(current, jobId, { metadataPolicy: policy }));
+    setMetadataJobId(null);
+  }, []);
+
+  const applyMetadataToMatching = useCallback((jobId: string, policy: MetadataPolicy) => {
+    setJobs((current) => {
+      const source = current.find((job) => job.id === jobId);
+      if (!source) return current;
+      return current.map((job) =>
+        job.detectedFormat.format === source.detectedFormat.format && !TERMINAL_STATUSES.has(job.status)
+          ? { ...job, metadataPolicy: policy }
+          : job,
+      );
+    });
+    setMetadataJobId(null);
+  }, []);
+
+  const removeJob = useCallback((jobId: string) => {
+    setJobs((current) => current.filter((job) => job.id !== jobId));
+    setMetadataJobId((current) => (current === jobId ? null : current));
+    setPreviewJobId((current) => (current === jobId ? null : current));
   }, []);
 
   return (
@@ -180,12 +227,30 @@ export const App = () => {
                   targets={getCompatibleTargets(job.detectedFormat)}
                   onTargetChange={handleTargetChange}
                   onCancel={handleCancel}
+                  onMetadata={setMetadataJobId}
+                  onPreview={setPreviewJobId}
+                  onRemove={removeJob}
                 />
               ))}
             </div>
           )}
         </section>
       </main>
+
+      <MetadataDrawer
+        job={metadataJob}
+        open={metadataJob !== null}
+        onClose={() => setMetadataJobId(null)}
+        onApply={applyMetadataPolicy}
+        onApplyToMatching={applyMetadataToMatching}
+      />
+      <PreviewModal
+        job={previewJob}
+        open={previewJob !== null}
+        previewUrl={previewUrl}
+        previewText={previewText}
+        onClose={() => setPreviewJobId(null)}
+      />
     </div>
   );
 };
