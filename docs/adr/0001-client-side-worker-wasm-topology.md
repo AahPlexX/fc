@@ -17,6 +17,6 @@ Primary evidence: pinned installed `@ffmpeg/ffmpeg@0.12.15` classes/worker sourc
 ## Consequences and rollback
 Cold media load needs roughly 32 MB of WASM (10.4 MB gzipped). Fresh engines trade initialization for deterministic memory release. Keep assets local; never introduce CDN/file upload fallbacks. A worker route can be replaced independently without changing job state. Remove service-worker registration and invalidate its cache if offline delivery regresses; online conversion remains usable.
 
-2026-10-25 continuation: table File/Blob reading and output UTF-8 Blob construction now occur inside the worker; the UI receives an encoded Blob. SW cache IDs are derived from build content including fixed-path engine bytes. Root74-unit/54-browser evidence and lab limits are in `docs/verification.md`.
+2026-10-25 continuation: table File/Blob reading and output UTF-8 Blob construction now occur inside the worker; the UI receives an encoded Blob. SW cache IDs are derived from build content including fixed-path engine bytes. Root75-unit/54-browser evidence and lab limits are in `docs/verification.md`.
 
 The table worker additionally decodes CSV/TSV incrementally, retaining native UTF-8 state across 1MiB slices and pinned Papa 5.7.0 ParserHandle CSV state. Progress is measured from bytes/rows and precedes final Blob delivery. The64MiB input cap and full-output accumulation are explicit; no constant-memory full-JSON guarantee is claimed.

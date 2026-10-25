@@ -111,3 +111,21 @@ describe("Phase 8 tabular worker contracts", () => {
 		expect(progress.at(-1)?.progressPercent).toBe(100);
 	});
 });
+
+it("retains column names when a CSV header spans input chunks", async () => {
+	for (const newline of ["\n", "\r\n", "\r"]) {
+		// Exercise a long header and a record separator split at the byte boundary.
+		for (const headerLength of [1024 * 1024 + 1, 1024 * 1024 - 8]) {
+			const header = "h".repeat(headerLength);
+			const output = await convertTabularBlob(
+				new Blob([`${header},second${newline}left,right${newline}`]),
+				"csv",
+				"json",
+			);
+			const rows = JSON.parse(await output.text());
+			expect(rows).toHaveLength(1);
+			expect(rows[0][header]).toBe("left");
+			expect(rows[0].second).toBe("right");
+		}
+	}
+});

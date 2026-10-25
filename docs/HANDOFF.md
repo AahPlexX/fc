@@ -1,8 +1,9 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
+updated_at: "2026-10-25T16:54:00Z"
 title: "OmniConvert integrated browser workbench"
-summary: "Continuation:74 unit/54 browser gates, cancellation/focus/input/worker-boundary fixes, lab measurements and stronger source traceability."
+summary: "Continuation:75 unit/54 browser gates, cancellation/focus/input/worker-boundary fixes, lab measurements and stronger source traceability."
 keywords: ["omniconvert", "workers", "privacy", "offline", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
@@ -27,8 +28,10 @@ Unverified items must stay explicit: field CWV/75th percentiles, universal <50ms
 Concurrent main updates through 057f619 were preserved in the merge. Their `exportManager` naming/native download APIs are reused, its ZIP generation delegates to bounded streaming code, and `createBrowserConversionRuntime` delegates to the shared runner. `tests/unit/conversionFlow.test.ts` remains intact; upstream static dialog tests now reflect the consolidated native-dialog UI and effect-owned URL lifecycle. Root local merged evidence:64 unit tests and 36 browser scenarios passed. Permanent Validate run 40164171678 is green on 90173cc, including browser gates and 84,744-byte gzip entry. Final CI URL/status and remaining manual/release scope are in TODO.
 
 ## Current continuation (user-requested)
-The user explicitly requested further effective low-cost orchestration. The same five Luna builders remained active with root as sole validating gate. Root local check/build and 74 unit/54 browser cases pass; read TODO for the continuation commit and permanent CI result. `docs/verification.md` holds phase-attributed lab results and unsupported signals. All earlier64/36 counts above are historical baseline evidence.
+The user explicitly requested further effective low-cost orchestration. The same five Luna builders remained active with root as sole validating gate. Root local check/build and 75 unit/54 browser cases pass; read TODO for the continuation commit and permanent CI result. `docs/verification.md` holds phase-attributed lab results and unsupported signals. All earlier64/36 counts above are historical baseline evidence.
 
 Key updates: shared media slot/generation-owned cancellation; raw Matroska demuxer names do not prove WebM; multiline/CRLF table detection; table File input and encoded Blob reply stay in the worker; unobscured drawer focus; cancelable serial ZIP plus repeat download; metadata loading/errors and close-abort; build-content cache fingerprints; bundled license text/immutable candidate-source links; retained CI JSON/screenshot/trace artifacts 14 days. Root verified core tarball against registry+lock and inspected the matching source manifest/Docker recipe. No exact binary/source attestation, human accessibility or field-performance certification is claimed.
 
-Final source details: PDF dates are inspected read-only. CSV/TSV is read in 1MiB slices through a persistent UTF-8 decoder plus Papa 5.7.0 ParserHandle; actual byte/row progress messages must not settle worker requests before the final Blob. Unit and real-worker tests split a Unicode character at the boundary; independent FileReader decoding would regress it. Final local gate is 74 unit/54 browser scenarios; TODO carries permanent CI status.
+Final source details: PDF dates are inspected read-only. CSV/TSV is read in 1MiB slices through a persistent UTF-8 decoder plus Papa 5.7.0 ParserHandle; actual byte/row progress messages must not settle worker requests before the final Blob. Unit and real-worker tests split a Unicode character at the boundary; independent FileReader decoding would regress it. Final local gate is 75 unit/54 browser scenarios; TODO carries permanent CI status.
+
+Root final CSV review added LF/CRLF/CR and split-CRLF header regressions after reproducing column loss. Delay header capture until fields are present; keep the quote-aware incremental separator sniff because Papa5.7 limits its own newline guess to1MiB. The final input cap is not an output-memory cap. See TODO for the exact promoted revision and CI status.

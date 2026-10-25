@@ -289,31 +289,85 @@ const parseDelimitedBlob = async (
 	let rowsParsed = 0;
 	let headerCaptured = false;
 	const decoder = new TextDecoder("utf-8");
+	let pendingText = "";
+	let newlineScanPosition = 0;
+	let newlineScanInQuotes = false;
+	let newlineScanAtFieldStart = true;
 	// Papa Parse 5.7.0 exposes ParserHandle; reuse it to keep its RFC parser/header state while decoding UTF-8 across byte slices.
+	type ParserHandle = {
+		parse: (
+			input: string,
+			baseIndex: number,
+			ignoreLastRow: boolean,
+		) => {
+			data: Record<string, string>[];
+			errors: { message: string }[];
+			meta: { cursor: number; fields?: string[] };
+		};
+	};
 	const Handle = (
 		Papa as unknown as {
-			ParserHandle: new (
-				config: Record<string, unknown>,
-			) => {
-				parse: (
-					input: string,
-					baseIndex: number,
-					ignoreLastRow: boolean,
-				) => {
-					data: Record<string, string>[];
-					errors: { message: string }[];
-					meta: { cursor: number; fields?: string[] };
-				};
-			};
+			ParserHandle: new (config: Record<string, unknown>) => ParserHandle;
 		}
 	).ParserHandle;
-	const parser = new Handle({
-		delimiter,
-		header: true,
-		skipEmptyLines: "greedy",
-		dynamicTyping: false,
-	});
+	let parser: ParserHandle | null = null;
+	const findLineEnding = (text: string, isFinal: boolean): string | null => {
+		for (let index = newlineScanPosition; index < text.length; ) {
+			const character = text[index];
+			if (newlineScanInQuotes) {
+				if (character === '"') {
+					if (index + 1 < text.length && text[index + 1] === '"') {
+						index += 2;
+						continue;
+					}
+					if (index + 1 < text.length || isFinal) {
+						newlineScanInQuotes = false;
+					} else {
+						newlineScanPosition = index;
+						return null;
+					}
+				}
+				index += 1;
+				continue;
+			}
+			if (character === '"' && newlineScanAtFieldStart) {
+				newlineScanInQuotes = true;
+				newlineScanAtFieldStart = false;
+			} else if (character === delimiter) {
+				newlineScanAtFieldStart = true;
+			} else if (character === "\n") {
+				newlineScanPosition = index + 1;
+				return "\n";
+			} else if (character === "\r") {
+				if (index + 1 < text.length) {
+					newlineScanPosition = index + (text[index + 1] === "\n" ? 2 : 1);
+					return text[index + 1] === "\n" ? "\r\n" : "\r";
+				}
+				if (isFinal) {
+					newlineScanPosition = index + 1;
+					return "\r";
+				}
+				newlineScanPosition = index;
+				return null;
+			} else {
+				newlineScanAtFieldStart = false;
+			}
+			index += 1;
+		}
+		newlineScanPosition = text.length;
+		return null;
+	};
+	const createParser = (newline: string): void => {
+		parser = new Handle({
+			delimiter,
+			header: true,
+			skipEmptyLines: "greedy",
+			dynamicTyping: false,
+			newline,
+		});
+	};
 	const consumeChunk = (text: string, isFinal: boolean): void => {
+		if (!parser) throw new Error("Delimited parser was not initialized");
 		const aggregate = partialLine + text;
 		partialLine = "";
 		const result = parser.parse(aggregate, baseIndex, !isFinal);
@@ -322,8 +376,9 @@ const parseDelimitedBlob = async (
 				result.errors[0]?.message ?? "Delimited table parsing failed",
 			);
 		}
-		if (!headerCaptured && result.meta.fields) {
-			for (const field of result.meta.fields) columns.push(field);
+		const fields = result.meta.fields ?? [];
+		if (!headerCaptured && fields.length > 0) {
+			for (const field of fields) columns.push(field);
 			headerCaptured = true;
 		}
 		for (const record of result.data) {
@@ -336,14 +391,26 @@ const parseDelimitedBlob = async (
 			baseIndex = lastIndex;
 		}
 	};
+	const processDecodedChunk = (text: string, isFinal: boolean): void => {
+		if (parser) {
+			if (text || isFinal) consumeChunk(text, isFinal);
+			return;
+		}
+		pendingText += text;
+		const newline = findLineEnding(pendingText, isFinal);
+		if (!newline && !isFinal) return;
+		createParser(newline ?? "\n");
+		consumeChunk(pendingText, isFinal);
+		pendingText = "";
+	};
 
-	if (file.size === 0) consumeChunk("", true);
+	if (file.size === 0) processDecodedChunk("", true);
 	for (let offset = 0; offset < file.size; offset += TABULAR_CHUNK_BYTES) {
 		const end = Math.min(offset + TABULAR_CHUNK_BYTES, file.size);
 		const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
 		const isFinal = end === file.size;
 		const decoded = decoder.decode(bytes, { stream: !isFinal });
-		if (decoded || isFinal) consumeChunk(decoded, isFinal);
+		processDecodedChunk(decoded, isFinal);
 		const readFraction = file.size === 0 ? 1 : end / file.size;
 		report({
 			progressPercent: Math.min(80, Math.floor(readFraction * 80)),

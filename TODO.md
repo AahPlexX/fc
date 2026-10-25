@@ -3,9 +3,9 @@
 Last updated: 2026-10-25. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**Continuation local gates pass; permanent CI pending.** Base commit: `e2a8a33`; earlier permanent Validate run 40164389498 was green for 64 unit/36 browser tests. Root now independently passes check/build, 74 unit tests and 54 browser scenarios; entry JS/CSS 85,396 gzip bytes / 150,000. New evidence and method limits: `docs/verification.md`.
+**Final local gates pass; permanent CSV-boundary CI pending.** Base commit: `e2a8a33`; earlier permanent Validate run 40164389498 was green for 64 unit/36 browser tests. Root now independently passes check/build, 75 unit tests and 54 browser scenarios; entry JS/CSS 85,396 gzip bytes / 150,000. New evidence and method limits: `docs/verification.md`.
 
-Current active file: TODO.md (record the continuation commit and permanent CI URL/result). Next step: commit and push the reviewed candidate, require the pinned Validate workflow including browser artifacts/budget, then finish the checkpoint. No deployment/release or full standards certification is claimed. Source handoff: `docs/HANDOFF.md`; release-source uncertainty is documented in LICENSES.
+Current active file: TODO.md (record the final CSV boundary commit and permanent CI URL/result). Next step: commit/push the reviewed revision, require its pinned Validate workflow, then record the promoted source commit and finish the checkpoint. The preceding continuation commit `f5edc18` is green in [Validate 40213099341](https://github.com/AahPlexX/fc/actions/runs/40213099341); its 74-unit result is historical and does not certify the subsequent boundary fix. No deployment/release or full standards certification is claimed. Source handoff: `docs/HANDOFF.md`; release-source uncertainty is documented in LICENSES.
 
 ## Invariants
 - `PRD.md` is the immutable original brief. Verified corrections live in README/TODO/ADRs; do not rewrite the original.
@@ -29,7 +29,7 @@ Current active file: TODO.md (record the continuation commit and permanent CI UR
 | 13 | PWA/offline/assets | COMPLETE (automated scope) | Manifest/SW, same-origin bundled core/CSP, warmed-table offline conversion with no user data in cache. |
 | 14 | Browser/a11y/viewport/budget gates | COMPLETE (automated scope) |36/36 Playwright scenarios in CI; axe/focus and320–3840px viewport checks;85KB gzip entry. |
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
-| 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | ACTIVE (local gates green) |74 unit/54 browser tests; permanent CI pending. |
+| 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | ACTIVE (local gates green) |75 unit/54 browser tests; permanent CI pending. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record
@@ -66,8 +66,10 @@ User reauthorized effective low-cost orchestration. The same five Luna builders 
 
 The continuation creates exactly 3 files, sequentially: `tests/e2e/performance.spec.ts` (independently checked before later files), `public/THIRD_PARTY_NOTICES.txt` (license texts/source pointers, build-copy verified), then `docs/verification.md` (frozen root evidence). Existing files carry all other changes. No package versions or PRD content changed. `actions/upload-artifact` v7.0.2 was pinned to its primary tag commit on 2026-10-25.
 
-74 unit tests and 54 browser scenarios pass locally with retries 0. Full test output/result attachments remain in ignored test-results; future CI retains browser evidence 14 days. Root confirmed template cache fingerprint invalidation and exact notice copy into dist. The measured Chromium long task belonged to harness fixture injection, not the conversion interval. Firefox/WebKit unsupported signals stay unknown; WebKit pointer-event timing is not a field INP claim. See verification report for exact samples and meaningful limitations.
+75 unit tests and 54 browser scenarios pass locally with retries 0. Full test output/result attachments remain in ignored test-results; future CI retains browser evidence 14 days. Root confirmed template cache fingerprint invalidation and exact notice copy into dist. The measured Chromium long task belonged to harness fixture injection, not the conversion interval. Firefox/WebKit unsupported signals stay unknown; WebKit pointer-event timing is not a field INP claim. See verification report for exact samples and meaningful limitations.
 
 Remaining gates are the explicit field/manual/source-reproduction items above; source traceability is narrowed to a matching candidate publish commit and fully verified package SRI, with moving build references/provenance uncertainty recorded. Cold engine availability is still not promised before assets load. No external deployment/release was performed.
 
-Final local candidate adds PDF ISO date inspection (read-only), actual chunked CSV/TSV reads/telemetry and stateful UTF-8 decoding. Root reproduced split-character corruption and verified the pure worker and real-browser regressions. Frozen root result: 74 unit tests and54 browser scenarios pass; permanent continuation CI is the remaining promotion gate.
+Final local candidate adds PDF ISO date inspection (read-only), actual chunked CSV/TSV reads/telemetry and stateful UTF-8 decoding. Root reproduced split-character corruption and verified the pure worker and real-browser regressions. Frozen root result: 75 unit tests and54 browser scenarios pass; permanent continuation CI is the remaining promotion gate.
+
+Root final review reproduced another CSV boundary defect: an incomplete header prematurely fixed empty column names, while Papa's first-MiB newline guess could retain CR in the next column name. A quote-aware incremental separator sniff now supplies the newline explicitly. One regression covers LF/CRLF/CR and CRLF split across slices; the root unit gate now passes75 tests. The64MiB input cap is not an output-expansion cap; complete table/output accumulation remains an explicit memory limitation.
