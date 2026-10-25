@@ -1,4 +1,4 @@
-import type { MediaProgressState, RawMediaProgress } from "./mediaProgress";
+import { normalizeMediaProgress, type MediaProgressState, type RawMediaProgress } from "./mediaProgress";
 
 export interface MediaEngineLoadConfig {
   readonly coreURL: string;
@@ -31,17 +31,163 @@ export interface MediaAdapterDependencies {
   readonly loadConfig: MediaEngineLoadConfig;
 }
 
-export class MediaAdapter {
-  constructor(private readonly _dependencies: MediaAdapterDependencies) {}
+const isRelativeAssetUrl = (value: string): boolean =>
+  value.startsWith("/") || value.startsWith("./") || value.startsWith("../");
 
-  async transcode(
-    _request: MediaTranscodeRequest,
-    _onProgress?: (progress: MediaProgressState) => void,
-  ): Promise<Uint8Array> {
-    return new Uint8Array();
+const isSameOriginAssetUrl = (value: string): boolean => {
+  if (isRelativeAssetUrl(value)) {
+    return true;
   }
 
-  cancel(_jobId: string): boolean {
+  if (typeof globalThis.location === "undefined") {
     return false;
+  }
+
+  try {
+    return new URL(value, globalThis.location.href).origin === globalThis.location.origin;
+  } catch {
+    return false;
+  }
+};
+
+const assertSameOriginLoadConfig = (config: MediaEngineLoadConfig): void => {
+  for (const [name, value] of Object.entries(config)) {
+    if (!isSameOriginAssetUrl(value)) {
+      throw new Error(`FFmpeg ${name} must resolve to a same-origin application asset`);
+    }
+  }
+};
+
+export class MediaAdapter {
+  private enginePromise: Promise<MediaEngine> | null = null;
+  private activeEngine: MediaEngine | null = null;
+  private activeJobId: string | null = null;
+  private readonly cancelledJobs = new Set<string>();
+
+  constructor(private readonly dependencies: MediaAdapterDependencies) {
+    assertSameOriginLoadConfig(dependencies.loadConfig);
+  }
+
+  private getEngine(): Promise<MediaEngine> {
+    if (this.enginePromise) {
+      return this.enginePromise;
+    }
+
+    this.enginePromise = this.dependencies
+      .createEngine()
+      .then(async (engine) => {
+        await engine.load(this.dependencies.loadConfig);
+        return engine;
+      })
+      .catch((error: unknown) => {
+        this.enginePromise = null;
+        throw error;
+      });
+
+    return this.enginePromise;
+  }
+
+  private throwIfCancelled(jobId: string): void {
+    if (this.cancelledJobs.has(jobId)) {
+      throw new Error(`Media job ${jobId} was cancelled`);
+    }
+  }
+
+  private invalidateEngine(engine: MediaEngine): void {
+    if (this.activeEngine === engine) {
+      this.activeEngine = null;
+    }
+    this.enginePromise = null;
+  }
+
+  private static async deleteTempFile(engine: MediaEngine, path: string): Promise<void> {
+    try {
+      await engine.deleteFile(path);
+    } catch {
+      // A cancelled FFmpeg instance is already terminated and cannot service FS calls.
+    }
+  }
+
+  async transcode(
+    request: MediaTranscodeRequest,
+    onProgress?: (progress: MediaProgressState) => void,
+  ): Promise<Uint8Array> {
+    if (this.activeJobId !== null) {
+      throw new Error(`Media adapter is busy with job ${this.activeJobId}`);
+    }
+
+    this.activeJobId = request.jobId;
+    let engine: MediaEngine | null = null;
+    let progressCallback: ((event: RawMediaProgress) => void) | null = null;
+
+    try {
+      engine = await this.getEngine();
+      this.activeEngine = engine;
+
+      if (this.cancelledJobs.has(request.jobId)) {
+        engine.terminate();
+        this.invalidateEngine(engine);
+      }
+      this.throwIfCancelled(request.jobId);
+
+      progressCallback = (event) => {
+        onProgress?.(normalizeMediaProgress(event, request.progressReliable));
+      };
+      engine.on("progress", progressCallback);
+
+      await engine.writeFile(request.inputName, request.inputBytes);
+      this.throwIfCancelled(request.jobId);
+
+      const exitCode = await engine.exec(request.args);
+      this.throwIfCancelled(request.jobId);
+      if (exitCode !== 0) {
+        throw new Error(`FFmpeg exited with code ${exitCode}`);
+      }
+
+      const output = await engine.readFile(request.outputName);
+      this.throwIfCancelled(request.jobId);
+      if (typeof output === "string") {
+        throw new Error("FFmpeg returned text for a binary media output");
+      }
+
+      return output;
+    } finally {
+      if (engine && progressCallback) {
+        try {
+          engine.off("progress", progressCallback);
+        } catch {
+          // A terminated engine may no longer accept listener operations.
+        }
+      }
+
+      if (engine) {
+        await Promise.all([
+          MediaAdapter.deleteTempFile(engine, request.inputName),
+          MediaAdapter.deleteTempFile(engine, request.outputName),
+        ]);
+      }
+
+      this.cancelledJobs.delete(request.jobId);
+      if (this.activeJobId === request.jobId) {
+        this.activeJobId = null;
+      }
+      if (this.activeEngine === engine) {
+        this.activeEngine = null;
+      }
+    }
+  }
+
+  cancel(jobId: string): boolean {
+    if (this.activeJobId !== jobId) {
+      return false;
+    }
+
+    this.cancelledJobs.add(jobId);
+    const engine = this.activeEngine;
+    if (engine) {
+      this.invalidateEngine(engine);
+      engine.terminate();
+    }
+    return true;
   }
 }

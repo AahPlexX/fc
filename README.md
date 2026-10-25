@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Phase 10 media adapter/progress work is active. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Phase 10 media adapter/progress is implemented and under validation. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
@@ -15,6 +15,8 @@ Image conversion uses `createImageBitmap()` plus `OffscreenCanvas` inside a dedi
 Tabular conversion uses a canonical row/column model. Papa Parse is dynamically imported only for CSV/TSV parsing or serialization. CSV/TSV exports enable formula escaping, while Markdown and HTML outputs escape cell content before rendering.
 
 PDF operations are split by responsibility: pdf-lib reads/updates document-info metadata and serializes bytes, while PDF.js renders pages. PDFs are always loaded from in-memory bytes. The PDF.js worker asset is bundled with the application and resolved same-origin; OmniConvert does not use a CDN fallback. Page numbers are validated as 1-based before rendering, rendered page dimensions are derived from PDF.js viewports, and page/document resources are cleaned up even when rendering fails.
+
+Media transcoding is represented by one lazy `MediaAdapter` engine at a time. The adapter refuses non-same-origin FFmpeg core/WASM/class-worker URLs, writes inputs to FFmpeg's virtual filesystem, executes the requested command, reads binary output, and cleans temporary files. Progress is determinate only when a route explicitly marks FFmpeg progress as reliable; otherwise elapsed media time remains visible with indeterminate completion. Cancellation terminates the active FFmpeg worker, invalidates that engine, and forces a fresh engine/load before subsequent work.
 
 ## Verified foundation stack — 2026-10-23
 

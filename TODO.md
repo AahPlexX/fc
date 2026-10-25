@@ -27,7 +27,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
 | 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
-| 10 | Media adapter + progress + test | ACTIVE | Red-first lazy FFmpeg lifecycle/progress/cancellation contract committed; targeted unit RED required. |
+| 10 | Media adapter + progress + test | ACTIVE | RED contract exists; lazy engine/progress/cancel/cleanup implementation committed and awaiting full CI green. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
@@ -50,7 +50,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Active checkpoint
 Phase 10 — media adapter/progress.  
 New files (3/3): `src/core/mediaAdapter.ts`, `src/core/mediaProgress.ts`, `tests/unit/mediaAdapter.test.ts`.  
-Next: observe CI RED with install/check green. Then implement one lazily created FFmpeg instance, same-origin core/WASM/class-worker loading, virtual-FS write/exec/read/delete cleanup, reliable-only determinate progress, active-job termination, and engine re-creation after cancellation without adding Phase 10 files.
+Next: require permanent CI install/check/test/build to pass the implemented one-engine lazy lifecycle, same-origin load-config enforcement, virtual-FS cleanup, reliable-only progress normalization, active-job termination, and fresh-engine recovery after cancellation. If green, mark Phase 10 COMPLETE and start Phase 11 red-first UI contracts.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
