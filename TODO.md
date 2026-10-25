@@ -27,7 +27,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
 | 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
-| 10 | Media adapter + progress + test | ACTIVE | RED contract exists; lazy engine/progress/cancel/cleanup implementation committed and awaiting full CI green. |
+| 10 | Media adapter + progress + test | ACTIVE | Implementation committed; CI reached TypeScript and exposed one invalid Vitest matcher in the red-first test. Matcher corrected; full rerun pending. |
 | 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
@@ -50,7 +50,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Active checkpoint
 Phase 10 — media adapter/progress.  
 New files (3/3): `src/core/mediaAdapter.ts`, `src/core/mediaProgress.ts`, `tests/unit/mediaAdapter.test.ts`.  
-Next: require permanent CI install/check/test/build to pass the implemented one-engine lazy lifecycle, same-origin load-config enforcement, virtual-FS cleanup, reliable-only progress normalization, active-job termination, and fresh-engine recovery after cancellation. If green, mark Phase 10 COMPLETE and start Phase 11 red-first UI contracts.
+Next: rerun permanent CI after replacing unsupported `toHaveBeenCalledOnceWith` with supported Vitest assertions. If install/check/test/build pass, mark Phase 10 COMPLETE and start Phase 11 red-first UI contracts.
 
 ## Environment
 - Current cloud workspace has registry access; frozen install succeeds locally (2026-10-25). Prior sandbox DNS restriction no longer applies.
