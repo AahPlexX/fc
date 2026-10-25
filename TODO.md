@@ -27,8 +27,8 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 7 | Image + metadata workers + test | COMPLETE | RED observed; install/check/test/build green on run 40028414995. |
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
 | 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
-| 10 | Media adapter + progress + test | ACTIVE | Implementation committed; CI reached TypeScript and exposed one invalid Vitest matcher in the red-first test. Matcher corrected; full rerun pending. |
-| 11 | Metadata drawer + preview + batch actions | INCOMPLETE | Dialog/metadata/privacy/previews. |
+| 10 | Media adapter + progress + test | COMPLETE | Matcher defect corrected; install/check/test/build green on run 40162153846. |
+| 11 | Metadata drawer + preview + batch actions | ACTIVE | Red-first native-dialog/action contract committed; targeted unit RED required before implementation. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
 | 14 | Playwright + conversion/a11y E2E | INCOMPLETE | Browser/viewport/axe/manual gates. |
@@ -46,11 +46,12 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Binary signatures are authoritative first-stage evidence; ambiguous containers require deeper probing.
 - Image workers verify returned encoder MIME and safely normalize limited metadata groups.
 - Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
+- Workbench overlays use native `<dialog>` semantics and must preserve keyboard-close/focus behavior; unit contracts cover semantic structure and Playwright will cover interaction/focus cycling.
 
 ## Active checkpoint
-Phase 10 — media adapter/progress.  
-New files (3/3): `src/core/mediaAdapter.ts`, `src/core/mediaProgress.ts`, `tests/unit/mediaAdapter.test.ts`.  
-Next: rerun permanent CI after replacing unsupported `toHaveBeenCalledOnceWith` with supported Vitest assertions. If install/check/test/build pass, mark Phase 10 COMPLETE and start Phase 11 red-first UI contracts.
+Phase 11 — metadata drawer, preview, and batch actions.  
+New files (3/3): `src/components/MetadataDrawer.tsx`, `src/components/PreviewModal.tsx`, `tests/unit/workbenchDialogs.test.tsx`.  
+Next: observe CI RED with install/check green and failures caused by missing dialog/action behavior. Then implement metadata policy editing, apply-to-file/apply-to-matching actions, preview surfaces, and required queue actions by editing existing App/JobCard/styles without adding Phase 11 files.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
