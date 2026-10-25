@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; local validation passes64 unit tests and36 production-browser scenarios (2026-10-25); permanent CI is pending. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; local validation passes 64 unit tests and 36 production-browser scenarios (2026-10-25); [permanent CI passes](https://github.com/AahPlexX/fc/actions/runs/40164171678). The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
@@ -73,7 +73,7 @@ Workers perform detection, metadata inspection, raster encoding, tables, PDF ope
 The production service worker precaches the shell and caches conversion assets only after use. A newly installed shell cannot convert a domain offline until that domain's assets have first loaded online. It never caches user files/results. Production `_headers` contains a CSP; hosts must honor those headers or configure the equivalent themselves. The default single-thread engine does not require cross-origin isolation. WASM core assets are distributed under their package license (GPL-2.0-or-later), separately from the MIT wrapper.
 
 ### Verification scope
-`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Initial entry JS/CSS measured about 82 KB gzipped in this session. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
+`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Final entry JS/CSS measured 84,744 bytes gzipped (budget 150,000) in this session. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
 
 ## Supported routes
 | Source | Output |
@@ -131,4 +131,4 @@ All 22 pinned runtime/development packages and the package-manager entry below w
 | `pnpm` | 12.15.0 | MIT |
 
 ### Concurrent integration
-Concurrent upstream commits through057f619 are merged, not overwritten. `exportManager` naming/native download functions are reused by the workbench; archive generation delegates to the bounded archive implementation. `ConversionOrchestrator` remains an exported compatibility API whose browser runtime delegates to the common `conversionRunner`, avoiding two diverging execution implementations.
+Concurrent upstream commits through 057f619 are merged, not overwritten. `exportManager` naming/native download functions are reused by the workbench; archive generation delegates to the bounded archive implementation. `ConversionOrchestrator` remains an exported compatibility API whose browser runtime delegates to the common `conversionRunner`, avoiding two diverging execution implementations.

@@ -23,8 +23,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Validation-discovered CSS/toolchain bootstrap defects.
 
 ### Changed
-- 2026-10-25: Root merged gate passes check,64 unit tests, production build and36 browser scenarios across Chromium/Firefox/WebKit; permanent CI run pending.
-- 2026-10-25: Integrated concurrent main commits through057f619, retained core orchestration/export contracts, and delegated browser conversion/archive paths to the shared validated implementations. Native download handlers are synchronous to preserve WebKit user activation.
+- 2026-10-25: Root merged gate passes check, 64 unit tests, production build and 36 browser scenarios across Chromium/Firefox/WebKit; permanent Validate run 40164171678 also passes pinned install and entry gzip budget.
+- 2026-10-25: Integrated concurrent main commits through 057f619, retained core orchestration/export contracts, and delegated browser conversion/archive paths to the shared validated implementations. Native download handlers are synchronous to preserve WebKit user activation.
 - Handoff/governance distinguishes immutable original requirements in `PRD.md` from verified current implementation corrections in README/TODO/ADRs.
 - Phase 9 is CI-verified through install, check, unit tests, and production build (run 40029861086).
 - FFmpeg determinate progress is gated by a route-level reliability flag because upstream documents progress as accurate only when input/output media lengths match.
