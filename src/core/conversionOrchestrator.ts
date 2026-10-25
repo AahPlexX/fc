@@ -1,6 +1,7 @@
 import { getCompatibleTargets } from "./compatibilityMatrix";
 import { buildOutputFileName } from "./exportManager";
-import type { ConversionJob, FormatId } from "./types";
+import type { MediaProgressState } from "./mediaProgress";
+import type { ConversionJob, FormatId, JobStatus } from "./types";
 
 export type ConversionEngineKind = "image" | "tabular" | "document" | "media";
 
@@ -15,6 +16,29 @@ export interface MediaCommandPlan {
   readonly outputName: string;
   readonly args: readonly string[];
   readonly progressReliable: boolean;
+}
+
+export interface ConversionUpdate {
+  readonly status: JobStatus;
+  readonly progressPercent: number | null;
+  readonly statusMessage: string;
+}
+
+export interface ConversionResult {
+  readonly blob: Blob;
+  readonly outputName: string;
+}
+
+export interface ConversionRuntime {
+  readonly image: (job: ConversionJob, target: FormatId, signal: AbortSignal) => Promise<Blob>;
+  readonly tabular: (job: ConversionJob, target: FormatId, signal: AbortSignal) => Promise<Blob>;
+  readonly document: (job: ConversionJob, target: FormatId, signal: AbortSignal) => Promise<Blob>;
+  readonly media: (
+    job: ConversionJob,
+    target: FormatId,
+    signal: AbortSignal,
+    onProgress: (progress: MediaProgressState) => void,
+  ) => Promise<Blob>;
 }
 
 const IMPLEMENTED_IMAGE_TARGETS = new Set<FormatId>(["png", "jpeg", "webp", "avif"]);
@@ -38,9 +62,7 @@ const isSemanticallyCompatible = (job: ConversionJob, target: FormatId): boolean
 
 export const planConversion = (job: ConversionJob): ConversionPlan => {
   const target = job.targetFormat;
-  if (!target) {
-    throw new Error("A target format must be selected before conversion");
-  }
+  if (!target) throw new Error("A target format must be selected before conversion");
   if (!isSemanticallyCompatible(job, target)) {
     throw new Error(`${job.detectedFormat.format.toUpperCase()} to ${target.toUpperCase()} is not a compatible conversion`);
   }
@@ -48,15 +70,11 @@ export const planConversion = (job: ConversionJob): ConversionPlan => {
   let engine: ConversionEngineKind;
   switch (job.detectedFormat.domain) {
     case "image":
-      if (!IMPLEMENTED_IMAGE_TARGETS.has(target)) {
-        throw new Error(`${target.toUpperCase()} image output is not implemented yet`);
-      }
+      if (!IMPLEMENTED_IMAGE_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} image output is not implemented yet`);
       engine = "image";
       break;
     case "tabular":
-      if (!IMPLEMENTED_TABULAR_TARGETS.has(target)) {
-        throw new Error(`${target.toUpperCase()} tabular output is not implemented yet`);
-      }
+      if (!IMPLEMENTED_TABULAR_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} tabular output is not implemented yet`);
       engine = "tabular";
       break;
     case "document":
@@ -67,20 +85,14 @@ export const planConversion = (job: ConversionJob): ConversionPlan => {
       break;
     case "audio":
     case "video":
-      if (!IMPLEMENTED_MEDIA_TARGETS.has(target)) {
-        throw new Error(`${target.toUpperCase()} media output is not implemented yet`);
-      }
+      if (!IMPLEMENTED_MEDIA_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} media output is not implemented yet`);
       engine = "media";
       break;
     default:
       throw new Error(`${job.detectedFormat.format.toUpperCase()} does not have an implemented conversion engine`);
   }
 
-  return {
-    engine,
-    target,
-    outputName: buildOutputFileName(job.sourceFile.name, target),
-  };
+  return { engine, target, outputName: buildOutputFileName(job.sourceFile.name, target) };
 };
 
 const safeToken = (value: string): string => {
@@ -123,31 +135,33 @@ export const buildMediaCommand = (job: ConversionJob): MediaCommandPlan => {
   }
 
   const codecArgs = AUDIO_ARGS[target] ?? VIDEO_ARGS[target];
-  if (!codecArgs) {
-    throw new Error(`No FFmpeg recipe is implemented for ${target.toUpperCase()}`);
-  }
+  if (!codecArgs) throw new Error(`No FFmpeg recipe is implemented for ${target.toUpperCase()}`);
 
   const token = safeToken(job.id);
   const inputName = `${token}-input.${job.detectedFormat.format}`;
   const outputName = `${token}-output.${target}`;
   const args: string[] = ["-i", inputName, ...codecArgs];
 
-  if (job.metadataPolicy.stripAllMetadata) {
-    args.push("-map_metadata", "-1");
-  }
-
+  if (job.metadataPolicy.stripAllMetadata) args.push("-map_metadata", "-1");
   for (const [rawKey, value] of Object.entries(job.metadataPolicy.overrides)) {
     const mappedKey = METADATA_KEYS[rawKey.toLowerCase()];
-    if (mappedKey && value.trim()) {
-      args.push("-metadata", `${mappedKey}=${value}`);
-    }
+    if (mappedKey && value.trim()) args.push("-metadata", `${mappedKey}=${value}`);
+  }
+  args.push(outputName);
+  return { inputName, outputName, args, progressReliable: true };
+};
+
+export class ConversionOrchestrator {
+  constructor(_runtime: ConversionRuntime) {}
+
+  async convert(
+    _job: ConversionJob,
+    _onUpdate?: (update: ConversionUpdate) => void,
+  ): Promise<ConversionResult> {
+    throw new Error("Execution orchestration not implemented");
   }
 
-  args.push(outputName);
-  return {
-    inputName,
-    outputName,
-    args,
-    progressReliable: true,
-  };
-};
+  cancel(_jobId: string): boolean {
+    return false;
+  }
+}

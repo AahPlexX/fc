@@ -1,6 +1,12 @@
 import JSZip from "jszip";
-import { describe, expect, it } from "vitest";
-import { buildMediaCommand, planConversion } from "../../src/core/conversionOrchestrator";
+import { describe, expect, it, vi } from "vitest";
+import {
+  buildMediaCommand,
+  ConversionOrchestrator,
+  planConversion,
+  type ConversionRuntime,
+  type ConversionUpdate,
+} from "../../src/core/conversionOrchestrator";
 import {
   buildOutputFileName,
   createBatchArchive,
@@ -108,5 +114,31 @@ describe("Phase 12 conversion and export contracts", () => {
     expect(Object.keys(zip.files).sort()).toEqual(["result (2).txt", "result.txt"]);
     await expect(zip.file("result.txt")?.async("string")).resolves.toBe("first");
     await expect(zip.file("result (2).txt")?.async("string")).resolves.toBe("second");
+  });
+
+  it("dispatches a planned job through the matching runtime and reports loading/converting telemetry", async () => {
+    const output = new Blob(["converted"], { type: "image/webp" });
+    const runtime: ConversionRuntime = {
+      image: vi.fn(async () => output),
+      tabular: vi.fn(async () => new Blob()),
+      document: vi.fn(async () => new Blob()),
+      media: vi.fn(async () => new Blob()),
+    };
+    const orchestrator = new ConversionOrchestrator(runtime);
+    const updates: ConversionUpdate[] = [];
+    const sourceJob = job("jpeg", "image", "webp", "portrait.jpg");
+
+    await expect(orchestrator.convert(sourceJob, (update) => updates.push(update))).resolves.toEqual({
+      blob: output,
+      outputName: "portrait-converted.webp",
+    });
+    expect(runtime.image).toHaveBeenCalledOnce();
+    expect(runtime.tabular).not.toHaveBeenCalled();
+    expect(updates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: "INITIALIZING_ENGINE", progressPercent: null }),
+        expect.objectContaining({ status: "CONVERTING" }),
+      ]),
+    );
   });
 });
