@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import type JSZip from "jszip";
 
 export interface ExportFile {
 	readonly filename: string;
@@ -113,6 +113,7 @@ export const createZipArchive = async (
 	if (inputBytes > limits.maxTotalBytes) {
 		throw new Error("ZIP contents exceed the configured total size limit");
 	}
+	const { default: JSZip } = await import("jszip");
 	const zip = new JSZip();
 	const filenames = resolveFilenameCollisions(
 		files.map((file) => file.filename),
@@ -376,6 +377,7 @@ export const extractZipArchive = async (
 	limits: ZipLimits = DEFAULT_ZIP_LIMITS,
 ): Promise<ExtractedArchiveEntry[]> => {
 	const manifest = inspectCentralDirectory(bytes, limits);
+	const { default: JSZip } = await import("jszip");
 	const zip = await JSZip.loadAsync(bytes, {
 		checkCRC32: false,
 		createFolders: false,

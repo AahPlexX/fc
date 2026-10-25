@@ -283,7 +283,7 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 					)}
 					{job.outputBlob && (
 						<p className="preview-size-delta">
-							Size: {job.sourceFile.size.toLocaleString()} B →{" "}
+							Original size: {job.sourceFile.size.toLocaleString()} B → Converted size:{" "}
 							{job.outputBlob.size.toLocaleString()} B (
 							{job.outputBlob.size - job.sourceFile.size >= 0 ? "+" : ""}
 							{(job.outputBlob.size - job.sourceFile.size).toLocaleString()} B)

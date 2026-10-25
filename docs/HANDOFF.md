@@ -1,6 +1,6 @@
 ---
 artifact_contract: "ce-handoff/v1"
-created_at: "2026-10-25T04:55:00Z"
+created_at: "2026-10-25T05:03:58Z"
 title: "OmniConvert integrated browser workbench"
 summary: "Worker conversions, metadata privacy, guarded ZIP archives and offline shell integrated; root browser gates recorded in TODO."
 keywords: ["omniconvert", "workers", "privacy", "offline", "handoff"]
@@ -23,3 +23,5 @@ Verification evidence and unfinished items are in TODO. Tests are source-control
 Machine-local setup note: the original shell resolves pnpm11.25.0; pinned pnpm12.15.0 was also run successfully via `pnpm dlx pnpm@12.15.0`. WebKit supplemental Debian libraries were downloaded/extracted without root into `/workspace/scratch/browser-libs`, then copied into Playwright's browser-local `sys/lib` directories. Local WebKit runs use `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` because ldconfig cannot see these user-local libraries; actual launches/conversions are tested. This flag and library work are unnecessary in normal CI after `playwright install --with-deps`. Scratch data and browser caches are ephemeral and not part of the project.
 
 Unverified items must stay explicit: field CWV/75th percentiles, universal <50ms task timing, comprehensive manual WCAG/assistive-tech/physical TV evaluation, latest-two-stable browser certification, cold-engine offline operation, and binary redistribution source/notices (LICENSES.md). No deployment was requested/performed. Do not claim 99% assurance or production certification from automated test counts.
+
+Concurrent main updates through057f619 were preserved in the merge. Their `exportManager` naming/native download APIs are reused, its ZIP generation delegates to bounded streaming code, and `createBrowserConversionRuntime` delegates to the shared runner. `tests/unit/conversionFlow.test.ts` remains intact; upstream static dialog tests now reflect the consolidated native-dialog UI and effect-owned URL lifecycle. Root local merged evidence:64 unit tests and36 browser scenarios passed. Final permanent CI URL/status is in TODO.

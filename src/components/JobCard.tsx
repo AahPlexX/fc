@@ -221,15 +221,13 @@ export const JobCard = ({
 				>
 					Metadata ({job.originalMetadata.length} tags)
 				</button>
+				<button type="button" disabled={running} onClick={onPreview}>
+					Preview
+				</button>
 				{job.outputBlob && (
-					<>
-						<button type="button" onClick={onPreview}>
-							Preview
-						</button>
-						<button type="button" onClick={onDownload}>
-							Download
-						</button>
-					</>
+					<button type="button" onClick={onDownload}>
+						Download
+					</button>
 				)}
 				<button type="button" disabled={running} onClick={onRemove}>
 					Remove

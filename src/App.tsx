@@ -12,6 +12,10 @@ import {
 	workerRequest,
 } from "./core/conversionRunner";
 import { createQueuedJob } from "./core/jobStore";
+import {
+	buildOutputFileName,
+	triggerBlobDownload as downloadBlob,
+} from "./core/exportManager";
 import type {
 	ConversionJob,
 	DetectedFormat,
@@ -198,7 +202,7 @@ export const App = () => {
 					if (!controller.signal.aborted) patch(job.id, values);
 				});
 				controller.signal.throwIfAborted();
-				const name = `${job.sourceFile.name.replace(/\.[^.]+$/, "")}-converted.${job.targetFormat}`;
+				const name = buildOutputFileName(job.sourceFile.name, job.targetFormat);
 				patch(job.id, {
 					status: "COMPLETED",
 					statusMessage: "Complete",
@@ -274,12 +278,9 @@ export const App = () => {
 		);
 		setMetadataId(null);
 	};
-	const download = async (job: ConversionJob) => {
+	const download = (job: ConversionJob) => {
 		if (job.outputBlob)
-			(await import("./core/exportFiles")).downloadBlob(
-				job.outputBlob,
-				job.outputFileName ?? "converted",
-			);
+			downloadBlob(job.outputBlob, job.outputFileName ?? "converted");
 	};
 	const exportAll = async () => {
 		try {
@@ -300,10 +301,7 @@ export const App = () => {
 				},
 				new AbortController().signal,
 			);
-			(await import("./core/exportFiles")).downloadBlob(
-				blob,
-				"omniconvert.zip",
-			);
+			downloadBlob(blob, "omniconvert.zip");
 			setNotice("ZIP ready.");
 		} catch (error) {
 			setNotice(String(error));
@@ -345,10 +343,7 @@ export const App = () => {
 				},
 				controller.signal,
 			);
-			(await import("./core/exportFiles")).downloadBlob(
-				blob,
-				"omniconvert-merged.pdf",
-			);
+			downloadBlob(blob, "omniconvert-merged.pdf");
 			setNotice("Merged PDF ready.");
 		} catch (error) {
 			setNotice(String(error));

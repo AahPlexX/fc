@@ -156,7 +156,7 @@ export const MetadataDrawer = ({
 									<span>{key}</span>
 										<input
 											id={id}
-											name={key}
+											name={`metadata-${key}`}
 											value={value}
 											onChange={(event) => {
 												const nextValue = event.currentTarget.value;
