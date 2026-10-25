@@ -5,6 +5,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
+- Phase 12 conversion/export core implementation: executable-domain planning with invalid/unimplemented route rejection, deterministic FFmpeg command recipes, privacy metadata stripping/override flags, stable converted filenames, collision-safe archive names, lazy JSZip DEFLATE generation, and explicit Blob URL download cleanup; full CI verification and App wiring remain pending.
 - Phase 12 red-first conversion/export contract covering engine routing, invalid-route rejection, metadata-aware FFmpeg command construction, deterministic converted filenames, collision-safe naming, and real JSZip archive round-trips.
 - Phase 11 metadata/preview workbench implementation with native dialogs, metadata policy editing, scoped Blob previews, size comparison, and keyboard-native queue actions.
 - `PRD.md` preserving the complete original user-supplied OmniConvert brief verbatim as an immutable baseline.
@@ -19,7 +20,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Phase 11 is CI-verified through install, check, unit tests, and production build (run 40162718916).
 - Handoff/governance distinguishes immutable original requirements in `PRD.md` from verified implementation corrections in README/TODO/ADRs.
 - Export design follows explicit Blob URL lifecycle cleanup and JSZip asynchronous archive generation.
-- Remaining PRD coverage gaps are now explicitly tracked in TODO rather than being hidden by the existing compatibility matrix.
+- Remaining PRD coverage gaps are explicitly tracked rather than hidden by a broad compatibility matrix.
 
 ## [1.0.0] - 2026-10-23
 
