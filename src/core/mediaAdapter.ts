@@ -32,7 +32,7 @@ export interface MediaAdapterDependencies {
 }
 
 const isRelativeAssetUrl = (value: string): boolean =>
-  value.startsWith("/") || value.startsWith("./") || value.startsWith("../");
+  (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("./") || value.startsWith("../");
 
 const isSameOriginAssetUrl = (value: string): boolean => {
   if (isRelativeAssetUrl(value)) {
@@ -63,12 +63,13 @@ export class MediaAdapter {
   private activeEngine: MediaEngine | null = null;
   private activeJobId: string | null = null;
   private readonly cancelledJobs = new Set<string>();
+  private rejectActiveCancellation: ((error: Error) => void) | null = null;
 
   constructor(private readonly dependencies: MediaAdapterDependencies) {
     assertSameOriginLoadConfig(dependencies.loadConfig);
   }
 
-  private getEngine(): Promise<MediaEngine> {
+  private getEngine(onCreated: (engine: MediaEngine) => void): Promise<MediaEngine> {
     if (this.enginePromise) {
       return this.enginePromise;
     }
@@ -76,8 +77,18 @@ export class MediaAdapter {
     this.enginePromise = this.dependencies
       .createEngine()
       .then(async (engine) => {
-        await engine.load(this.dependencies.loadConfig);
-        return engine;
+        onCreated(engine);
+        try {
+          await engine.load(this.dependencies.loadConfig);
+          return engine;
+        } catch (error) {
+          try {
+            engine.terminate();
+          } finally {
+            this.invalidateEngine(engine);
+          }
+          throw error;
+        }
       })
       .catch((error: unknown) => {
         this.enginePromise = null;
@@ -119,10 +130,20 @@ export class MediaAdapter {
     this.activeJobId = request.jobId;
     let engine: MediaEngine | null = null;
     let progressCallback: ((event: RawMediaProgress) => void) | null = null;
+    let rejectCancellation: ((error: Error) => void) | null = null;
+    const cancellation = new Promise<never>((_resolve, reject) => {
+      rejectCancellation = reject;
+    });
+    this.rejectActiveCancellation = rejectCancellation;
 
     try {
-      engine = await this.getEngine();
-      this.activeEngine = engine;
+      engine = await Promise.race([
+        this.getEngine((createdEngine) => {
+          engine = createdEngine;
+          this.activeEngine = createdEngine;
+        }),
+        cancellation,
+      ]);
 
       if (this.cancelledJobs.has(request.jobId)) {
         engine.terminate();
@@ -161,13 +182,18 @@ export class MediaAdapter {
       }
 
       if (engine) {
-        await Promise.all([
-          MediaAdapter.deleteTempFile(engine, request.inputName),
-          MediaAdapter.deleteTempFile(engine, request.outputName),
-        ]);
+        if (!this.cancelledJobs.has(request.jobId)) {
+          await Promise.all([
+            MediaAdapter.deleteTempFile(engine, request.inputName),
+            MediaAdapter.deleteTempFile(engine, request.outputName),
+          ]);
+        }
       }
 
       this.cancelledJobs.delete(request.jobId);
+      if (this.rejectActiveCancellation === rejectCancellation) {
+        this.rejectActiveCancellation = null;
+      }
       if (this.activeJobId === request.jobId) {
         this.activeJobId = null;
       }
@@ -183,6 +209,7 @@ export class MediaAdapter {
     }
 
     this.cancelledJobs.add(jobId);
+    this.rejectActiveCancellation?.(new Error(`Media job ${jobId} was cancelled`));
     const engine = this.activeEngine;
     if (engine) {
       this.invalidateEngine(engine);

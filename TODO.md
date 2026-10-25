@@ -1,6 +1,6 @@
 # OmniConvert Implementation Tracker
 
-Last updated: 2026-10-24  
+Last updated: 2026-10-25  
 Repository: `AahPlexX/fc`  
 Branch: `main` only  
 Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
@@ -53,5 +53,19 @@ New files (3/3): `src/core/mediaAdapter.ts`, `src/core/mediaProgress.ts`, `tests
 Next: require permanent CI install/check/test/build to pass the implemented one-engine lazy lifecycle, same-origin load-config enforcement, virtual-FS cleanup, reliable-only progress normalization, active-job termination, and fresh-engine recovery after cancellation. If green, mark Phase 10 COMPLETE and start Phase 11 red-first UI contracts.
 
 ## Environment
-- Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
+- Current cloud workspace has registry access; frozen install succeeds locally (2026-10-25). Prior sandbox DNS restriction no longer applies.
 - No fabricated lockfiles/dependency results.
+
+## 2026-10-25 execution ledger and implementation plan
+User supplied the approved PRD and explicitly requested five to twenty cost-conscious builders with root as sole validating gate. Five `gpt-6-luna` builders own bounded files; root integrates and independently verifies. No github3 tools. Existing `main` was cloned at 9ce60bf; upstream a90ea54 fixes the unsupported test matcher and will be incorporated without dropping work.
+
+- [ACTIVE] Phase 10 hardening: test URL bypass, cancel during engine loading, cleanup on load failure; root runs adapter tests/typecheck.
+- [ACTIVE] Phase 11 (<=3 new files, ordered): `MetadataDrawer.tsx`, `PreviewModal.tsx`, then `core/conversionRunner.ts`. Tests extend existing import/worker suites before implementations. Wire workers to App/JobCard; single active conversion, terminate on cancel/timeout; immutable settings snapshots; no result after cancel. Native dialogs manage focus. Root checks actual browser behavior.
+- [INCOMPLETE] Phase 12 (2 new files): `core/exportFiles.ts` then `tests/unit/exportFiles.test.ts`; native single downloads, collision-safe ZIP outputs, bounds-checked archive extraction in worker before decompression. Root tests collisions, traversal, inflated sizes, empty archive.
+- [INCOMPLETE] Phase 13 (3 new files): manifest, service worker, SVG icon. Existing Vite config emits self-hosted FFmpeg assets/CSP headers; main registers production SW. Root checks production asset loading and offline revisits.
+- [INCOMPLETE] Phase 14 (3 new files): Playwright config, conversion E2E, accessibility E2E. Run real workers PNG/WebP, WAV/MP3, CSV/JSON, PDF edits; download/re-inspect; focus/axe; mobile through TV widths; no network payload egress. Correct defects before green claims.
+- [INCOMPLETE] Phase 15 (3 ADRs): current architecture, routing, metadata limitations with rollback paths. Root updates support matrix/verification evidence/handoff checkpoint.
+
+Review focus: ambiguous audio/video containers must be probed before routing; misleading filename/MIME must not override signatures; cancellation during initialization must settle and release worker; malformed ZIP/PDF/table input must fail per item; metadata and active HTML must not leak via preview/export. Existing partial workers are not equivalent to verified app integration.
+
+Rulings: retain approved architecture and existing corrected phase sequence; do not re-request approval of already approved implementation. Default locally bundled single-thread WASM and sequential conversion. Never claim comprehensive WCAG/CWV compliance from unit tests or axe alone. Preserve PRD byte-for-byte. No external publication/deployment requested.

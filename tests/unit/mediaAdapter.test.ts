@@ -75,12 +75,56 @@ describe("Phase 10 media adapter contracts", () => {
     await expect(adapter.transcode(request("job-b"), progress)).resolves.toEqual(new Uint8Array([9, 8, 7]));
 
     expect(dependencies.createEngine).toHaveBeenCalledOnce();
-    expect(engine.load).toHaveBeenCalledOnceWith(loadConfig);
+    expect(engine.load).toHaveBeenCalledTimes(1);
+    expect(engine.load).toHaveBeenCalledWith(loadConfig);
     expect(engine.writeFile).toHaveBeenCalledTimes(2);
     expect(engine.exec).toHaveBeenCalledWith(["-i", "job-a.webm", "job-a.mp4"]);
     expect(progress).toHaveBeenCalledWith({ mode: "determinate", percent: 50, timeSeconds: 1 });
     expect(engine.deleteFile).toHaveBeenCalledWith("job-a.webm");
     expect(engine.deleteFile).toHaveBeenCalledWith("job-a.mp4");
+  });
+
+  it("rejects protocol-relative FFmpeg assets", () => {
+    expect(
+      () =>
+        new MediaAdapter({
+          createEngine: vi.fn(async () => createEngine()),
+          loadConfig: { ...loadConfig, coreURL: "//attacker.example/core.js" },
+        }),
+    ).toThrow(/same-origin/i);
+  });
+
+  it("terminates the engine and settles promptly when cancelled during load", async () => {
+    let finishLoad: ((loaded: boolean) => void) | undefined;
+    const engine = createEngine({
+      load: vi.fn(() => new Promise<boolean>((resolve) => (finishLoad = resolve))),
+    });
+    const adapter = new MediaAdapter({ createEngine: vi.fn(async () => engine), loadConfig });
+    const pending = adapter.transcode(request("job-loading"));
+
+    await vi.waitFor(() => expect(engine.load).toHaveBeenCalledOnce());
+    expect(adapter.cancel("job-loading")).toBe(true);
+    await expect(pending).rejects.toThrow(/cancelled/i);
+    expect(engine.terminate).toHaveBeenCalledOnce();
+    expect(engine.writeFile).not.toHaveBeenCalled();
+    finishLoad?.(true);
+  });
+
+  it("terminates an engine whose load fails and allows a fresh engine", async () => {
+    const failedEngine = createEngine({ load: vi.fn(async () => { throw new Error("load failed"); }) });
+    const recoveredEngine = createEngine();
+    const dependencies: MediaAdapterDependencies = {
+      createEngine: vi.fn<() => Promise<MediaEngine>>()
+        .mockResolvedValueOnce(failedEngine)
+        .mockResolvedValueOnce(recoveredEngine),
+      loadConfig,
+    };
+    const adapter = new MediaAdapter(dependencies);
+
+    await expect(adapter.transcode(request("job-load-fails"))).rejects.toThrow("load failed");
+    expect(failedEngine.terminate).toHaveBeenCalledOnce();
+    await expect(adapter.transcode(request("job-retry"))).resolves.toEqual(new Uint8Array([9, 8, 7]));
+    expect(recoveredEngine.load).toHaveBeenCalledOnce();
   });
 
   it("terminates an active job and requires a fresh engine before subsequent work", async () => {

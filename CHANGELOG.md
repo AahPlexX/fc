@@ -12,6 +12,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Phase 8 tabular conversion; Phase 7 image/metadata workers; Phase 6 import/queue workbench; Phase 5 compatibility routing; Phase 4 signature detector; responsive React/TypeScript foundation and permanent validation workflow.
 
 ### Fixed
+- 2026-10-25: Media adapter rejects protocol-relative asset URLs, promptly settles cancellation during loading, and terminates engines after failed initialization (targeted tests pass).
 - PDF.js cleanup destroys the `PDFDocumentLoadingTask`, matching current API ownership rather than calling a non-existent proxy method.
 - Phase 6 batch controls use native `fieldset`/`legend` grouping.
 - Validation-discovered CSS/toolchain bootstrap defects.
