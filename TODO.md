@@ -28,31 +28,16 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
 | 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
 | 10 | Media adapter + progress + test | COMPLETE | Matcher defect corrected; install/check/test/build green on run 40162153846. |
-| 11 | Metadata drawer + preview + batch actions | ACTIVE | RED valid; first implementation CI found action-group ARIA semantics and audio-caption lint issues. Root-cause fixes committed; rerun pending. |
+| 11 | Metadata drawer + preview + batch actions | ACTIVE | RED valid; first two lint passes strengthened native semantics. Job actions now use `fieldset`/`legend`; full rerun pending. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling plus conversion orchestration. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
 | 14 | Playwright + conversion/a11y E2E | INCOMPLETE | Browser/viewport/axe/manual gates. |
 | 15 | 3 ADRs | INCOMPLETE | Reflect shipped implementation. |
 
-## Carried corrections
-- `@ffmpeg/ffmpeg` owns its worker. Its API requires `load()` before use; `terminate()` invalidates the engine and requires a fresh load before later calls.
-- FFmpeg progress is determinate only for routes that explicitly preserve input/output media duration; otherwise UI progress stays indeterminate while time telemetry may remain visible.
-- Single-thread `@ffmpeg/core` is the default; core JS/WASM/class-worker assets must be bundled same-origin and never fetched from a CDN.
-- `pdf-lib` edits PDF structure/metadata; PDF.js renders pages from byte data with loading-task destruction.
-- axe supplements manual WCAG 2.2 AA evaluation.
-- PWA requires manifest + verified service worker/offline behavior.
-- `@ffmpeg/core@0.12.10` is GPL-2.0-or-later; wrapper MIT.
-- Node.js >=22.13.0.
-- Binary signatures are authoritative first-stage evidence; ambiguous containers require deeper probing.
-- Image workers verify returned encoder MIME and safely normalize limited metadata groups.
-- Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
-- Workbench overlays use native `<dialog>` semantics. Blob preview URLs are scoped to the selected job and revoked on cleanup.
-- User-supplied audio preview remains playable without fabricated captions/transcripts; a visible note explains the PRD's no-transcription scope and the lint exception is narrowly documented.
-
 ## Active checkpoint
 Phase 11 — metadata drawer, preview, and batch actions.  
 New files (3/3): `src/components/MetadataDrawer.tsx`, `src/components/PreviewModal.tsx`, `tests/unit/workbenchDialogs.test.tsx`.  
-Next: rerun permanent CI after changing the job action wrapper to `role="group"` and documenting the intentional audio-caption lint exception. If green, mark Phase 11 COMPLETE and begin Phase 12 red-first export/orchestration contracts.
+Next: rerun permanent CI after replacing the generic action group with native `fieldset`/`legend`. If green, mark Phase 11 COMPLETE and begin Phase 12 red-first export/orchestration contracts.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.

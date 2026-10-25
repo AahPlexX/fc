@@ -74,7 +74,8 @@ export const JobCard = ({
         </progress>
       </div>
 
-      <div className="job-actions" role="group" aria-label={`Actions for ${job.sourceFile.name}`}>
+      <fieldset className="job-actions">
+        <legend>Actions for {job.sourceFile.name}</legend>
         <button type="button" disabled={!onMetadata || isRunning} onClick={() => onMetadata?.(job.id)}>
           Metadata
         </button>
@@ -95,7 +96,7 @@ export const JobCard = ({
         >
           Convert
         </button>
-      </div>
+      </fieldset>
     </article>
   );
 };
