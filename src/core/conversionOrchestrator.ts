@@ -1,7 +1,8 @@
-import { getCompatibleTargets } from "./compatibilityMatrix";
+import { getCompatibleTargets, type ConversionCapabilities } from "./compatibilityMatrix";
 import { buildOutputFileName } from "./exportManager";
+import { MediaAdapter, type MediaEngine } from "./mediaAdapter";
 import type { MediaProgressState } from "./mediaProgress";
-import type { ConversionJob, FormatId, JobStatus } from "./types";
+import type { ConversionJob, DetectedFormat, FormatId, JobStatus } from "./types";
 
 export type ConversionEngineKind = "image" | "tabular" | "document" | "media";
 
@@ -57,6 +58,27 @@ const IMPLEMENTED_MEDIA_TARGETS = new Set<FormatId>([
   "gif",
 ]);
 
+const isImplementedTarget = (source: DetectedFormat, target: FormatId): boolean => {
+  switch (source.domain) {
+    case "image":
+      return IMPLEMENTED_IMAGE_TARGETS.has(target);
+    case "tabular":
+      return IMPLEMENTED_TABULAR_TARGETS.has(target);
+    case "document":
+      return source.format === "pdf" && IMPLEMENTED_PDF_TARGETS.has(target);
+    case "audio":
+    case "video":
+      return IMPLEMENTED_MEDIA_TARGETS.has(target);
+    default:
+      return false;
+  }
+};
+
+export const getExecutableTargets = (
+  source: DetectedFormat,
+  capabilities: ConversionCapabilities = { avifEncode: false },
+): readonly FormatId[] => getCompatibleTargets(source, capabilities).filter((target) => isImplementedTarget(source, target));
+
 const isSemanticallyCompatible = (job: ConversionJob, target: FormatId): boolean =>
   getCompatibleTargets(job.detectedFormat, { avifEncode: true }).includes(target);
 
@@ -66,26 +88,23 @@ export const planConversion = (job: ConversionJob): ConversionPlan => {
   if (!isSemanticallyCompatible(job, target)) {
     throw new Error(`${job.detectedFormat.format.toUpperCase()} to ${target.toUpperCase()} is not a compatible conversion`);
   }
+  if (!isImplementedTarget(job.detectedFormat, target)) {
+    throw new Error(`${job.detectedFormat.format.toUpperCase()} to ${target.toUpperCase()} is not implemented yet`);
+  }
 
   let engine: ConversionEngineKind;
   switch (job.detectedFormat.domain) {
     case "image":
-      if (!IMPLEMENTED_IMAGE_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} image output is not implemented yet`);
       engine = "image";
       break;
     case "tabular":
-      if (!IMPLEMENTED_TABULAR_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} tabular output is not implemented yet`);
       engine = "tabular";
       break;
     case "document":
-      if (job.detectedFormat.format !== "pdf" || !IMPLEMENTED_PDF_TARGETS.has(target)) {
-        throw new Error(`${job.detectedFormat.format.toUpperCase()} to ${target.toUpperCase()} is not implemented yet`);
-      }
       engine = "document";
       break;
     case "audio":
     case "video":
-      if (!IMPLEMENTED_MEDIA_TARGETS.has(target)) throw new Error(`${target.toUpperCase()} media output is not implemented yet`);
       engine = "media";
       break;
     default:
@@ -151,17 +170,278 @@ export const buildMediaCommand = (job: ConversionJob): MediaCommandPlan => {
   return { inputName, outputName, args, progressReliable: true };
 };
 
-export class ConversionOrchestrator {
-  constructor(_runtime: ConversionRuntime) {}
+const abortError = (): DOMException => new DOMException("Conversion cancelled", "AbortError");
 
-  async convert(
-    _job: ConversionJob,
-    _onUpdate?: (update: ConversionUpdate) => void,
-  ): Promise<ConversionResult> {
-    throw new Error("Execution orchestration not implemented");
+export class ConversionOrchestrator {
+  private readonly activeControllers = new Map<string, AbortController>();
+
+  constructor(private readonly runtime: ConversionRuntime) {}
+
+  async convert(job: ConversionJob, onUpdate?: (update: ConversionUpdate) => void): Promise<ConversionResult> {
+    if (this.activeControllers.has(job.id)) throw new Error(`Job ${job.id} is already converting`);
+
+    const plan = planConversion(job);
+    const controller = new AbortController();
+    this.activeControllers.set(job.id, controller);
+    const update = (next: ConversionUpdate): void => onUpdate?.(next);
+    update({ status: "INITIALIZING_ENGINE", progressPercent: null, statusMessage: "Loading conversion engine" });
+
+    try {
+      controller.signal.throwIfAborted();
+      update({ status: "CONVERTING", progressPercent: 0, statusMessage: `Converting to ${plan.target.toUpperCase()}` });
+
+      let blob: Blob;
+      switch (plan.engine) {
+        case "image":
+          blob = await this.runtime.image(job, plan.target, controller.signal);
+          break;
+        case "tabular":
+          blob = await this.runtime.tabular(job, plan.target, controller.signal);
+          break;
+        case "document":
+          blob = await this.runtime.document(job, plan.target, controller.signal);
+          break;
+        case "media":
+          blob = await this.runtime.media(job, plan.target, controller.signal, (progress) => {
+            const processed = progress.timeSeconds === null ? "" : ` · ${progress.timeSeconds.toFixed(1)}s processed`;
+            const percent = progress.percent === null ? null : progress.percent;
+            update({
+              status: "CONVERTING",
+              progressPercent: percent,
+              statusMessage: percent === null ? `Transcoding${processed}` : `Transcoding ${Math.round(percent)}%${processed}`,
+            });
+          });
+          break;
+      }
+
+      controller.signal.throwIfAborted();
+      return { blob, outputName: plan.outputName };
+    } finally {
+      this.activeControllers.delete(job.id);
+    }
   }
 
-  cancel(_jobId: string): boolean {
-    return false;
+  cancel(jobId: string): boolean {
+    const controller = this.activeControllers.get(jobId);
+    if (!controller) return false;
+    controller.abort(abortError());
+    return true;
   }
 }
+
+type WorkerSuccess = { readonly type: string; readonly jobId: string } & Record<string, unknown>;
+type WorkerFailure = { readonly type: "error"; readonly jobId: string; readonly message: string };
+
+const runOneShotWorker = <T extends WorkerSuccess>(
+  worker: Worker,
+  jobId: string,
+  message: unknown,
+  signal: AbortSignal,
+  select: (response: WorkerSuccess) => T | null,
+): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const cleanup = (): void => {
+      worker.removeEventListener("message", onMessage);
+      worker.removeEventListener("error", onError);
+      signal.removeEventListener("abort", onAbort);
+      worker.terminate();
+    };
+    const finish = (callback: () => void): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const onAbort = (): void => finish(() => reject(signal.reason instanceof Error ? signal.reason : abortError()));
+    const onError = (event: ErrorEvent): void => finish(() => reject(event.error ?? new Error(event.message)));
+    const onMessage = (event: MessageEvent<WorkerSuccess | WorkerFailure>): void => {
+      const response = event.data;
+      if (!response || response.jobId !== jobId) return;
+      if (response.type === "error") {
+        finish(() => reject(new Error((response as WorkerFailure).message)));
+        return;
+      }
+      const selected = select(response as WorkerSuccess);
+      if (selected) finish(() => resolve(selected));
+    };
+
+    worker.addEventListener("message", onMessage);
+    worker.addEventListener("error", onError);
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
+    worker.postMessage(message);
+  });
+
+const PDF_OVERRIDE_KEYS: Readonly<Record<string, "title" | "author" | "subject" | "keywords" | "creator" | "producer">> = {
+  title: "title",
+  author: "author",
+  subject: "subject",
+  keywords: "keywords",
+  creator: "creator",
+  producer: "producer",
+};
+
+const buildPdfMetadataPatch = (job: ConversionJob): Record<string, string | readonly string[] | null> => {
+  const patch: Record<string, string | readonly string[] | null> = {};
+  if (job.metadataPolicy.stripAllMetadata) {
+    Object.assign(patch, {
+      title: null,
+      author: null,
+      subject: null,
+      keywords: [],
+      creator: null,
+      producer: null,
+    });
+  }
+  for (const [rawKey, rawValue] of Object.entries(job.metadataPolicy.overrides)) {
+    const key = PDF_OVERRIDE_KEYS[rawKey.toLowerCase()];
+    if (!key) continue;
+    patch[key] = key === "keywords" ? rawValue.split(/[,;]\s*/).map((value) => value.trim()).filter(Boolean) : rawValue;
+  }
+  return patch;
+};
+
+const MIME_BY_TARGET: Readonly<Partial<Record<FormatId, string>>> = {
+  png: "image/png",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  avif: "image/avif",
+  gif: "image/gif",
+  wav: "audio/wav",
+  mp3: "audio/mpeg",
+  flac: "audio/flac",
+  ogg: "audio/ogg",
+  aac: "audio/aac",
+  m4a: "audio/mp4",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+};
+
+export const createBrowserConversionRuntime = (): ConversionRuntime => {
+  let mediaAdapterPromise: Promise<MediaAdapter> | null = null;
+
+  const getMediaAdapter = (): Promise<MediaAdapter> => {
+    if (mediaAdapterPromise) return mediaAdapterPromise;
+    mediaAdapterPromise = Promise.all([
+      import("@ffmpeg/ffmpeg"),
+      import("@ffmpeg/core?url"),
+      import("@ffmpeg/core/wasm?url"),
+    ]).then(([ffmpegModule, coreModule, wasmModule]) => {
+      const createEngine = async (): Promise<MediaEngine> => {
+        const ffmpeg = new ffmpegModule.FFmpeg();
+        return {
+          load: (config) => ffmpeg.load(config),
+          writeFile: async (path, data) => {
+            await ffmpeg.writeFile(path, data);
+            return true;
+          },
+          exec: (args) => ffmpeg.exec([...args]),
+          readFile: async (path) => (await ffmpeg.readFile(path)) as Uint8Array | string,
+          deleteFile: async (path) => {
+            await ffmpeg.deleteFile(path);
+            return true;
+          },
+          on: (_event, callback) => ffmpeg.on("progress", callback),
+          off: (_event, callback) => ffmpeg.off("progress", callback),
+          terminate: () => ffmpeg.terminate(),
+        };
+      };
+      return new MediaAdapter({
+        createEngine,
+        loadConfig: { coreURL: coreModule.default, wasmURL: wasmModule.default },
+      });
+    });
+    return mediaAdapterPromise;
+  };
+
+  return {
+    image: async (job, target, signal) => {
+      const worker = new Worker(new URL("../workers/image.worker.ts", import.meta.url), { type: "module" });
+      const response = await runOneShotWorker(
+        worker,
+        job.id,
+        { type: "convert", request: { jobId: job.id, source: job.sourceFile, target } },
+        signal,
+        (candidate) => (candidate.type === "result" ? candidate : null),
+      );
+      if (!(response.blob instanceof Blob)) throw new Error("Image worker returned an invalid result");
+      return response.blob;
+    },
+    tabular: async (job, target, signal) => {
+      const text = await job.sourceFile.text();
+      signal.throwIfAborted();
+      const worker = new Worker(new URL("../workers/tabular.worker.ts", import.meta.url), { type: "module" });
+      const response = await runOneShotWorker(
+        worker,
+        job.id,
+        { type: "convert", jobId: job.id, text, source: job.detectedFormat.format, target },
+        signal,
+        (candidate) => (candidate.type === "result" ? candidate : null),
+      );
+      if (typeof response.text !== "string" || typeof response.mime !== "string") throw new Error("Tabular worker returned an invalid result");
+      return new Blob([response.text], { type: response.mime });
+    },
+    document: async (job, target, signal) => {
+      const bytes = new Uint8Array(await job.sourceFile.arrayBuffer());
+      signal.throwIfAborted();
+      const worker = new Worker(new URL("../workers/document.worker.ts", import.meta.url), { type: "module" });
+      if (target === "pdf") {
+        const response = await runOneShotWorker(
+          worker,
+          job.id,
+          { type: "metadata-write", jobId: job.id, bytes, patch: buildPdfMetadataPatch(job) },
+          signal,
+          (candidate) => (candidate.type === "pdf-bytes" ? candidate : null),
+        );
+        if (!(response.bytes instanceof Uint8Array)) throw new Error("PDF worker returned invalid bytes");
+        const copied = new Uint8Array(response.bytes);
+        return new Blob([copied.buffer], { type: "application/pdf" });
+      }
+      if (target !== "png" && target !== "jpeg") throw new Error(`PDF to ${target.toUpperCase()} is not implemented`);
+      const response = await runOneShotWorker(
+        worker,
+        job.id,
+        { type: "render-page", jobId: job.id, bytes, pageNumber: 1, scale: 1.5, target },
+        signal,
+        (candidate) => (candidate.type === "rendered-page" ? candidate : null),
+      );
+      const result = response.result as { readonly blob?: unknown } | undefined;
+      if (!(result?.blob instanceof Blob)) throw new Error("PDF render worker returned an invalid Blob");
+      return result.blob;
+    },
+    media: async (job, target, signal, onProgress) => {
+      const command = buildMediaCommand({ ...job, targetFormat: target });
+      const adapter = await getMediaAdapter();
+      signal.throwIfAborted();
+      const abort = (): void => {
+        adapter.cancel(job.id);
+      };
+      signal.addEventListener("abort", abort, { once: true });
+      try {
+        const inputBytes = new Uint8Array(await job.sourceFile.arrayBuffer());
+        signal.throwIfAborted();
+        const output = await adapter.transcode(
+          {
+            jobId: job.id,
+            inputName: command.inputName,
+            outputName: command.outputName,
+            inputBytes,
+            args: command.args,
+            progressReliable: command.progressReliable,
+          },
+          onProgress,
+        );
+        signal.throwIfAborted();
+        const copied = new Uint8Array(output);
+        return new Blob([copied.buffer], { type: MIME_BY_TARGET[target] ?? "application/octet-stream" });
+      } finally {
+        signal.removeEventListener("abort", abort);
+      }
+    },
+  };
+};

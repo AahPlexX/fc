@@ -8,6 +8,7 @@ export interface JobCardProps {
   readonly onConvert?: (jobId: string) => void;
   readonly onMetadata?: (jobId: string) => void;
   readonly onPreview?: (jobId: string) => void;
+  readonly onDownload?: (jobId: string) => void;
   readonly onRemove?: (jobId: string) => void;
 }
 
@@ -27,6 +28,7 @@ export const JobCard = ({
   onConvert,
   onMetadata,
   onPreview,
+  onDownload,
   onRemove,
 }: JobCardProps) => {
   const isTerminal = TERMINAL_STATUSES.has(job.status);
@@ -35,7 +37,7 @@ export const JobCard = ({
   const progressLabelId = `progress-${job.id}`;
 
   return (
-    <article className="job-card" data-status={job.status.toLowerCase()}>
+    <article className="job-card" data-status={job.status.toLowerCase()} aria-busy={isRunning}>
       <header className="job-card-header">
         <div>
           <p className="job-domain">{job.detectedFormat.domain ?? "Needs inspection"}</p>
@@ -66,7 +68,7 @@ export const JobCard = ({
 
       <div className="job-progress-block">
         <div className="job-progress-copy">
-          <span id={progressLabelId}>{job.statusMessage}</span>
+          <span id={progressLabelId} role="status" aria-live="polite">{job.statusMessage}</span>
           <span>{job.progressPercent === null ? "—" : `${Math.round(job.progressPercent)}%`}</span>
         </div>
         <progress aria-labelledby={progressLabelId} max={100} value={job.progressPercent ?? undefined}>
@@ -81,6 +83,9 @@ export const JobCard = ({
         </button>
         <button type="button" disabled={!onPreview || !job.outputBlob} onClick={() => onPreview?.(job.id)}>
           Preview
+        </button>
+        <button type="button" disabled={!onDownload || !job.outputBlob || !job.outputFileName} onClick={() => onDownload?.(job.id)}>
+          Download
         </button>
         <button type="button" disabled={!onRemove || isRunning} onClick={() => onRemove?.(job.id)}>
           Remove

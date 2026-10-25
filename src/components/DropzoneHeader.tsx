@@ -9,8 +9,14 @@ export interface DropzoneHeaderProps {
   readonly onBatchTargetChange?: (target: FormatId | null) => void;
   readonly stripAllMetadata?: boolean;
   readonly onStripMetadataChange?: (strip: boolean) => void;
+  readonly queueCount?: number;
   readonly activeCount?: number;
   readonly aggregateProgress?: number | null;
+  readonly convertibleCount?: number;
+  readonly completedCount?: number;
+  readonly onConvertAll?: (() => void) | undefined;
+  readonly onExportZip?: (() => void) | undefined;
+  readonly onClearCompleted?: (() => void) | undefined;
 }
 
 export const DropzoneHeader = ({
@@ -20,28 +26,30 @@ export const DropzoneHeader = ({
   onBatchTargetChange,
   stripAllMetadata = false,
   onStripMetadataChange,
+  queueCount,
   activeCount = 0,
   aggregateProgress = null,
+  convertibleCount = 0,
+  completedCount = 0,
+  onConvertAll,
+  onExportZip,
+  onClearCompleted,
 }: DropzoneHeaderProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const configurableCount = queueCount ?? activeCount;
 
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
       const files = event.clipboardData?.files;
-      if (files && files.length > 0) {
-        onFiles(Array.from(files));
-      }
+      if (files && files.length > 0) onFiles(Array.from(files));
     };
-
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
   }, [onFiles]);
 
   const handleInput: ChangeEventHandler<HTMLInputElement> = (event) => {
     const files = Array.from(event.currentTarget.files ?? []);
-    if (files.length > 0) {
-      onFiles(files);
-    }
+    if (files.length > 0) onFiles(files);
     event.currentTarget.value = "";
   };
 
@@ -53,9 +61,7 @@ export const DropzoneHeader = ({
   const handleDrop: DragEventHandler<HTMLButtonElement> = (event) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files);
-    if (files.length > 0) {
-      onFiles(files);
-    }
+    if (files.length > 0) onFiles(files);
   };
 
   return (
@@ -93,7 +99,7 @@ export const DropzoneHeader = ({
             <select
               id="batch-target"
               value={selectedBatchTarget ?? ""}
-              disabled={activeCount === 0 || batchTargets.length === 0 || !onBatchTargetChange}
+              disabled={configurableCount === 0 || batchTargets.length === 0 || !onBatchTargetChange}
               onChange={(event) => onBatchTargetChange?.((event.currentTarget.value || null) as FormatId | null)}
             >
               <option value="">No shared target</option>
@@ -109,12 +115,24 @@ export const DropzoneHeader = ({
             <input
               type="checkbox"
               checked={stripAllMetadata}
-              disabled={activeCount === 0 || !onStripMetadataChange}
+              disabled={configurableCount === 0 || !onStripMetadataChange}
               onChange={(event) => onStripMetadataChange?.(event.currentTarget.checked)}
             />
             <span>Strip metadata</span>
           </label>
         </fieldset>
+
+        <div className="batch-action-row">
+          <button type="button" className="primary-button" disabled={!onConvertAll || convertibleCount === 0} onClick={onConvertAll}>
+            Convert All{convertibleCount > 0 ? ` (${convertibleCount})` : ""}
+          </button>
+          <button type="button" disabled={!onExportZip || completedCount === 0} onClick={onExportZip}>
+            Export Completed as ZIP{completedCount > 0 ? ` (${completedCount})` : ""}
+          </button>
+          <button type="button" disabled={!onClearCompleted || completedCount === 0} onClick={onClearCompleted}>
+            Clear Completed
+          </button>
+        </div>
       </section>
 
       {activeCount >= 2 ? (

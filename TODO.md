@@ -29,24 +29,27 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 9 | PDF/document worker | COMPLETE | Run 40029861086 green. |
 | 10 | Media adapter + progress | COMPLETE | Run 40162153846 green. |
 | 11 | Metadata drawer + preview + queue actions | COMPLETE | Run 40162718916 green. |
-| 12 | Conversion orchestration + single/batch export | ACTIVE | Pure planner/media/export contract green on run 40163096278; second red-first runtime-dispatch/status contract committed. |
+| 12 | Conversion orchestration + single/batch export | ACTIVE | Pure core green on run 40163096278; runtime-dispatch RED verified on run 40163277102; browser runtime/App wiring committed and awaiting full CI green. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
 | 14 | Playwright + conversion/a11y E2E | INCOMPLETE | Browser/viewport/axe/manual gates. |
 | 15 | 3 ADRs | INCOMPLETE | Reflect shipped implementation. |
 
-## Phase 12 verified core
-- Planner refuses incompatible pairs and routes only presently executable target families.
-- Media command builder creates deterministic FFmpeg recipes with metadata strip/override flags.
-- ZIP generation and filename collision handling are verified by a real JSZip round-trip.
-- Browser downloads use temporary Blob URLs with explicit revocation.
+## Phase 12 implementation
+- `ConversionOrchestrator` owns one `AbortController` per active job, emits accessible loading/converting telemetry, dispatches by tested engine plan, and cancels real work.
+- `createBrowserConversionRuntime()` uses disposable module workers for image/tabular/PDF jobs and a lazily created reusable FFmpeg adapter for media.
+- FFmpeg core JS/WASM are dynamically imported from `@ffmpeg/core` package assets and passed as same-origin application URLs; no CDN fallback.
+- `getExecutableTargets()` filters the broad semantic compatibility matrix to routes that the current engine surface can actually execute.
+- App now wires Convert, Cancel, Download, sequential Convert All, completed ZIP export, and Clear Completed.
+- Individual and ZIP downloads use explicit object-URL cleanup; completed preview URLs remain scoped/revoked by the preview lifecycle.
 
 ## Active checkpoint
-Phase 12 — runtime orchestration and browser-facing export.  
+Phase 12 — integrated browser runtime/export.  
 New files remain 3/3: `src/core/conversionOrchestrator.ts`, `src/core/exportManager.ts`, `tests/unit/conversionFlow.test.ts`.  
-Next: require unit-stage RED for the new `ConversionOrchestrator` runtime-dispatch/status contract with install/check green. Then implement AbortController-backed orchestration, disposable image/tabular/PDF workers, lazy FFmpeg runtime integration, App Convert/Cancel/Download/Convert All/ZIP/Clear Completed actions, and status telemetry by editing existing files only.
+Current edits: `src/core/mediaAdapter.ts`, `src/App.tsx`, `src/components/DropzoneHeader.tsx`, `src/components/JobCard.tsx`, README/CHANGELOG/TODO.  
+Next: require permanent CI install/check/test/build to pass worker dispatch, Vite ffmpeg asset URL imports, App callback typing, and existing unit contracts. Fix root causes only. On green, mark Phase 12 COMPLETE and begin Phase 13 PWA/offline work.
 
-## Known completion gaps after Phase 12
-Do not mark the product complete until remaining original-PRD gaps are implemented and verified in appended phases or explicitly changed by the user. Current known gaps: BMP/ICO/image-to-PDF output, Markdown-table input, Markdown/TXT/HTML document routes, PDF split/merge/image embedding, ZIP extraction, media container probing/metadata inspection, JPEG metadata writing, image dimensions/quality controls, and production conversion-path browser verification.
+## Known PRD completion gaps after Phase 12
+Do not claim product completion yet. Remaining original-PRD coverage to implement/verify in appended phases includes: BMP/ICO/image-to-PDF output; SVG raster input; image dimensions/quality presets; Markdown-table input; Markdown/TXT/HTML document routes; PDF split/merge/image embedding/multi-image compilation; ZIP extraction and zip-bomb guardrails; media signature/container probing for MP4/MOV/M4A/WebM/MKV/AAC/raw MP3; media metadata inspection; JPEG EXIF metadata writing; import MIME/extension corroboration; file memory warnings/timeouts; and full browser conversion-path/a11y/performance verification.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is the registry-connected verification environment.

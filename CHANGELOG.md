@@ -5,17 +5,18 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Added
-- Phase 12 second red-first contract for real runtime dispatch and accessible loading/converting telemetry through a `ConversionOrchestrator` boundary.
-- Phase 12 conversion/export core implementation: executable-domain planning with invalid/unimplemented route rejection, deterministic FFmpeg command recipes, privacy metadata stripping/override flags, stable converted filenames, collision-safe archive names, lazy JSZip DEFLATE generation, and explicit Blob URL download cleanup.
-- Phase 11 metadata/preview workbench implementation with native dialogs, metadata policy editing, scoped Blob previews, size comparison, and keyboard-native queue actions.
+- Phase 12 integrated browser conversion runtime: AbortController-backed orchestration, disposable image/tabular/PDF module workers, lazy same-origin ffmpeg.wasm core loading, real Convert/Cancel/Download controls, sequential Convert All, completed-output ZIP export, Clear Completed, executable-target filtering, `aria-busy`, and live conversion telemetry; full CI verification is pending.
+- Phase 12 second red-first contract for real runtime dispatch and loading/converting telemetry.
+- Phase 12 conversion/export core: executable-domain planning, invalid/unimplemented route rejection, deterministic FFmpeg recipes, metadata strip/override flags, stable converted filenames, collision-safe archive names, lazy JSZip DEFLATE generation, and explicit Blob URL download cleanup.
+- Phase 11 metadata/preview workbench implementation and prior verified conversion-engine foundations.
 - `PRD.md` preserving the complete original user-supplied OmniConvert brief verbatim as an immutable baseline.
-- Prior verified image, metadata, tabular, PDF, media, queue, routing, and toolchain phases.
 
 ### Changed
-- Phase 12 pure planner/media/export contract is CI-verified through install, check, unit tests, and production build (run 40163096278); runtime orchestration remains active.
-- Phase 11 is CI-verified through run 40162718916.
-- Handoff/governance distinguishes immutable original requirements in `PRD.md` from verified implementation corrections in README/TODO/ADRs.
-- Remaining PRD coverage gaps are explicitly tracked rather than hidden by a broad compatibility matrix.
+- `MediaEngineLoadConfig.classWorkerURL` is optional for the single-thread core; same-origin validation still applies to every supplied FFmpeg asset URL.
+- The UI now exposes only currently executable targets while preserving the broader semantic compatibility matrix and original PRD requirements for later completion phases.
+- Phase 12 pure core is CI-verified on run 40163096278; runtime-dispatch RED is verified on run 40163277102.
+- Phase 11 is CI-verified on run 40162718916.
+- Remaining PRD gaps are explicitly tracked instead of being hidden behind broad compatibility options.
 
 ## [1.0.0] - 2026-10-23
 

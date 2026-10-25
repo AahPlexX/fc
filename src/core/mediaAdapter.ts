@@ -3,7 +3,7 @@ import { normalizeMediaProgress, type MediaProgressState, type RawMediaProgress 
 export interface MediaEngineLoadConfig {
   readonly coreURL: string;
   readonly wasmURL: string;
-  readonly classWorkerURL: string;
+  readonly classWorkerURL?: string;
 }
 
 export interface MediaEngine {
@@ -35,13 +35,8 @@ const isRelativeAssetUrl = (value: string): boolean =>
   value.startsWith("/") || value.startsWith("./") || value.startsWith("../");
 
 const isSameOriginAssetUrl = (value: string): boolean => {
-  if (isRelativeAssetUrl(value)) {
-    return true;
-  }
-
-  if (typeof globalThis.location === "undefined") {
-    return false;
-  }
+  if (isRelativeAssetUrl(value)) return true;
+  if (typeof globalThis.location === "undefined") return false;
 
   try {
     return new URL(value, globalThis.location.href).origin === globalThis.location.origin;
@@ -52,7 +47,7 @@ const isSameOriginAssetUrl = (value: string): boolean => {
 
 const assertSameOriginLoadConfig = (config: MediaEngineLoadConfig): void => {
   for (const [name, value] of Object.entries(config)) {
-    if (!isSameOriginAssetUrl(value)) {
+    if (value !== undefined && !isSameOriginAssetUrl(value)) {
       throw new Error(`FFmpeg ${name} must resolve to a same-origin application asset`);
     }
   }
@@ -69,9 +64,7 @@ export class MediaAdapter {
   }
 
   private getEngine(): Promise<MediaEngine> {
-    if (this.enginePromise) {
-      return this.enginePromise;
-    }
+    if (this.enginePromise) return this.enginePromise;
 
     this.enginePromise = this.dependencies
       .createEngine()
@@ -88,15 +81,11 @@ export class MediaAdapter {
   }
 
   private throwIfCancelled(jobId: string): void {
-    if (this.cancelledJobs.has(jobId)) {
-      throw new Error(`Media job ${jobId} was cancelled`);
-    }
+    if (this.cancelledJobs.has(jobId)) throw new Error(`Media job ${jobId} was cancelled`);
   }
 
   private invalidateEngine(engine: MediaEngine): void {
-    if (this.activeEngine === engine) {
-      this.activeEngine = null;
-    }
+    if (this.activeEngine === engine) this.activeEngine = null;
     this.enginePromise = null;
   }
 
@@ -112,9 +101,7 @@ export class MediaAdapter {
     request: MediaTranscodeRequest,
     onProgress?: (progress: MediaProgressState) => void,
   ): Promise<Uint8Array> {
-    if (this.activeJobId !== null) {
-      throw new Error(`Media adapter is busy with job ${this.activeJobId}`);
-    }
+    if (this.activeJobId !== null) throw new Error(`Media adapter is busy with job ${this.activeJobId}`);
 
     this.activeJobId = request.jobId;
     let engine: MediaEngine | null = null;
@@ -130,9 +117,7 @@ export class MediaAdapter {
       }
       this.throwIfCancelled(request.jobId);
 
-      progressCallback = (event) => {
-        onProgress?.(normalizeMediaProgress(event, request.progressReliable));
-      };
+      progressCallback = (event) => onProgress?.(normalizeMediaProgress(event, request.progressReliable));
       engine.on("progress", progressCallback);
 
       await engine.writeFile(request.inputName, request.inputBytes);
@@ -140,16 +125,11 @@ export class MediaAdapter {
 
       const exitCode = await engine.exec(request.args);
       this.throwIfCancelled(request.jobId);
-      if (exitCode !== 0) {
-        throw new Error(`FFmpeg exited with code ${exitCode}`);
-      }
+      if (exitCode !== 0) throw new Error(`FFmpeg exited with code ${exitCode}`);
 
       const output = await engine.readFile(request.outputName);
       this.throwIfCancelled(request.jobId);
-      if (typeof output === "string") {
-        throw new Error("FFmpeg returned text for a binary media output");
-      }
-
+      if (typeof output === "string") throw new Error("FFmpeg returned text for a binary media output");
       return output;
     } finally {
       if (engine && progressCallback) {
@@ -168,19 +148,13 @@ export class MediaAdapter {
       }
 
       this.cancelledJobs.delete(request.jobId);
-      if (this.activeJobId === request.jobId) {
-        this.activeJobId = null;
-      }
-      if (this.activeEngine === engine) {
-        this.activeEngine = null;
-      }
+      if (this.activeJobId === request.jobId) this.activeJobId = null;
+      if (this.activeEngine === engine) this.activeEngine = null;
     }
   }
 
   cancel(jobId: string): boolean {
-    if (this.activeJobId !== jobId) {
-      return false;
-    }
+    if (this.activeJobId !== jobId) return false;
 
     this.cancelledJobs.add(jobId);
     const engine = this.activeEngine;

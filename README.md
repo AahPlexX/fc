@@ -4,21 +4,25 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Phases 0–10 are CI-verified. Phase 11 metadata/preview workbench UI is implemented and under validation. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Phases 0–11 are CI-verified. Phase 12 conversion orchestration and export is fully wired and under CI validation. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
-The UI accepts files through the native multi-file picker, a keyboard-operable drop target, or clipboard paste. Imported bytes are inspected locally before a job is added. Binary formats are signature-detected; CSV/TSV/JSON are identified from structured UTF-8 content. Unsupported files are skipped rather than guessed from extensions or browser MIME values. Queue controls support per-file target selection/cancellation, batch target selection, batch metadata stripping policy, aggregate progress, metadata inspection/editing, output previews, and removal.
+## Current workbench behavior
 
-Metadata editing and previews use native `<dialog>` elements. In-browser effects promote an open dialog to `showModal()` so Escape/focus behavior uses the platform dialog model; Playwright Phase 14 will verify keyboard focus cycling and focus return. Metadata policies can be applied to one file or other queued files with the same detected source format. Preview Blob URLs are created only for the selected completed job and revoked on selection change/close; tabular previews are capped to the first 50 output lines.
+The UI accepts files through the native multi-file picker, a keyboard-operable drop target, or clipboard paste. Imported bytes are inspected locally before a job is added. Binary formats are signature-detected; CSV/TSV/JSON are identified from structured UTF-8 content. The UI now distinguishes the broad semantic compatibility matrix from the routes the current build can actually execute, so unimplemented PRD targets are not exposed as clickable conversions.
 
-Image conversion uses `createImageBitmap()` plus `OffscreenCanvas` inside a dedicated worker. Requested output MIME types are verified against the Blob returned by the browser so unsupported AVIF cannot silently succeed as PNG. Bitmaps are closed after every conversion attempt. Metadata inspection runs separately, receives raw bytes rather than paths/URLs, and initially exposes only normalized file, EXIF, GPS, and composite values.
+Per-file actions include target selection, Convert, Cancel, Metadata, Preview, Download, and Remove. Batch controls include shared target selection, metadata stripping, sequential Convert All, ZIP export for completed outputs, and Clear Completed. Running jobs expose `aria-busy`, live status text, progress telemetry, and real cancellation through the orchestrator rather than a state-only cancel.
 
-Tabular conversion uses a canonical row/column model. Papa Parse is dynamically imported only for CSV/TSV parsing or serialization. CSV/TSV exports enable formula escaping, while Markdown and HTML outputs escape cell content before rendering.
+Conversion dispatch uses a tested `ConversionOrchestrator` with an `AbortController` per active job. Image, tabular, and PDF work uses disposable module workers that are terminated on completion/error/abort. Media work lazily imports ffmpeg.wasm and the single-thread `@ffmpeg/core` JS/WASM assets from the application bundle, then reuses one `MediaAdapter` until cancellation invalidates it. No CDN fallback is used.
 
-PDF operations are split by responsibility: pdf-lib reads/updates document-info metadata and serializes bytes, while PDF.js renders pages. PDFs are always loaded from in-memory bytes. The PDF.js worker asset is bundled with the application and resolved same-origin; OmniConvert does not use a CDN fallback. Page numbers are validated as 1-based before rendering, rendered page dimensions are derived from PDF.js viewports, and page/document resources are cleaned up even when rendering fails.
+Image conversion uses `createImageBitmap()` plus `OffscreenCanvas`. Requested output MIME types are verified against the Blob returned by the browser so unsupported AVIF cannot silently succeed as PNG. Metadata inspection receives raw bytes rather than paths/URLs and currently exposes normalized file, EXIF, GPS, and composite values.
 
-Media transcoding is represented by one lazy `MediaAdapter` engine at a time. The adapter refuses non-same-origin FFmpeg core/WASM/class-worker URLs, writes inputs to FFmpeg's virtual filesystem, executes the requested command, reads binary output, and cleans temporary files. Progress is determinate only when a route explicitly marks FFmpeg progress as reliable; otherwise elapsed media time remains visible with indeterminate completion. Cancellation terminates the active FFmpeg worker, invalidates that engine, and forces a fresh engine/load before subsequent work.
+Tabular conversion uses a canonical row/column model. Papa Parse is dynamically imported only for CSV/TSV work; delimited exports enable formula escaping, while Markdown and HTML outputs escape cell content.
+
+PDF operations split responsibilities: pdf-lib reads/updates document-info metadata and serializes bytes, while PDF.js renders pages. PDFs are loaded from in-memory bytes and the PDF.js worker is bundled same-origin.
+
+Completed outputs can be downloaded individually using temporary Blob URLs or packaged with JSZip into a collision-safe DEFLATE archive. Temporary download URLs are explicitly revoked after dispatch.
 
 ## Verified foundation stack — 2026-10-23
 
@@ -28,7 +32,7 @@ Media transcoding is represented by one lazy `MediaAdapter` engine at a time. Th
 - pnpm 12.15.0
 - Vitest 5.0.5
 - Playwright 1.64.1 and `@axe-core/playwright` 4.14.0
-- FFmpeg.wasm: `@ffmpeg/ffmpeg` 0.12.15, `@ffmpeg/core` 0.12.10, `@ffmpeg/util` 0.12.2. The wrapper is MIT; the published core package declares GPL-2.0-or-later and must be handled accordingly when distributed.
+- FFmpeg.wasm: `@ffmpeg/ffmpeg` 0.12.15, `@ffmpeg/core` 0.12.10, `@ffmpeg/util` 0.12.2. The wrapper is MIT; the published core package declares GPL-2.0-or-later.
 - Papa Parse 5.7.0
 - ExifReader 4.51.0
 - pdf-lib 1.17.1 and PDF.js (`pdfjs-dist`) 6.4.299
@@ -40,11 +44,11 @@ All package versions are exact pins. Heavy conversion libraries remain lazy-load
 
 ## Architectural corrections to PRD v1.0.0
 
-1. `@ffmpeg/ffmpeg` already runs transcoding through its own worker; no redundant parent media worker is added without measured need.
-2. FFmpeg.wasm's `progress` event is experimental; determinate UI degrades to indeterminate/phase telemetry when reliability is unknown.
+1. `@ffmpeg/ffmpeg` already runs transcoding through its own worker; OmniConvert does not add a redundant parent media worker.
+2. FFmpeg.wasm progress is experimental; determinate UI degrades to indeterminate/phase telemetry when reliability is unknown.
 3. `pdf-lib` creates/edits PDF structure but is not a page renderer; PDF-to-image routes use PDF.js.
 4. axe is an automated regression gate, not proof of complete WCAG 2.2 AA conformance.
-5. `TODO.md` is the corrected <=3-new-files-per-phase implementation sequence.
+5. `TODO.md` is the corrected implementation sequence while `PRD.md` remains verbatim.
 6. PWA is not considered complete until manifest + service-worker/offline behavior are implemented and verified.
 
 ## Local development
@@ -65,4 +69,4 @@ Conversion code must never transmit user-selected file contents. Network access 
 
 ## Hosting note
 
-Multi-threaded FFmpeg requires cross-origin isolation headers. The MVP defaults to the single-thread FFmpeg core so static hosts without COOP/COEP can still function; multi-threading may be capability-gated later.
+Multi-threaded FFmpeg requires cross-origin isolation headers. The MVP currently uses the single-thread FFmpeg core so static hosts without COOP/COEP can function; multi-threading may be capability-gated later.
