@@ -1,11 +1,12 @@
 # OmniConvert Implementation Tracker
 
-Last updated: 2026-10-23  
+Last updated: 2026-10-24  
 Repository: `AahPlexX/fc`  
 Branch: `main` only  
 Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 
 ## Invariants
+- `PRD.md` preserves the original user-supplied brief verbatim and must not be rewritten, normalized, or silently corrected. Verified implementation corrections belong in README/TODO/ADRs while the original PRD remains unchanged.
 - Max 3 **new** files per phase; edits unlimited.
 - Executable/config changes update `TODO.md` + `CHANGELOG.md` in the same commit; update `README.md` when public behavior/commands/architecture/support change.
 - Exact pins; pnpm only; user file bytes never leave the browser.
@@ -15,7 +16,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 ## Phase ledger
 | Phase | Scope | Status | Gate |
 |---|---|---|---|
-| 0 | Governance | COMPLETE | PRD corrections durable. |
+| 0 | Governance | COMPLETE | PRD corrections durable; original user brief preserved verbatim in `PRD.md`. |
 | 1A | Registry/lifecycle policy | COMPLETE | Frozen install + ExifReader build denial. |
 | 1 | Toolchain | COMPLETE | Lockfile + strict TS. |
 | 2 | React shell | COMPLETE | CI install/check/test/build green. |
