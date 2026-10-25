@@ -35,6 +35,7 @@ export const PreviewModal = ({ job, open, previewUrl, previewText = null, onClos
   const originalSize = job.sourceFile.size;
   const delta = originalSize > 0 && job.outputBlob ? ((convertedSize - originalSize) / originalSize) * 100 : null;
   const domain = job.detectedFormat.domain;
+  const audioDescriptionId = `audio-preview-note-${job.id}`;
 
   return (
     <dialog
@@ -63,7 +64,16 @@ export const PreviewModal = ({ job, open, previewUrl, previewText = null, onClos
             <img src={previewUrl} alt={`Converted preview of ${job.sourceFile.name}`} />
           ) : null}
           {previewUrl && domain === "audio" ? (
-            <audio controls src={previewUrl} aria-label={`Converted audio preview of ${job.sourceFile.name}`} />
+            <div className="audio-preview">
+              {/* biome-ignore lint/a11y/useMediaCaption: OmniConvert intentionally does not transcribe user audio; fabricated captions would be inaccurate. */}
+              <audio
+                controls
+                src={previewUrl}
+                aria-label={`Converted audio preview of ${job.sourceFile.name}`}
+                aria-describedby={audioDescriptionId}
+              />
+              <p id={audioDescriptionId}>This preview plays user-provided audio. OmniConvert does not generate transcripts or captions.</p>
+            </div>
           ) : null}
           {previewText && domain === "tabular" ? <pre>{previewText}</pre> : null}
           {!previewUrl && !previewText ? (

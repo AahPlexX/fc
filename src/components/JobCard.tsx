@@ -74,7 +74,7 @@ export const JobCard = ({
         </progress>
       </div>
 
-      <div className="job-actions" aria-label={`Actions for ${job.sourceFile.name}`}>
+      <div className="job-actions" role="group" aria-label={`Actions for ${job.sourceFile.name}`}>
         <button type="button" disabled={!onMetadata || isRunning} onClick={() => onMetadata?.(job.id)}>
           Metadata
         </button>

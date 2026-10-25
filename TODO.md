@@ -28,7 +28,7 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 | 8 | Tabular worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40028994454. |
 | 9 | PDF/document worker + test + fixture | COMPLETE | RED observed; install/check/test/build green on run 40029861086 after loading-task cleanup fix. |
 | 10 | Media adapter + progress + test | COMPLETE | Matcher defect corrected; install/check/test/build green on run 40162153846. |
-| 11 | Metadata drawer + preview + batch actions | ACTIVE | Valid RED observed on run 40162360371; native-dialog/action implementation committed and awaiting full CI green. |
+| 11 | Metadata drawer + preview + batch actions | ACTIVE | RED valid; first implementation CI found action-group ARIA semantics and audio-caption lint issues. Root-cause fixes committed; rerun pending. |
 | 12 | Export + test + fixtures | INCOMPLETE | Blob + ZIP/collision handling plus conversion orchestration. |
 | 13 | PWA manifest + SW + offline test | INCOMPLETE | Offline shell; never cache user payloads. |
 | 14 | Playwright + conversion/a11y E2E | INCOMPLETE | Browser/viewport/axe/manual gates. |
@@ -47,12 +47,12 @@ Status: `[COMPLETE]` / `[ACTIVE]` / `[INCOMPLETE]` / `[BLOCKED]`
 - Image workers verify returned encoder MIME and safely normalize limited metadata groups.
 - Tabular detection is structural UTF-8 content detection; Papa Parse is lazy and delimited exports enable formula escaping.
 - Workbench overlays use native `<dialog>` semantics. Blob preview URLs are scoped to the selected job and revoked on cleanup.
+- User-supplied audio preview remains playable without fabricated captions/transcripts; a visible note explains the PRD's no-transcription scope and the lint exception is narrowly documented.
 
 ## Active checkpoint
 Phase 11 — metadata drawer, preview, and batch actions.  
 New files (3/3): `src/components/MetadataDrawer.tsx`, `src/components/PreviewModal.tsx`, `tests/unit/workbenchDialogs.test.tsx`.  
-Current edits: `src/App.tsx`, `src/components/JobCard.tsx`; public behavior documented in README.  
-Next: require permanent CI install/check/test/build to pass native metadata/preview dialogs, apply-to-file/apply-to-matching policy updates, Blob URL cleanup, and queue action rendering. If green, mark Phase 11 COMPLETE and begin Phase 12 red-first export/orchestration contracts.
+Next: rerun permanent CI after changing the job action wrapper to `role="group"` and documenting the intentional audio-caption lint exception. If green, mark Phase 11 COMPLETE and begin Phase 12 red-first export/orchestration contracts.
 
 ## Environment
 - Local sandbox has no package-host DNS; GitHub Actions is registry-connected verification.
