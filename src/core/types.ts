@@ -66,6 +66,8 @@ export interface ConversionJob {
   readonly sourceFile: File;
   readonly detectedFormat: DetectedFormat;
   readonly targetFormat: FormatId | null;
+  readonly pageNumbers?: readonly number[];
+  readonly imageOptions?: {readonly quality:number;readonly maxWidth:number};
   readonly status: JobStatus;
   readonly progressPercent: number | null;
   readonly statusMessage: string;

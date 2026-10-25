@@ -159,3 +159,8 @@ describe("Phase 10 media adapter contracts", () => {
     expect(secondEngine.load).toHaveBeenCalledOnce();
   });
 });
+
+
+it("rejects backslash-normalized external engine URLs", () => {
+  expect(() => new MediaAdapter({createEngine: async () => {throw new Error("unused");},loadConfig:{coreURL:"/\\\\evil.example/core.js",wasmURL:"/core.wasm",classWorkerURL:"/worker.js"}})).toThrow(/same-origin/);
+});

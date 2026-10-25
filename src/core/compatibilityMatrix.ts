@@ -40,6 +40,7 @@ export const getCompatibleTargets = (
       if (source.format === "md") {
         return MARKDOWN_TARGETS;
       }
+      if (source.format === "txt") return ["txt", "html", "pdf"];
       return [];
     case "archive":
       return [];

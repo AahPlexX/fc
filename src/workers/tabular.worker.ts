@@ -1,4 +1,4 @@
-export type TabularSourceFormat = "csv" | "tsv" | "json";
+export type TabularSourceFormat = "csv" | "tsv" | "json" | "md";
 export type TabularTargetFormat = "csv" | "tsv" | "json" | "md" | "html";
 export type TabularValue = string | number | boolean | null;
 
@@ -21,7 +21,7 @@ const parseJson = (text: string): TabularTable => {
   if (records.length === 0) return { columns: [], rows: [] };
 
   if (records.every((record) => Array.isArray(record))) {
-    const width = Math.max(...records.map((record) => (record as unknown[]).length));
+    const width = records.reduce((maximum, record) => Math.max(maximum, (record as unknown[]).length), 0);
     const columns = Array.from({ length: width }, (_, index) => `column_${index + 1}`);
     return {
       columns,
@@ -50,6 +50,63 @@ const parseJson = (text: string): TabularTable => {
   };
 };
 
+const decodeMarkdownCell = (value: string): string => value
+  .replace(/<br\s*\/?>/gi, "\n")
+  .replace(/\\([\\|])/g, "$1")
+  .replace(/&lt;/g, "<")
+  .replace(/&gt;/g, ">")
+  .replace(/&amp;/g, "&");
+
+const splitMarkdownRow = (line: string): string[] => {
+  const cells: string[] = [];
+  let cell = "";
+  let escaped = false;
+  for (const character of line.trim()) {
+    if (escaped) {
+      cell += `\\${character}`;
+      escaped = false;
+    } else if (character === "\\") {
+      escaped = true;
+    } else if (character === "|") {
+      cells.push(cell.trim());
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+  if (escaped) cell += "\\";
+  cells.push(cell.trim());
+  if (line.trim().startsWith("|")) cells.shift();
+  if (line.trim().endsWith("|") && cells.length) cells.pop();
+  return cells.map(decodeMarkdownCell);
+};
+
+const parseMarkdown = (text: string): TabularTable => {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  let headerIndex = -1;
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    if (!lines[index]?.includes("|") || !lines[index + 1]?.includes("|")) continue;
+    const header = splitMarkdownRow(lines[index] ?? "");
+    const delimiter = splitMarkdownRow(lines[index + 1] ?? "");
+    if (header.length && delimiter.length === header.length && delimiter.every((cell) => /^:?-{3,}:?$/.test(cell))) {
+      headerIndex = index;
+      break;
+    }
+  }
+  if (headerIndex < 0) throw new Error("Markdown input does not contain a valid table header and alignment delimiter");
+  const columns = splitMarkdownRow(lines[headerIndex] ?? "");
+  const rows: TabularValue[][] = [];
+  for (const line of lines.slice(headerIndex + 2)) {
+    if (!line.trim()) break;
+    const row = splitMarkdownRow(line);
+    if (row.length !== columns.length) {
+      throw new Error(`Markdown table row has ${row.length} cells; expected ${columns.length} columns`);
+    }
+    rows.push(row);
+  }
+  return { columns, rows };
+};
+
 const parseDelimited = async (text: string, delimiter: string): Promise<TabularTable> => {
   const Papa = (await import("papaparse")).default;
   const result = Papa.parse<Record<string, string>>(text, {
@@ -73,6 +130,8 @@ export const parseTabular = async (text: string, format: TabularSourceFormat): P
   switch (format) {
     case "json":
       return parseJson(text);
+    case "md":
+      return parseMarkdown(text);
     case "csv":
       return parseDelimited(text, ",");
     case "tsv":
@@ -87,6 +146,9 @@ const escapeMarkdown = (value: TabularValue): string =>
   String(value ?? "")
     .replaceAll("\\", "\\\\")
     .replaceAll("|", "\\|")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
     .replaceAll("\r\n", "<br>")
     .replaceAll("\n", "<br>")
     .replaceAll("\r", "<br>");
@@ -112,7 +174,7 @@ const renderHtml = (table: TabularTable): string => {
   const rows = table.rows
     .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
     .join("");
-  return `<table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converted table</title><style>body{font:16px/1.5 system-ui,sans-serif;margin:2rem;color:#172033}main{max-width:100%;overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:.55rem .75rem;text-align:left;vertical-align:top}th{background:#f1f5f9}tbody tr:nth-child(even){background:#f8fafc}</style></head><body><main><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></main></body></html>`;
 };
 
 const renderDelimited = async (table: TabularTable, delimiter: string): Promise<string> => {

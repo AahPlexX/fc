@@ -33,3 +33,16 @@
 
 ## Current state
 `TODO.md` is the single source of truth for implementation phase status. `PRD.md` is the immutable verbatim source brief. Keep both roles distinct so future agents can resume without losing either original intent or verified implementation reality.
+
+## Integrated worker map (2026-10-25)
+- `src/core/conversionRunner.ts`: execution boundary; jobId-filtered worker requests, abort/timeout termination, direct FFmpeg lifecycle/probe, SVG native fallback. Read before touching App execution. `mediaAdapter.ts` is an independently tested reusable contract, not the live UI adapter.
+- `metadata.worker.ts`: binary-first File detection (`detect`), full structured text up to64 MiB, normalized image/PDF tags (`inspect`).
+- `image.worker.ts`: native raster encodes, BMP/ICO binary writers, bounded dimensions/quality, JPEG inherited EXIF plus explicit overrides; privacy scrubs before overrides.
+- `tabular.worker.ts`: CSV/TSV/JSON/Markdown table conversions and safe serializers.
+- `document.worker.ts`: pdf-lib metadata/pages/images/merge/text, PDF.js page rasterization; request responses must be filtered by jobId because PDF.js also posts worker readiness messages.
+- `exportFiles.ts`: main-thread native download helper, worker ZIP import/export; streamed actual-byte/CRC checks must precede Blob allocation. Never restore eager JSZip `checkCRC32:true` on imports: it inflates before limits.
+- `public/sw.js` and Vite plugin: generated shell precache, opt-in warmed engine cache, same-origin assets/CSP. Build after changing workers or asset paths before E2E.
+- `tests/e2e`: real output reinspection, corrupt files, cancellation, formats/media probe, axe/focus/viewports and offline flows. Use `pnpm test:e2e`; `pnpm test` is unit-only.
+
+## Handoff discipline
+Root is the sole validating/integrating gate during this user-authorized five-builder session. Builders own bounded files and run focused development checks; root independently runs and inspects the combined gate. Any future model/provider must read TODO and the three ADRs, preserve PRD, and rerun relevant tests rather than infer completeness from this session's report. Keep unverified field/manual/environment claims explicit. Use pnpm 12.15.0; if shell resolves the 11.x fallback, use `pnpm dlx pnpm@12.15.0 <command>`.

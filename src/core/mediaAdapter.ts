@@ -31,23 +31,12 @@ export interface MediaAdapterDependencies {
   readonly loadConfig: MediaEngineLoadConfig;
 }
 
-const isRelativeAssetUrl = (value: string): boolean =>
-  (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("./") || value.startsWith("../");
-
 const isSameOriginAssetUrl = (value: string): boolean => {
-  if (isRelativeAssetUrl(value)) {
-    return true;
-  }
-
-  if (typeof globalThis.location === "undefined") {
-    return false;
-  }
-
+  const base = typeof globalThis.location === "undefined" ? "https://omniconvert.invalid/" : globalThis.location.href;
   try {
-    return new URL(value, globalThis.location.href).origin === globalThis.location.origin;
-  } catch {
-    return false;
-  }
+    const url = new URL(value, base);
+    return (url.protocol === "https:" || url.protocol === "http:") && url.origin === new URL(base).origin;
+  } catch { return false; }
 };
 
 const assertSameOriginLoadConfig = (config: MediaEngineLoadConfig): void => {

@@ -100,3 +100,9 @@ describe("job store helpers", () => {
     expect(updated[1]).toBe(second);
   });
 });
+
+it('rejects invalid jobs at the execution boundary', async () => {
+  const { runConversion } = await import('../../src/core/conversionRunner');
+  const job = { ...createQueuedJob('invalid', new File(['wav'], 'sample.wav'), detected({format:'wav', mime:'audio/wav',domain:'audio'})), targetFormat: 'png' as const };
+  await expect(runConversion(job,new AbortController().signal,()=>undefined)).rejects.toThrow(/target/i);
+});

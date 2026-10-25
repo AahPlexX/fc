@@ -35,3 +35,21 @@ jobs:
 
       - name: Production build
         run: pnpm build
+
+      - name: Install browser dependencies
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Production browser and accessibility tests
+        run: pnpm test:e2e
+
+      - name: Initial bundle budget
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {gzipSync} from 'node:zlib';
+          const html=readFileSync('dist/index.html','utf8');
+          const files=[...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+\.(?:js|css))"/g)].map(match=>'dist'+match[1]);
+          const bytes=files.reduce((sum,file)=>sum+gzipSync(readFileSync(file)).length,0);
+          if(!files.length||bytes>150000) throw new Error(`Initial bundle exceeds budget: ${bytes}`);
+          console.log(`Initial JS/CSS gzip: ${bytes} bytes`);
+          JS

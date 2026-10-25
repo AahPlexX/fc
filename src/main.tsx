@@ -14,3 +14,9 @@ createRoot(rootElement).render(
     <App />
   </StrictMode>,
 );
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+    // Offline support is an enhancement; registration failures do not block conversion.
+  });
+}

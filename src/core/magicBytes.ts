@@ -36,6 +36,13 @@ export const detectBinaryFormat = (bytes: Uint8Array): DetectedFormat | null => 
   if (hasBytes(bytes, ASCII.FTYP, 4) && (hasBytes(bytes, ASCII.AVIF, 8) || hasBytes(bytes, ASCII.AVIS, 8))) {
     return match("avif", "image/avif", "image", "container");
   }
+  if (hasBytes(bytes, ASCII.FTYP, 4)) {
+    const brand = new TextDecoder().decode(bytes.slice(8, 12));
+    return match(brand === "qt  " ? "mov" : brand.startsWith("M4A") ? "m4a" : "mp4", "application/mp4", null, "container", true);
+  }
+  if (hasBytes(bytes, [0x1a, 0x45, 0xdf, 0xa3])) return match("mkv", "video/x-matroska", null, "container", true);
+  if (bytes.length >= 4 && bytes[0] === 0xff && ((bytes[1] ?? 0) & 0xf6) === 0xf0) return match("aac", "audio/aac", "audio");
+  if (bytes.length >= 4 && bytes[0] === 0xff && ((bytes[1] ?? 0) & 0xe6) === 0xe2) return match("mp3", "audio/mpeg", "audio");
   if (hasBytes(bytes, ASCII.BM)) return match("bmp", "image/bmp", "image");
   if (hasBytes(bytes, [0x00, 0x00, 0x01, 0x00])) return match("ico", "image/x-icon", "image");
   if (hasBytes(bytes, ASCII.PDF)) return match("pdf", "application/pdf", "document");
@@ -81,7 +88,7 @@ const hasStableDelimitedShape = (text: string, delimiter: string): boolean => {
   return (widths[0] ?? 0) > 1 && widths.every((width) => width === widths[0]);
 };
 
-export const detectTextFormat = (bytes: Uint8Array): DetectedFormat | null => {
+export const detectTextFormat = (bytes: Uint8Array, filename = "", _reportedMime = ""): DetectedFormat | null => {
   if (bytes.length === 0 || bytes.includes(0)) return null;
 
   let text: string;
@@ -92,6 +99,8 @@ export const detectTextFormat = (bytes: Uint8Array): DetectedFormat | null => {
   }
   if (!text) return null;
 
+  if (/^(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg[\s>]/i.test(text)) return match("svg", "image/svg+xml", "image", "structural");
+  if (/^\s*\|?.+\|.+\n\s*\|?\s*:?-{3,}/m.test(text)) return match("md", "text/markdown", "tabular", "structural");
   if (text.startsWith("[") || text.startsWith("{")) {
     try {
       const parsed: unknown = JSON.parse(text);
@@ -109,5 +118,7 @@ export const detectTextFormat = (bytes: Uint8Array): DetectedFormat | null => {
   if (hasStableDelimitedShape(text, ",")) {
     return match("csv", "text/csv", "tabular", "structural");
   }
+  if (/\.md$/i.test(filename)) return match("md", "text/markdown", "document", "structural");
+  if (/\.txt$/i.test(filename)) return match("txt", "text/plain", "document", "structural");
   return null;
 };

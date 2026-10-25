@@ -62,7 +62,6 @@ export const DropzoneHeader = ({
     <>
       <section className="dropzone-header" aria-labelledby="import-heading">
         <div className="dropzone-copy">
-          <p className="eyebrow">Local intake</p>
           <h2 id="import-heading">Import files</h2>
           <p>Drop files, choose files, or paste files from the clipboard. File bytes stay on this device.</p>
         </div>
@@ -93,7 +92,7 @@ export const DropzoneHeader = ({
             <select
               id="batch-target"
               value={selectedBatchTarget ?? ""}
-              disabled={activeCount === 0 || batchTargets.length === 0 || !onBatchTargetChange}
+              disabled={batchTargets.length === 0 || !onBatchTargetChange}
               onChange={(event) => onBatchTargetChange?.((event.currentTarget.value || null) as FormatId | null)}
             >
               <option value="">No shared target</option>
@@ -109,7 +108,7 @@ export const DropzoneHeader = ({
             <input
               type="checkbox"
               checked={stripAllMetadata}
-              disabled={activeCount === 0 || !onStripMetadataChange}
+              disabled={!onStripMetadataChange}
               onChange={(event) => onStripMetadataChange?.(event.currentTarget.checked)}
             />
             <span>Strip metadata</span>
@@ -120,7 +119,7 @@ export const DropzoneHeader = ({
       {activeCount >= 2 ? (
         <aside className="aggregate-progress" aria-live="polite">
           <div className="aggregate-progress-copy">
-            <span id="queue-progress-label">Queue progress</span>
+            <span id="queue-progress-label">Queue progress (finished files)</span>
             <strong>{aggregateProgress === null ? `${activeCount} active` : `${Math.round(aggregateProgress)}%`}</strong>
           </div>
           <progress aria-labelledby="queue-progress-label" max={100} value={aggregateProgress ?? undefined}>

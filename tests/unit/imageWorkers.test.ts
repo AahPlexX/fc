@@ -3,19 +3,55 @@ import {
   convertRaster,
   createCancellationRegistry,
   getRasterMimeType,
+  applyJpegMetadata,
+  encodeBmp,
+  encodeIco,
   type RasterDependencies,
 } from "../../src/workers/image.worker";
-import { normalizeMetadata } from "../../src/workers/metadata.worker";
+import { detectFileFormat, normalizeMetadata } from "../../src/workers/metadata.worker";
 
 const createBitmap = (): ImageBitmap =>
   ({ width: 12, height: 8, close: vi.fn() }) as unknown as ImageBitmap;
 
 describe("Phase 7 image and metadata worker contracts", () => {
+  it("detects binary signatures from the header and structural text from file bytes", async () => {
+    const binary = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "misleading.txt", { type: "text/plain" });
+    const json = new File(['{"items":[1,2]}'], "unknown.bin", { type: "application/octet-stream" });
+    expect((await detectFileFormat(binary))?.format).toBe("png");
+    expect((await detectFileFormat(json))?.format).toBe("json");
+  });
+
   it("maps browser-native raster targets to exact MIME types", () => {
     expect(getRasterMimeType("png")).toBe("image/png");
     expect(getRasterMimeType("jpeg")).toBe("image/jpeg");
     expect(getRasterMimeType("webp")).toBe("image/webp");
     expect(getRasterMimeType("avif")).toBe("image/avif");
+    expect(getRasterMimeType("bmp")).toBe("image/bmp");
+    expect(getRasterMimeType("ico")).toBe("image/x-icon");
+  });
+
+  it("encodes BMP pixels with a valid bitmap header", async () => {
+    const blob = encodeBmp(1, 1, new Uint8ClampedArray([255, 0, 0, 255]));
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    expect(blob.type).toBe("image/bmp");
+    expect(String.fromCharCode(bytes[0] ?? 0, bytes[1] ?? 0)).toBe("BM");
+    expect(new DataView(bytes.buffer).getUint32(2, true)).toBe(bytes.length);
+  });
+
+  it("writes a multi-resolution ICO directory with PNG payloads", async () => {
+    const png = new Blob([new Uint8Array([137, 80, 78, 71])], { type: "image/png" });
+    const blob = await encodeIco([png, png]);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const view = new DataView(bytes.buffer);
+    expect(blob.type).toBe("image/x-icon");
+    expect(view.getUint16(2, true)).toBe(1);
+    expect(view.getUint16(4, true)).toBe(2);
+    expect(view.getUint32(18, true)).toBe(38);
+  });
+
+  it("rejects malformed JPEG data instead of claiming metadata was written", async () => {
+    const source = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDi6KKK+ZP3E//Z";
+    await expect(applyJpegMetadata(source, source, false, { Artist: "Ada" })).rejects.toThrow();
   });
 
   it("rejects silent encoder fallback when AVIF is requested", async () => {
@@ -62,12 +98,11 @@ describe("Phase 7 image and metadata worker contracts", () => {
       exif: {
         Make: { value: "Camera Co", description: "Camera Co" },
       },
+      iptc: { Byline: { value: "Ada", description: "Ada" } },
+      xmp: { Title: { value: "A safe title" }, _raw: "<script>unsafe()</script>" },
       gps: {
         Latitude: 30.4,
         Longitude: -90.1,
-      },
-      xmp: {
-        _raw: "<script>unsafe()</script>",
       },
       Thumbnail: {
         image: new Uint8Array([1, 2, 3]).buffer,
@@ -79,9 +114,11 @@ describe("Phase 7 image and metadata worker contracts", () => {
         { group: "file", name: "FileType", value: "jpeg" },
         { group: "file", name: "Image Width", value: 1920 },
         { group: "exif", name: "Make", value: "Camera Co" },
+        { group: "iptc", name: "Byline", value: "Ada" },
+        { group: "xmp", name: "Title", value: "A safe title" },
         { group: "gps", name: "Latitude", value: 30.4 },
       ]),
     );
-    expect(entries.some((entry) => entry.group === "xmp" || entry.name === "image")).toBe(false);
+    expect(entries.some((entry) => entry.name === "_raw" || entry.name === "image")).toBe(false);
   });
 });

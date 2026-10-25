@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectBinaryFormat } from "../../src/core/magicBytes";
+import { detectBinaryFormat, detectTextFormat } from "../../src/core/magicBytes";
 
 const ascii = (value: string): number[] => Array.from(value, (character) => character.charCodeAt(0));
 
@@ -119,4 +119,15 @@ describe("detectBinaryFormat", () => {
     expect(detectBinaryFormat(Uint8Array.from([0x89, 0x50]))).toBeNull();
     expect(detectBinaryFormat(Uint8Array.from(ascii("plain text")))).toBeNull();
   });
+});
+
+it('detects media containers without guessing streams and validates text hints', () => {
+  expect(detectBinaryFormat(new Uint8Array([0,0,0,24,102,116,121,112,105,115,111,109]))?.needsProbe).toBe(true);
+  expect(detectBinaryFormat(new Uint8Array([0x1a,0x45,0xdf,0xa3]))?.needsProbe).toBe(true);
+  expect(detectBinaryFormat(new Uint8Array([0xff,0xf1,0x50,0x80]))?.format).toBe('aac');
+  expect(detectTextFormat(new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"></svg>'), 'wrong.mp3')?.format).toBe('svg');
+  expect(detectTextFormat(new TextEncoder().encode('| a | b |\n| --- | --- |\n| x | y |'), 'data.md')?.domain).toBe('tabular');
+  expect(detectTextFormat(new TextEncoder().encode('# Heading\n\nBody'), 'readme.md')?.domain).toBe('document');
+  expect(detectTextFormat(new TextEncoder().encode('Hello'), 'notes.txt')?.format).toBe('txt');
+  expect(detectTextFormat(new TextEncoder().encode('Hello'), 'notes.exe')).toBeNull();
 });

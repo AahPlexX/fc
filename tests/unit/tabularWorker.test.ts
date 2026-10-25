@@ -42,4 +42,32 @@ describe("Phase 8 tabular worker contracts", () => {
     expect(html).toContain("&lt;admin&gt;|pipe");
     expect(html).not.toContain("<admin>");
   });
+
+  it("parses escaped Markdown tables, alignment rows, and rendered line breaks", async () => {
+    const source = "| name | note |\n| :--- | ---: |\n| A\\|B | first<br>second |\n| C\\\\D | &lt;tag&gt; |";
+    await expect(parseTabular(source, "md")).resolves.toEqual({
+      columns: ["name", "note"],
+      rows: [["A|B", "first\nsecond"], ["C\\D", "<tag>"]],
+    });
+  });
+
+  it("round-trips rendered Markdown data while keeping HTML literals inert", async () => {
+    const table = await parseTabular(SAMPLE_JSON, "json");
+    const markdown = await renderTabular(table, "md");
+    expect(markdown).toContain("&lt;admin&gt;");
+    await expect(parseTabular(markdown, "md")).resolves.toEqual({
+      columns: table.columns,
+      rows: table.rows.map((row) => row.map((value) => String(value ?? ""))),
+    });
+
+    const html = await renderTabular(table, "html");
+    expect(html).toContain("<!doctype html>");
+    expect(html).toContain("<style>");
+    expect(html).toContain("&lt;admin&gt;|pipe");
+    expect(html).not.toContain("<admin>");
+  });
+
+  it("rejects malformed Markdown rows with inconsistent column counts", async () => {
+    await expect(parseTabular("| a | b |\n| --- | --- |\n| only one |", "md")).rejects.toThrow(/column/i);
+  });
 });
