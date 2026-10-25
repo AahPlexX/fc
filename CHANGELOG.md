@@ -38,3 +38,10 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ### Added
 - Approved OmniConvert PRD baseline supplied for implementation.
+
+### Continuation — 2026-10-25
+- Added keyboard chooser-to-download, narrow drawer focus, effective zoom/display preference and phase-attributed lab performance cases. Root local check/build, 74 unit tests and 54 browser scenarios pass; permanent continuation CI pending.
+- Fixed multiline CSV/CRLF Markdown detection, pending/cached/queued media cancellation, single-engine access, misleading WebM inference, obscured focus, ZIP reentrancy/cancellation and metadata loading. Table input/Blob encoding now stays in the worker.
+- Build-content SW cache fingerprints cover same-path engine assets. Added primary-source license traceability, bundled MIT/GPL notices and 14-day CI browser artifacts. Exact binary reproduction and full manual/field conformance remain explicitly unverified.
+
+- Closed PDF CreationDate/ModificationDate inspection and FR014 chunked CSV/TSV reads with byte/row progress. Fixed reproduced UTF-8 boundary corruption while preserving quoted multiline fields; retained File/Blob-only live conversion boundary.

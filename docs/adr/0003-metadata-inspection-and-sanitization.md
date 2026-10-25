@@ -16,3 +16,5 @@ ZIP imports are checked before decompression: directory/local bounds, declared s
 Real downloaded JPEG fixtures are re-inspected for absent GPS/inherited Artist and present explicit Copyright. Downloaded PDFs are re-inspected for stripped Author/dates and edited Title. Unit tests cover forged ZIP sizes, corruption, traversal and collisions. These checks do not prove every vendor metadata dialect or complete privacy redaction.
 
 Disable a metadata writer or archive route if its regression fails; preserve original input in memory until the user removes it. A specialized replacement can stay behind the same worker protocol. Future lossless PNG/WebP metadata preservation requires explicit implementation and new output-reinspection fixtures.
+
+2026-10-25 continuation: metadata inspection exposes loading/errors and aborts on close. ZIP generation is a cancellable workspace operation that prevents duplicate packing workers; completed jobs survive cancellation. The build includes core/wrapper license texts and candidate source-release pointers; exact binary reproduction and complete transitive notices remain a release gate, as recorded in LICENSES.

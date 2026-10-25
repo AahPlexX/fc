@@ -6,6 +6,8 @@ export interface MetadataDrawerProps {
 	readonly job: ConversionJob | null;
 	readonly onClose: () => void;
 	readonly onApply: (policy: MetadataPolicy, applyToMatching: boolean) => void;
+	readonly loading?: boolean;
+	readonly error?: string | null;
 }
 
 const EDITABLE_KEYS: Readonly<Record<string, readonly string[]>> = {
@@ -36,7 +38,10 @@ const keepTabFocusInside = (event: KeyboardEvent<HTMLDialogElement>) => {
 	const first = candidates[0];
 	const last = candidates[candidates.length - 1];
 	const active = document.activeElement;
-	if (event.shiftKey && (active === first || active === dialog || !dialog.contains(active))) {
+	if (
+		event.shiftKey &&
+		(active === first || active === dialog || !dialog.contains(active))
+	) {
 		event.preventDefault();
 		last?.focus();
 	} else if (
@@ -52,6 +57,8 @@ export const MetadataDrawer = ({
 	job,
 	onClose,
 	onApply,
+	loading = false,
+	error = null,
 }: MetadataDrawerProps) => {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const openerRef = useRef<HTMLElement | null>(null);
@@ -127,9 +134,16 @@ export const MetadataDrawer = ({
 							Close
 						</button>
 					</header>
-					<section aria-label="Original metadata">
+					<section aria-label="Original metadata" aria-busy={loading}>
 						<h3>Original tags</h3>
-						{fields.length === 0 ? (
+						{loading ? (
+							<p role="status">Inspecting metadata…</p>
+						) : error ? (
+							<p role="alert">
+								Metadata inspection failed: {error}. You can still set an export
+								policy below.
+							</p>
+						) : fields.length === 0 ? (
 							<p>No supported metadata was found.</p>
 						) : (
 							<dl>
@@ -153,7 +167,7 @@ export const MetadataDrawer = ({
 								const id = `metadata-${job.id}-${key}`;
 								return (
 									<label key={key} htmlFor={id}>
-									<span>{key}</span>
+										<span>{key}</span>
 										<input
 											id={id}
 											name={`metadata-${key}`}

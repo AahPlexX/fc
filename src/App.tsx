@@ -46,6 +46,10 @@ export const App = () => {
 	const active = useRef<AbortController | null>(null);
 	const imports = useRef(new Set<AbortController>());
 	const [metadataId, setMetadataId] = useState<string | null>(null);
+	const [metadataLoading, setMetadataLoading] = useState(false);
+	const [metadataError, setMetadataError] = useState<string | null>(null);
+	const metadataController = useRef<AbortController | null>(null);
+	const [archiveBlob, setArchiveBlob] = useState<Blob | null>(null);
 	const [previewId, setPreviewId] = useState<string | null>(null);
 	const [batchDomain, setBatchDomain] = useState("all");
 	const [now, setNow] = useState(Date.now());
@@ -248,21 +252,35 @@ export const App = () => {
 		});
 	};
 	const openMetadata = async (job: ConversionJob) => {
+		metadataController.current?.abort();
 		setMetadataId(job.id);
+		setMetadataError(null);
+		setMetadataLoading(false);
 		if (job.originalMetadata.length) return;
 		const controller = new AbortController();
+		metadataController.current = controller;
+		setMetadataLoading(true);
 		imports.current.add(controller);
 		try {
 			patch(job.id, {
 				originalMetadata: await inspectJobMetadata(job, controller.signal),
 			});
 		} catch (error) {
-			setNotice(
-				`Metadata inspection: ${error instanceof Error ? error.message : "Failed"}`,
-			);
+			if (!controller.signal.aborted)
+				setMetadataError(
+					error instanceof Error ? error.message : "Metadata inspection failed",
+				);
 		} finally {
 			imports.current.delete(controller);
+			if (metadataController.current === controller) {
+				metadataController.current = null;
+				setMetadataLoading(false);
+			}
 		}
+	};
+	const closeMetadata = () => {
+		metadataController.current?.abort();
+		setMetadataId(null);
 	};
 	const applyMetadata = (policy: MetadataPolicy, matching: boolean) => {
 		const source = jobsRef.current.find((j) => j.id === metadataId);
@@ -276,13 +294,20 @@ export const App = () => {
 					: j,
 			),
 		);
-		setMetadataId(null);
+		closeMetadata();
 	};
 	const download = (job: ConversionJob) => {
 		if (job.outputBlob)
 			downloadBlob(job.outputBlob, job.outputFileName ?? "converted");
 	};
 	const exportAll = async () => {
+		if (busyRef.current || !completed.length) return;
+		busyRef.current = true;
+		setBusy(true);
+		setBatchState({ total: 0, finished: 0 });
+		setArchiveBlob(null);
+		const controller = new AbortController();
+		active.current = controller;
 		try {
 			setNotice("Packaging completed files locally…");
 			const worker = new Worker(
@@ -299,12 +324,20 @@ export const App = () => {
 						blob: j.outputBlob,
 					})),
 				},
-				new AbortController().signal,
+				controller.signal,
 			);
+			controller.signal.throwIfAborted();
+			setArchiveBlob(blob);
 			downloadBlob(blob, "omniconvert.zip");
-			setNotice("ZIP ready.");
+			setNotice("ZIP ready. You can download it again using Download ZIP.");
 		} catch (error) {
-			setNotice(String(error));
+			setNotice(
+				controller.signal.aborted ? "ZIP export cancelled." : String(error),
+			);
+		} finally {
+			active.current = null;
+			busyRef.current = false;
+			setBusy(false);
 		}
 	};
 	const mergeable = queue.filter(
@@ -315,6 +348,7 @@ export const App = () => {
 		if (busyRef.current || mergeable.length < 2) return;
 		busyRef.current = true;
 		setBusy(true);
+		setBatchState({ total: 0, finished: 0 });
 		const controller = new AbortController();
 		active.current = controller;
 		try {
@@ -439,11 +473,19 @@ export const App = () => {
 					</button>
 					<button
 						type="button"
-						disabled={!completed.length}
+						disabled={busy || !completed.length}
 						onClick={() => void exportAll()}
 					>
 						Export completed as ZIP
 					</button>
+					{archiveBlob && (
+						<button
+							type="button"
+							onClick={() => downloadBlob(archiveBlob, "omniconvert.zip")}
+						>
+							Download ZIP
+						</button>
+					)}
 					<button
 						type="button"
 						disabled={busy || mergeable.length < 2}
@@ -454,11 +496,12 @@ export const App = () => {
 					<button
 						type="button"
 						disabled={!completed.length}
-						onClick={() =>
+						onClick={() => {
+							setArchiveBlob(null);
 							change((current) =>
 								current.filter((j) => j.status !== "COMPLETED"),
-							)
-						}
+							);
+						}}
 					>
 						Clear completed
 					</button>
@@ -528,7 +571,9 @@ export const App = () => {
 			</main>
 			<MetadataDrawer
 				job={jobs.find((j) => j.id === metadataId) ?? null}
-				onClose={() => setMetadataId(null)}
+				loading={metadataLoading}
+				error={metadataError}
+				onClose={closeMetadata}
 				onApply={applyMetadata}
 			/>
 			<PreviewModal

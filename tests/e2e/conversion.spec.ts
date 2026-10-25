@@ -389,3 +389,78 @@ test("image dimensions are applied before export", async ({ page }) => {
 	expect(result.bytes.readUInt32BE(16)).toBe(256);
 	expect(result.bytes.readUInt32BE(20)).toBe(128);
 });
+
+test("archive export can be cancelled without discarding converted files", async ({
+	page,
+}) => {
+	await page
+		.locator("input[type=file]")
+		.setInputFiles({
+			name: "archive.csv",
+			mimeType: "text/csv",
+			buffer: Buffer.from("name,value\nAda,42"),
+		});
+	const card = page.locator(".job-card");
+	await card.getByLabel("Target format").selectOption("json");
+	await card.getByRole("button", { name: "Convert", exact: true }).click();
+	await expect(card).toHaveAttribute("data-status", "completed");
+	let release: () => void = () => undefined;
+	const held = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route("**/assets/exportFiles-*.js", async (route) => {
+		await held;
+		await route.continue().catch(() => undefined);
+	});
+	try {
+		await page.getByRole("button", { name: "Export completed as ZIP" }).click();
+		await expect(
+			page.getByRole("button", { name: "Export completed as ZIP" }),
+		).toBeDisabled({ timeout: 2000 });
+		await page.getByRole("button", { name: "Cancel active operation" }).click();
+		await expect(
+			page.getByRole("status").filter({ hasText: "ZIP export cancelled." }),
+		).toBeVisible();
+		release();
+		await expect(card).toHaveAttribute("data-status", "completed");
+		const result = await output(page, () =>
+			card.getByRole("button", { name: "Download", exact: true }).click(),
+		);
+		expect(JSON.parse(result.bytes.toString())).toEqual([
+			{ name: "Ada", value: "42" },
+		]);
+	} finally {
+		release();
+	}
+});
+
+test("metadata inspection has a loading state and closes without blocking conversion", async ({
+	page,
+}) => {
+	await page.locator("input[type=file]").setInputFiles(await png(page));
+	const card = page.locator(".job-card");
+	await expect(card).toBeVisible();
+	let release: () => void = () => undefined;
+	const held = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route("**/assets/metadata.worker-*.js", async (route) => {
+		await held;
+		await route.continue().catch(() => undefined);
+	});
+	try {
+		await card.getByRole("button", { name: /Metadata/ }).click();
+		const dialog = page.getByRole("dialog", { name: "Metadata" });
+		await expect(dialog.getByRole("status")).toHaveText("Inspecting metadata…");
+		await expect(
+			dialog.getByText("No supported metadata was found."),
+		).toHaveCount(0);
+		await dialog.getByRole("button", { name: "Close metadata" }).click();
+		await expect(dialog).toHaveCount(0);
+		release();
+		await card.getByRole("button", { name: "Convert", exact: true }).click();
+		await expect(card).toHaveAttribute("data-status", "completed");
+	} finally {
+		release();
+	}
+});

@@ -2,7 +2,7 @@
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
 title: "OmniConvert integrated browser workbench"
-summary: "Worker conversions, metadata privacy, guarded ZIP archives and offline shell integrated; root browser gates recorded in TODO."
+summary: "Continuation:74 unit/54 browser gates, cancellation/focus/input/worker-boundary fixes, lab measurements and stronger source traceability."
 keywords: ["omniconvert", "workers", "privacy", "offline", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
@@ -25,3 +25,10 @@ Machine-local setup note: the original shell resolves pnpm11.25.0; pinned pnpm 1
 Unverified items must stay explicit: field CWV/75th percentiles, universal <50ms task timing, comprehensive manual WCAG/assistive-tech/physical TV evaluation, latest-two-stable browser certification, cold-engine offline operation, and binary redistribution source/notices (LICENSES.md). No deployment was requested/performed. Do not claim 99% assurance or production certification from automated test counts.
 
 Concurrent main updates through 057f619 were preserved in the merge. Their `exportManager` naming/native download APIs are reused, its ZIP generation delegates to bounded streaming code, and `createBrowserConversionRuntime` delegates to the shared runner. `tests/unit/conversionFlow.test.ts` remains intact; upstream static dialog tests now reflect the consolidated native-dialog UI and effect-owned URL lifecycle. Root local merged evidence:64 unit tests and 36 browser scenarios passed. Permanent Validate run 40164171678 is green on 90173cc, including browser gates and 84,744-byte gzip entry. Final CI URL/status and remaining manual/release scope are in TODO.
+
+## Current continuation (user-requested)
+The user explicitly requested further effective low-cost orchestration. The same five Luna builders remained active with root as sole validating gate. Root local check/build and 74 unit/54 browser cases pass; read TODO for the continuation commit and permanent CI result. `docs/verification.md` holds phase-attributed lab results and unsupported signals. All earlier64/36 counts above are historical baseline evidence.
+
+Key updates: shared media slot/generation-owned cancellation; raw Matroska demuxer names do not prove WebM; multiline/CRLF table detection; table File input and encoded Blob reply stay in the worker; unobscured drawer focus; cancelable serial ZIP plus repeat download; metadata loading/errors and close-abort; build-content cache fingerprints; bundled license text/immutable candidate-source links; retained CI JSON/screenshot/trace artifacts 14 days. Root verified core tarball against registry+lock and inspected the matching source manifest/Docker recipe. No exact binary/source attestation, human accessibility or field-performance certification is claimed.
+
+Final source details: PDF dates are inspected read-only. CSV/TSV is read in 1MiB slices through a persistent UTF-8 decoder plus Papa 5.7.0 ParserHandle; actual byte/row progress messages must not settle worker requests before the final Blob. Unit and real-worker tests split a Unicode character at the boundary; independent FileReader decoding would regress it. Final local gate is 74 unit/54 browser scenarios; TODO carries permanent CI status.

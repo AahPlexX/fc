@@ -3,10 +3,9 @@
 Last updated: 2026-10-25. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**Implemented and automated gates green.** Feature/merge commit: `90173cc`.
-Permanent [Validate run 40164171678](https://github.com/AahPlexX/fc/actions/runs/40164171678) passed: pinned pnpm 12.15.0 frozen install, lint/type checks,64 unit tests, production build,36 browser scenarios across Chromium/Firefox/WebKit, and entry gzip budget. Root independently ran the same gates locally. Entry JS/CSS:84,744 bytes gzipped (budget 150,000). This is automated evidence, not full standards/performance certification.
+**Continuation local gates pass; permanent CI pending.** Base commit: `e2a8a33`; earlier permanent Validate run 40164389498 was green for 64 unit/36 browser tests. Root now independently passes check/build, 74 unit tests and 54 browser scenarios; entry JS/CSS 85,396 gzip bytes / 150,000. New evidence and method limits: `docs/verification.md`.
 
-Current active file: none. Next file to edit if continuing verification: `tests/e2e/accessibility.spec.ts` for additional manual/assistive-tech evidence, with results in this file and README. For binary/public release, read `LICENSES.md` first. No deployment or release was performed. Source handoff: `docs/HANDOFF.md`.
+Current active file: TODO.md (record the continuation commit and permanent CI URL/result). Next step: commit and push the reviewed candidate, require the pinned Validate workflow including browser artifacts/budget, then finish the checkpoint. No deployment/release or full standards certification is claimed. Source handoff: `docs/HANDOFF.md`; release-source uncertainty is documented in LICENSES.
 
 ## Invariants
 - `PRD.md` is the immutable original brief. Verified corrections live in README/TODO/ADRs; do not rewrite the original.
@@ -30,6 +29,7 @@ Current active file: none. Next file to edit if continuing verification: `tests/
 | 13 | PWA/offline/assets | COMPLETE (automated scope) | Manifest/SW, same-origin bundled core/CSP, warmed-table offline conversion with no user data in cache. |
 | 14 | Browser/a11y/viewport/budget gates | COMPLETE (automated scope) |36/36 Playwright scenarios in CI; axe/focus and320–3840px viewport checks;85KB gzip entry. |
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
+| 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | ACTIVE (local gates green) |74 unit/54 browser tests; permanent CI pending. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record
@@ -60,3 +60,14 @@ Main advanced from a90ea54 through 057f619 while this workspace ran. Root preser
 Cloud workspace registry access works. All 22 direct runtime/dev package pins plus pnpm (23 records) were verified for exact version and declared license on 2026-10-25; latest-version status is not claimed. Pinned pnpm 12.15.0 install passed; initial shell fallback was 11.25.0.
 
 Local WebKit needed supplemental Debian libraries downloaded into user-local Playwright sys/lib directories because root installation was unavailable. Actual browser launches/conversions passed with `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`; ldconfig cannot see those local libraries. CI installed dependencies normally with `playwright install --with-deps` and passed without that flag. Scratch/caches are machine-local and ephemeral. Use `pnpm check`, `pnpm test`, `pnpm build`, then `pnpm test:e2e` to reproduce.
+
+## Continuation ownership and completed local work — 2026-10-25
+User reauthorized effective low-cost orchestration. The same five Luna builders owned separate bounded tasks; root remained the sole integrating/validating gate. Root independently reproduced additional cached-engine cancellation and ZIP reentrancy defects, validated primary package/source evidence, and resolved browser capability/type/measurement issues.
+
+The continuation creates exactly 3 files, sequentially: `tests/e2e/performance.spec.ts` (independently checked before later files), `public/THIRD_PARTY_NOTICES.txt` (license texts/source pointers, build-copy verified), then `docs/verification.md` (frozen root evidence). Existing files carry all other changes. No package versions or PRD content changed. `actions/upload-artifact` v7.0.2 was pinned to its primary tag commit on 2026-10-25.
+
+74 unit tests and 54 browser scenarios pass locally with retries 0. Full test output/result attachments remain in ignored test-results; future CI retains browser evidence 14 days. Root confirmed template cache fingerprint invalidation and exact notice copy into dist. The measured Chromium long task belonged to harness fixture injection, not the conversion interval. Firefox/WebKit unsupported signals stay unknown; WebKit pointer-event timing is not a field INP claim. See verification report for exact samples and meaningful limitations.
+
+Remaining gates are the explicit field/manual/source-reproduction items above; source traceability is narrowed to a matching candidate publish commit and fully verified package SRI, with moving build references/provenance uncertainty recorded. Cold engine availability is still not promised before assets load. No external deployment/release was performed.
+
+Final local candidate adds PDF ISO date inspection (read-only), actual chunked CSV/TSV reads/telemetry and stateful UTF-8 decoding. Root reproduced split-character corruption and verified the pure worker and real-browser regressions. Frozen root result: 74 unit tests and54 browser scenarios pass; permanent continuation CI is the remaining promotion gate.

@@ -8,7 +8,7 @@ import {
   encodeIco,
   type RasterDependencies,
 } from "../../src/workers/image.worker";
-import { detectFileFormat, normalizeMetadata } from "../../src/workers/metadata.worker";
+import { detectFileFormat, inspectPdfMetadata, normalizeMetadata } from "../../src/workers/metadata.worker";
 
 const createBitmap = (): ImageBitmap =>
   ({ width: 12, height: 8, close: vi.fn() }) as unknown as ImageBitmap;
@@ -120,5 +120,22 @@ describe("Phase 7 image and metadata worker contracts", () => {
       ]),
     );
     expect(entries.some((entry) => entry.name === "_raw" || entry.name === "image")).toBe(false);
+  });
+
+  it("inspects PDF creation and modification dates as deterministic ISO values", async () => {
+    const { PDFDocument } = await import("pdf-lib");
+    const document = await PDFDocument.create();
+    document.addPage();
+    document.setCreationDate(new Date("2024-01-02T03:04:05.000Z"));
+    document.setModificationDate(new Date("2025-06-07T08:09:10.000Z"));
+    const bytes = new Uint8Array(await document.save());
+
+    const metadata = await inspectPdfMetadata(bytes);
+    expect(metadata).toEqual(
+      expect.arrayContaining([
+        { group: "pdf", name: "creationDate", value: "2024-01-02T03:04:05.000Z" },
+        { group: "pdf", name: "modificationDate", value: "2025-06-07T08:09:10.000Z" },
+      ]),
+    );
   });
 });

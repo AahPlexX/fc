@@ -53,3 +53,12 @@ jobs:
           if(!files.length||bytes>150000) throw new Error(`Initial bundle exceeds budget: ${bytes}`);
           console.log(`Initial JS/CSS gzip: ${bytes} bytes`);
           JS
+
+      - name: Retain browser verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, primary release verified 2026-10-25
+        with:
+          name: browser-verification
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14

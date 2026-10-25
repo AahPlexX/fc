@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; local validation passes 64 unit tests and 36 production-browser scenarios (2026-10-25); [permanent CI passes](https://github.com/AahPlexX/fc/actions/runs/40164171678). The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; local continuation validation passes 74 unit tests and 54 production-browser scenarios (2026-10-25); permanent CI status is recorded in TODO. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
@@ -73,7 +73,7 @@ Workers perform detection, metadata inspection, raster encoding, tables, PDF ope
 The production service worker precaches the shell and caches conversion assets only after use. A newly installed shell cannot convert a domain offline until that domain's assets have first loaded online. It never caches user files/results. Production `_headers` contains a CSP; hosts must honor those headers or configure the equivalent themselves. The default single-thread engine does not require cross-origin isolation. WASM core assets are distributed under their package license (GPL-2.0-or-later), separately from the MIT wrapper.
 
 ### Verification scope
-`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Final entry JS/CSS measured 84,744 bytes gzipped (budget 150,000) in this session. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
+`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Final entry JS/CSS measured 85,396 bytes gzipped (budget 150,000) in this continuation. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
 
 ## Supported routes
 | Source | Output |
@@ -132,3 +132,10 @@ All 22 pinned runtime/development packages and the package-manager entry below w
 
 ### Concurrent integration
 Concurrent upstream commits through 057f619 are merged, not overwritten. `exportManager` naming/native download functions are reused by the workbench; archive generation delegates to the bounded archive implementation. `ConversionOrchestrator` remains an exported compatibility API whose browser runtime delegates to the common `conversionRunner`, avoiding two diverging execution implementations.
+
+## Verification continuation
+[Verification evidence](docs/verification.md) records 74 unit and 54 browser checks, reproducible lab measurements and unsupported signals. ZIP packing is cancellable and serialized with the active workspace operation; completed outputs survive cancellation and the prepared archive can be downloaded again. Metadata inspection displays loading/errors and closes cleanly. All media probes/transcodes share one abort-aware slot. Table input and output Blob encoding stay in the worker.
+
+Service-worker cache names derive from build content including same-path FFmpeg assets; old caches are removed on activation. CI retains raw browser/measurement evidence for 14 days. `THIRD_PARTY_NOTICES.txt` ships in the build with core/wrapper license texts and pinned source pointers; the precise remaining redistribution audit is in LICENSES. Lab measurements and browser simulation do not establish manual/field conformance.
+
+The continuation also closes the explicit PDF date-inspection and chunked-table requirements: CSV/TSV uses stateful UTF-8 decoding across 1MiB slices with real byte/row progress, preventing Unicode corruption at byte boundaries. PDF creation/modification dates are inspected read-only. The live worker protocol carries File input, progress events and final Blob output.

@@ -1,4 +1,4 @@
-const CACHE_NAME = "omniconvert-shell-v1";
+const CACHE_NAME = "omniconvert-shell-__CACHE_VERSION__";
 const PRECACHE_ASSETS = __PRECACHE_ASSETS__;
 
 self.addEventListener("install", (event) => {

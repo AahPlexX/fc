@@ -77,6 +77,8 @@ export const inspectPdfMetadata = async (bytes: Uint8Array): Promise<readonly Me
   const metadata: Record<string, unknown> = {
     pageCount: pdf.getPageCount(), title: pdf.getTitle(), author: pdf.getAuthor(),
     subject: pdf.getSubject(), keywords: pdf.getKeywords(), creator: pdf.getCreator(), producer: pdf.getProducer(),
+    creationDate: pdf.getCreationDate()?.toISOString() ?? null,
+    modificationDate: pdf.getModificationDate()?.toISOString() ?? null,
   };
   return Object.entries(metadata).flatMap(([name, value]) => {
     const safe = toSafeValue(value);

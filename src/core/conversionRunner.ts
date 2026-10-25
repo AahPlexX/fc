@@ -7,6 +7,10 @@ import type {
 } from "./types";
 
 type Patch = (patch: Partial<ConversionJob>) => void;
+interface WorkerProgress {
+	readonly progressPercent: number;
+	readonly message: string;
+}
 export const engineConfig = {
 	coreURL: "/engines/ffmpeg-core.js",
 	wasmURL: "/engines/ffmpeg-core.wasm",
@@ -16,6 +20,7 @@ export const workerRequest = <T>(
 	worker: Worker,
 	message: unknown,
 	signal: AbortSignal,
+	onProgress?: (progress: WorkerProgress) => void,
 ): Promise<T> =>
 	new Promise((resolve, reject) => {
 		const finish = (error?: Error, result?: T) => {
@@ -39,10 +44,28 @@ export const workerRequest = <T>(
 		const expectedId = request.jobId ?? request.request?.jobId;
 		worker.onmessage = (
 			event: MessageEvent<
-				T & { jobId?: string; type?: string; message?: string }
+				T & {
+					jobId?: string;
+					type?: string;
+					message?: string;
+					progressPercent?: number;
+				}
 			>,
 		) => {
 			if (!event.data || event.data.jobId !== expectedId) return;
+			if (event.data.type === "progress") {
+				const { progressPercent, message: statusMessage } = event.data;
+				if (
+					typeof progressPercent === "number" &&
+					Number.isFinite(progressPercent) &&
+					typeof statusMessage === "string"
+				)
+					onProgress?.({
+						progressPercent: Math.max(0, Math.min(100, progressPercent)),
+						message: statusMessage,
+					});
+				return;
+			}
 			event.data.type === "error"
 				? finish(new Error(event.data.message ?? "Worker failed"))
 				: finish(undefined, event.data);
@@ -66,26 +89,90 @@ export const detectFile = async (
 	);
 	return result.detected;
 };
+let mediaSlot: Promise<void> = Promise.resolve();
+
+const acquireMediaSlot = async (signal: AbortSignal): Promise<() => void> => {
+	const previous = mediaSlot;
+	let unlock: () => void = () => undefined;
+	mediaSlot = new Promise<void>((resolve) => {
+		unlock = resolve;
+	});
+	let abortListener: (() => void) | null = null;
+	const aborted = new Promise<never>((_resolve, reject) => {
+		abortListener = () =>
+			reject(signal.reason ?? new DOMException("Cancelled", "AbortError"));
+	});
+	try {
+		if (signal.aborted)
+			throw signal.reason ?? new DOMException("Cancelled", "AbortError");
+		if (abortListener)
+			signal.addEventListener("abort", abortListener, { once: true });
+		await Promise.race([previous.catch(() => undefined), aborted]);
+		if (signal.aborted)
+			throw signal.reason ?? new DOMException("Cancelled", "AbortError");
+		return unlock;
+	} catch (error) {
+		void previous.finally(unlock);
+		throw error;
+	} finally {
+		if (abortListener) signal.removeEventListener("abort", abortListener);
+	}
+};
+
 const withMedia = async <T>(
 	signal: AbortSignal,
 	work: (
 		engine: InstanceType<typeof import("@ffmpeg/ffmpeg").FFmpeg>,
+		signal: AbortSignal,
 	) => Promise<T>,
 ): Promise<T> => {
-	const { FFmpeg } = await import("@ffmpeg/ffmpeg");
-	signal.throwIfAborted();
-	const engine = new FFmpeg();
-	const abort = () => engine.terminate();
-	signal.addEventListener("abort", abort, { once: true });
-	const timer = setTimeout(abort, 300_000);
+	const unlock = await acquireMediaSlot(signal);
+	const engineState: {
+		engine: InstanceType<typeof import("@ffmpeg/ffmpeg").FFmpeg> | null;
+	} = { engine: null };
+	const controller = new AbortController();
+	let rejectAbort: ((error: Error) => void) | null = null;
+	let terminated = false;
+	const cancellation = new Promise<never>((_resolve, reject) => {
+		rejectAbort = reject;
+	});
+	void cancellation.catch(() => undefined);
+	const abort = (error: Error) => {
+		if (terminated) return;
+		terminated = true;
+		controller.abort(error);
+		engineState.engine?.terminate();
+		rejectAbort?.(error);
+	};
+	const onAbort = () =>
+		abort(
+			signal.reason instanceof Error
+				? signal.reason
+				: new DOMException("Cancelled", "AbortError"),
+		);
+	if (signal.aborted) onAbort();
+	signal.addEventListener("abort", onAbort, { once: true });
+	const timer = setTimeout(
+		() => abort(new Error("Operation timed out. Try a smaller file.")),
+		300_000,
+	);
 	try {
-		await engine.load(engineConfig);
-		signal.throwIfAborted();
-		return await work(engine);
+		const operation = (async () => {
+			const { FFmpeg } = await import("@ffmpeg/ffmpeg");
+			controller.signal.throwIfAborted();
+			const engine = new FFmpeg();
+			engineState.engine = engine;
+			await engine.load(engineConfig);
+			controller.signal.throwIfAborted();
+			return work(engine, controller.signal);
+		})();
+		void operation.catch(() => undefined);
+		return await Promise.race([operation, cancellation]);
 	} finally {
 		clearTimeout(timer);
-		signal.removeEventListener("abort", abort);
-		engine.terminate();
+		signal.removeEventListener("abort", onAbort);
+		if (engineState.engine && !terminated) engineState.engine.terminate();
+		unlock();
 	}
 };
 export const probeMedia = async (
@@ -93,8 +180,9 @@ export const probeMedia = async (
 	detected: DetectedFormat,
 	signal: AbortSignal,
 ): Promise<{ detected: DetectedFormat; fields: readonly MetadataField[] }> =>
-	withMedia(signal, async (engine) => {
+	withMedia(signal, async (engine, mediaSignal) => {
 		await engine.writeFile("input", new Uint8Array(await file.arrayBuffer()));
+		mediaSignal.throwIfAborted();
 		const code = await engine.ffprobe([
 			"-v",
 			"error",
@@ -106,11 +194,13 @@ export const probeMedia = async (
 			"-o",
 			"probe.json",
 		]);
+		mediaSignal.throwIfAborted();
 		// Pinned core 0.12.10 returns -1 for completed ffprobe runs with valid JSON.
 		// Require a complete, parseable stream report below; positive exit errors still fail.
 		if (code !== 0 && code !== -1)
 			throw new Error("Media streams could not be inspected");
 		const bytes = await engine.readFile("probe.json");
+		mediaSignal.throwIfAborted();
 		const data = JSON.parse(
 			typeof bytes === "string" ? bytes : new TextDecoder().decode(bytes),
 		) as {
@@ -132,10 +222,7 @@ export const probeMedia = async (
 				? "audio"
 				: null;
 		if (!domain) throw new Error("No convertible audio or video stream found");
-		const format =
-			detected.format === "mkv" && data.format?.format_name?.includes("webm")
-				? "webm"
-				: detected.format;
+		const format = detected.format;
 		const tags = Object.assign(
 			{},
 			...streams.map((s) => s.tags ?? {}),
@@ -184,7 +271,9 @@ export const inspectJobMetadata = async (
 		key: entry.name,
 		label: entry.name,
 		value: String(entry.value),
-		editable: entry.group !== "gps",
+		editable:
+			entry.group !== "gps" &&
+			!["pageCount", "creationDate", "modificationDate"].includes(entry.name),
 		category:
 			entry.group === "gps" ? "gps" : entry.group === "pdf" ? "pdf" : "exif",
 	}));
@@ -273,7 +362,7 @@ export const runConversion = async (
 	const source = job.detectedFormat.format;
 	const domain = job.detectedFormat.domain;
 	if (domain === "audio" || domain === "video")
-		return withMedia(signal, async (engine) => {
+		return withMedia(signal, async (engine, mediaSignal) => {
 			patch({
 				status: "CONVERTING",
 				statusMessage: "Transcoding media",
@@ -285,10 +374,10 @@ export const runConversion = async (
 					progressPercent: null,
 				}),
 			);
-			await engine.writeFile(
-				"input",
-				new Uint8Array(await job.sourceFile.arrayBuffer()),
-			);
+			const inputBytes = new Uint8Array(await job.sourceFile.arrayBuffer());
+			mediaSignal.throwIfAborted();
+			await engine.writeFile("input", inputBytes);
+			mediaSignal.throwIfAborted();
 			const args = ["-i", "input"];
 			const audio = ["mp3", "wav", "flac", "ogg", "aac", "m4a"].includes(
 				target,
@@ -326,7 +415,9 @@ export const runConversion = async (
 				throw new Error(
 					"Media conversion failed. Check whether the selected stream and codec are supported.",
 				);
+			mediaSignal.throwIfAborted();
 			const bytes = await engine.readFile(`output.${target}`);
+			mediaSignal.throwIfAborted();
 			if (typeof bytes === "string") throw new Error("Invalid media output");
 			return new Blob([new Uint8Array(bytes)], {
 				type: OUTPUT_MIME[target] ?? "application/octet-stream",
@@ -337,14 +428,19 @@ export const runConversion = async (
 			new URL("../workers/tabular.worker.ts", import.meta.url),
 			{ type: "module" },
 		);
-		const text = await job.sourceFile.text();
 		patch({ status: "CONVERTING", statusMessage: "Converting table" });
-		const result = await workerRequest<{ text: string; mime: string }>(
+		const result = await workerRequest<{ blob: Blob }>(
 			worker,
-			{ type: "convert", jobId: job.id, text, source, target },
+			{ type: "convert", jobId: job.id, file: job.sourceFile, source, target },
 			signal,
+			(progress) =>
+				patch({
+					status: "CONVERTING",
+					progressPercent: progress.progressPercent,
+					statusMessage: progress.message,
+				}),
 		);
-		return new Blob([result.text], { type: result.mime });
+		return result.blob;
 	}
 	const rasterSource =
 		domain === "image"
