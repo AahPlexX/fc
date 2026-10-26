@@ -1,6 +1,6 @@
 # Production artifact and operations
 
-Updated2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. Source `0c37b2d` passes [Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547); TODO records remaining release criteria; docs/verification.md records measured scope. Artifact checks do not establish legal compliance, full accessibility conformance or field performance.
+Updated2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. Source `5ea6d5a` passes [Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463); TODO records remaining release criteria; docs/verification.md records measured scope. Artifact checks do not establish legal compliance, full accessibility conformance or field performance.
 
 ## Build and inspect
 

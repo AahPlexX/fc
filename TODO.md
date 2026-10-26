@@ -3,16 +3,16 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**ACTIVE — Phase18 source delivery and release evidence (2026-10-26).** Baseline273bf4d/Validate40262156405 is green (82 unit/75 browser scenarios). Root is validating a same-origin ExifReader source archive/page, discoverable from the workspace, plus additional primary provenance evidence. Root check/build,82 unit,78 browser scenarios and14 negative artifact cases pass, with source timestamp checks in two timezones. Permanent CI pending. No PRD/package pin changes or deployment.
+**COMPLETE — Phase18 automated source-delivery scope (2026-10-26).** Baseline273bf4d/Validate40262156405 is green (82 unit/75 browser scenarios). Root is validating a same-origin ExifReader source archive/page, discoverable from the workspace, plus additional primary provenance evidence. Root check/build,82 unit,78 browser scenarios and14 negative artifact cases pass, with source timestamp checks in two timezones. [Permanent Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green on source `5ea6d5a`. No PRD/package pin changes or deployment.
 
-Current active file:TODO.md for final commit/CI evidence. Next step: commit/push the locally verified candidate and require permanent Validate before marking Phase18 complete. LICENSES.md now records verified source-delivery bytes and primary evidence; exact historical FFmpeg source/build inputs remain UNVERIFIED.
+Current active code files:none. Exact next file:`docs/production.md` once a deployment HTTPS origin is supplied, to verify real response headers/MIME/cache behavior and staged update/rollback. Native source work resumes in `LICENSES.md` when retained publisher/build records or a fully controlled source reconstruction are available. No matching provenance was discovered in this bounded search; repeating the same endpoints without new evidence is not the next step. Manual assistive-technology/physical-device checks and field/device-memory measurements require those environments. No deployment performed.
 
 Plan (one new repository file:scripts/test-release.mjs; reuse installed JSZip only at build/check time):
 - [x] Emit deterministic ZIP of every published ExifReader4.51.0 package file excluding node_modules, plus a static source/license index; preserve source/license bytes and avoid entry/precache growth.
 - [x] Link source access from the workspace in a new tab so in-memory files remain; verify keyboard/open/download/axe behavior.
 - [x] Check full archive entry list and source bytes, source links, MIME and cache/header rules; reject missing/tampered materials.
 - [x] Preserve root-reviewed primary evidence: installed87-file package equals npm tarball; actual FFmpeg/Emscripten/libvpx versions; absence of a discovered npm attestation/matching build record. Exact FFmpeg binary-source correspondence stays UNVERIFIED.
-- [ ] Root integrated check/unit/build/browser/artifact gate, synchronized governance/handoff, permanent Validate.
+- [x] Root integrated check/unit/build/browser/artifact gate, synchronized governance/handoff, permanent Validate40348252463 green on5ea6d5a.
 
 Ownership:hosting_release owns vite.config.ts; source_release owns scripts/check-release.mjs. Root owns UI, regressions, evidence/docs and all validation/integration. Five Luna researchers covered provenance, native records, source materials, hosting and accessibility. No builder may commit or create new repository files.
 
@@ -59,7 +59,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
 | 17 | Final production-readiness corrections and release checks | COMPLETE (automated scope) |82 unit/75 browser scenarios; Validate40261796547 green on0c37b2d;18 held-claim/update stress cases. |
-| 18 | ExifReader source access and retained release evidence | ACTIVE (local gate green) |82 unit/78 browser/14 negative artifact cases and two timezone checks pass; permanent CI pending. |
+| 18 | ExifReader source access and retained release evidence | COMPLETE (automated scope) |82 unit/78 browser/14 negative artifact cases and two timezone checks; Validate40348252463 green on5ea6d5a. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record

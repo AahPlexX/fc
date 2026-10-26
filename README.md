@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Phase17 source passed82 unit/75 browser scenarios. Phase18 adds same-origin ExifReader source delivery; root passes82 unit/78 browser/14 negative artifact cases and two timezone checks. Permanent CI is pending in TODO. Entry JS/CSS is85,926 bytes gzipped against150,000. [Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) is green on source `0c37b2d`; [`TODO.md`](./TODO.md) records remaining release criteria. Repository `AahPlexX/fc` stays on `main`; the portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
+Phase18 source `5ea6d5a` passes82 unit tests,78 browser scenarios,14 negative artifact cases and two timezone checks; [Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green. Entry JS/CSS is85,926 bytes gzipped against150,000. [`TODO.md`](./TODO.md) records remaining release criteria. Repository `AahPlexX/fc` stays on `main`; the portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 

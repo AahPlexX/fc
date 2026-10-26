@@ -1,6 +1,6 @@
 # Verification evidence — 2026-10-26
 
-Phase18 candidate: root check (40 linted files),82 unit tests/10 files, build and release checks pass. All78 browser scenarios and14 negative artifact cases pass, with positive timestamp checks in two timezones. Permanent CI is pending in TODO. Entry gzip85,926 bytes/150,000; artifact36 files. Prior Phase17 source0c37b2d/Validate40261796547 passed82/75 and is historical evidence below.
+Phase18 verified source5ea6d5a: root check (40 linted files),82 unit tests/10 files, build and release checks pass. All78 browser scenarios and14 negative artifact cases pass, with positive timestamp checks in two timezones. [Permanent Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green. Entry gzip85,926 bytes/150,000; artifact36 files. Prior Phase17 source0c37b2d/Validate40261796547 passed82/75 and is historical evidence below.
 
 ## Runtime and lifecycle corrections
 
