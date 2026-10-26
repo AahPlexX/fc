@@ -1,6 +1,6 @@
 # Verification evidence — 2026-10-26
 
-Current corrective candidate:root passes check (39 linted files),82 unit tests/10 files, production build,75 browser scenarios across Chromium/Firefox/WebKit with retries0, and release:check. Entry gzip85,868 bytes/150,000. Permanent corrective commit/CI status is in TODO; earlier successes are historical.
+Current corrective candidate:root passes check (39 linted files),82 unit tests/10 files, production build,75 browser scenarios across Chromium/Firefox/WebKit with retries0, and release:check. Entry gzip85,843 bytes/150,000. Permanent corrective commit/CI status is in TODO; earlier successes are historical.
 
 ## Runtime and lifecycle corrections
 
@@ -8,7 +8,7 @@ Table limits cover Blob/string/legacy paths, with checks before JSON rectangular
 
 Initial source da35a79 passed Validate40251947076 (82/72). A docs-only repeat40252342180 failed keyboard download (71/72). Root reproduced1 natural failure/15 runs and a deterministic delayed-close failure: native close restored focus, then later effect cleanup stole the next Tab and reopened Preview. Both dialogs now restore manually only if cleanup itself closes an open dialog. The strengthened flow passed15 forced-order cases across3 engines.
 
-Corrective run40253738993 passed keyboard behavior but observed WebKit activating after old-cache deletion. Twenty natural repeats passed, so no browser-internal root cause is asserted. Holding the client-claim API promise proved the old activation dependency could stall. The current design finishes activation independently:main requests initial control only after activated state, then the SW claims in that message event. The regression requires activation before releasing the injected promise and actual native page control afterward.
+Corrective run40253738993 passed keyboard behavior but observed WebKit activating after old-cache deletion. Twenty natural repeats passed, so no browser-internal root cause is asserted. Holding the client-claim API promise proved the old activation dependency could stall. Activation remains independent:main posts a fixed control message after registration.ready; the message handler waits on worker-local activated state before claiming. The regression requires activation before releasing the injected promise and actual native page control afterward.
 
 A subsequent quota run captured WebKit automation-session/NetworkProcess internal errors, including fallback-to-default-session diagnostics during teardown. Service-worker scenarios now use fresh persistent profiles/processes; temporary data is removed and all assertions remain. Quota probes begin a controlled normal navigation.45 repeated quota/pending-claim/update cases pass across3 engines, including observed write rejection, network success, no cached probe, waiting/activation and old-cache cleanup. No missing interception is counted as a pass, and no retry was added.
 
@@ -31,3 +31,7 @@ Intervals include action/observer overhead. These samples establish neither fiel
 Use pinned pnpm12.15.0:check, test, build, release:check, then test:e2e after installing browsers/dependencies. Build before browser checks. Local WebKit's library workaround is in HANDOFF; normal CI installs --with-deps. Unique parallel output paths avoid cleanup collisions.
 
 The release checker/runbook cover prepared static hosting, not a deployed host. Actual HTTPS/header/MIME/cache/rollback behavior, complete manual accessibility/physical devices, stable-browser certification, field metrics and device memory remain unverified. Native corresponding-source/material coverage remains open in LICENSES. PRD and package pins are unchanged. Do not infer99% assurance or full standards certification from these counts.
+
+Media keyboard correction: after lifecycle source a387e13 passed Validate40258988170, a targeted WAV→MP3 preview test failed on the old focus list (Tab stayed on Close). Native media hosts now participate and a download link follows them, so internal UA controls are not the last boundary. Three real conversion cases pass with both player hosts reached, preview export byte-equal and forward/backward boundary wrapping preserved. The combined gate and permanent CI status are recorded in TODO.
+
+A later full gate passed74/75 and again exposed the update boundary. Root injected500ms of activation work: all5 WebKit diagnostic runs observed worker-side activated while the replacement page remained activating for10s. The strengthened native-claim regression failed the previous main-side wait. The worker now owns readiness;18 repeated held-claim/update cases pass across3 engines. The update test requires activated state at every native claim, actual page control, waiting-client protection and both cache outcomes. This moves the state observation to the executing worker; no missing activation or control is accepted. No general WebKit implementation root cause is claimed.

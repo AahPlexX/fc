@@ -55,10 +55,16 @@ const startProductionHarness = async (
 	};
 	let quotaWriteAttempts = 0;
 	let claimRequests = 0;
+	const updateClaimStates: string[] = [];
 	const server = createServer(async (request, response) => {
 		try {
 			const url = new URL(request.url ?? "/", "http://127.0.0.1");
 			const pathname = decodeURIComponent(url.pathname);
+			if (pathname === "/__update-claim") {
+				updateClaimStates.push(url.searchParams.get("state") ?? "missing");
+				response.writeHead(204).end();
+				return;
+			}
 			if (pathname === "/__claim-requested" && request.method === "POST") {
 				claimRequests += 1;
 				response.writeHead(204).end();
@@ -122,6 +128,9 @@ const startProductionHarness = async (
 		throw new Error("Test server did not bind a port");
 	return {
 		origin: `http://127.0.0.1:${address.port}`,
+		get updateClaimStates() {
+			return updateClaimStates;
+		},
 		get claimRequests() {
 			return claimRequests;
 		},
@@ -558,7 +567,23 @@ test("a new service worker waits for old clients before deleting their cache", a
 				"Expected the built service worker with an injected cache version",
 			);
 		servedVersions.push(revision);
-		return source.replace(
+		// Keep v2 activating while a replacement page opens. WebKit can retain
+		// an outdated page-side worker.state during this overlap; observe state
+		// at the actual native claim boundary instead of trusting that snapshot.
+		const instrumented =
+			revision === "v2"
+				? `
+const __nativeUpdateClaim = self.clients.claim.bind(self.clients);
+const __testUpdateClaim = () => {
+  void fetch("/__update-claim?state=" + self.registration.active?.state);
+  return __nativeUpdateClaim();
+};
+self.addEventListener("activate", event => {
+  event.waitUntil(new Promise(resolve => setTimeout(resolve, 500)));
+});
+${source.replaceAll("self.clients.claim()", "__testUpdateClaim()")}`
+				: source;
+		return instrumented.replace(
 			/const CACHE_NAME = "omniconvert-shell-[^"]+";/,
 			`const CACHE_NAME = "omniconvert-shell-e2e-${revision}";`,
 		);
@@ -606,6 +631,12 @@ test("a new service worker waits for old clients before deleting their cache", a
 		const replacement = await context.newPage();
 		await replacement.goto(server.origin);
 		await expect
+			.poll(() => server.updateClaimStates, { timeout: 10_000 })
+			.toContain("activated");
+		expect(
+			server.updateClaimStates.every((state) => state === "activated"),
+		).toBe(true);
+		await expect
 			.poll(
 				() =>
 					replacement.evaluate(async () => {
@@ -613,14 +644,16 @@ test("a new service worker waits for old clients before deleting their cache", a
 							await navigator.serviceWorker.getRegistration("/");
 						const names = await caches.keys();
 						return {
-							active: registration?.active?.state,
+							controlled: Boolean(
+								registration?.active && navigator.serviceWorker.controller,
+							),
 							oldCache: names.includes("omniconvert-shell-e2e-v1"),
 							newCache: names.includes("omniconvert-shell-e2e-v2"),
 						};
 					}),
 				{ timeout: 10_000 },
 			)
-			.toEqual({ active: "activated", oldCache: false, newCache: true });
+			.toEqual({ controlled: true, oldCache: false, newCache: true });
 	} finally {
 		try {
 			await session.close();

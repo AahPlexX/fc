@@ -5,11 +5,13 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Production readiness — 2026-10-26
+- Fixed media-preview keyboard access: native audio/video hosts join focus navigation and a completed-media download link provides the final boundary. Extended WAV→MP3 cases traverse both players, verify preview download bytes and boundary wrapping across3 engines. Lifecycle source a387e13 passes Validate40258988170; final combined corrective CI pending.
 - Bounded table input/canonical growth/output on every path; preserved special column names; moved ZIP reads off main and enforced pre-read limits; fixed target/empty previews and synchronous worker cleanup.
-- Added waiting/isolated-cache service-worker behavior, versioned engines, strict security/cache headers and local-only media protocols. Initial client control is requested only after activation and handled in a message event.
+- Added waiting/isolated-cache service-worker behavior, versioned engines, strict security/cache headers and local-only media protocols. Initial control uses a message event that waits on worker-local activated state; page-wrapper state cannot stall control during overlapping navigation.
 - Fixed native-close cleanup stealing keyboard focus. Deterministic delayed-close and held-claim regressions preserve navigation and separate activation from optional control.
 - Added release:check, dependency/PR/artifact CI gates, exact runtime notices and a portable hosting/update/rollback runbook. Service-worker tests use owned persistent profiles/processes after captured automation-session errors; no fault assertions were weakened and retries remain0.
-- Root passes check/build,82 unit tests,75 browser scenarios and artifact/negative checks;45 lifecycle and15 keyboard stress cases pass. Entry gzip85,868 bytes. Permanent corrective CI pending. Native-source/manual/field/host limits remain explicit.
+- Added delayed-activation regression after5/5 WebKit reproductions showed an outdated page wrapper;18 held-claim/update stress cases pass with native activation/control/cache assertions.
+- Root passes check/build,82 unit tests,75 browser scenarios and artifact/negative checks;45 lifecycle and15 keyboard stress cases pass. Entry gzip85,843 bytes. Permanent corrective CI pending. Native-source/manual/field/host limits remain explicit.
 
 ### Continuation — 2026-10-25
 - Added keyboard chooser-to-download, narrow drawer focus, effective zoom/display preference and phase-attributed lab performance cases. Root local check/build, 75 unit tests and 54 browser scenarios pass; permanent Validate40214020264 passes on b43e2a1 (prior continuation40213099341 also green).

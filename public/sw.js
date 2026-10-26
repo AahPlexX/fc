@@ -28,10 +28,26 @@ self.addEventListener("activate", (event) => {
 	);
 });
 
-// The page requests initial control only after activation has completed.
+const claimWhenActivated = async () => {
+	const worker = self.registration.active;
+	if (!worker) return;
+	await new Promise((resolve) => {
+		const checkState = () => {
+			if (worker.state !== "activated" && worker.state !== "redundant") return;
+			worker.removeEventListener("statechange", checkState);
+			resolve();
+		};
+		worker.addEventListener("statechange", checkState);
+		checkState();
+	});
+	if (worker.state === "activated") await self.clients.claim();
+};
+
+// Initial control waits on worker-local state in a separate message event.
+// Its lifetime promise must never become an activation dependency.
 self.addEventListener("message", (event) => {
 	if (event.data !== "OMNICONVERT_CLAIM_CLIENTS") return;
-	event.waitUntil(self.clients.claim().catch(() => undefined));
+	event.waitUntil(claimWhenActivated().catch(() => undefined));
 });
 
 self.addEventListener("fetch", (event) => {

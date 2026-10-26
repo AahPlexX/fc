@@ -144,16 +144,54 @@ test("self-hosted FFmpeg converts WAV to MP3", async ({ page }) => {
 	expect(
 		file.bytes.toString("ascii", 0, 3) === "ID3" || file.bytes[0] === 255,
 	).toBe(true);
+	await card.getByRole("button", { name: "Preview", exact: true }).click();
+	const preview = page.getByRole("dialog", { name: "Preview" });
+	const close = preview.getByRole("button", { name: "Close preview" });
+	const sourceAudio = preview
+		.getByLabel("audio preview")
+		.locator("audio")
+		.first();
+	await expect(sourceAudio).toBeVisible();
+	await close.focus();
+	await page.keyboard.press("Tab");
+	await expect(sourceAudio).toBeFocused();
+	const outputAudio = preview
+		.getByLabel("audio preview")
+		.locator("audio")
+		.nth(1);
+	const downloadOutput = preview.getByRole("link", {
+		name: "Download output",
+		exact: true,
+	});
+	for (const target of [outputAudio, downloadOutput]) {
+		for (let presses = 0; presses < 32; presses++) {
+			if (
+				await target.evaluate((element) => element === document.activeElement)
+			)
+				break;
+			await page.keyboard.press("Tab");
+		}
+		await expect(target).toBeFocused();
+	}
+	const fromPreview = await output(page, () => page.keyboard.press("Enter"));
+	expect(fromPreview.bytes.equals(file.bytes)).toBe(true);
+	await page.keyboard.press("Tab");
+	await expect(close).toBeFocused();
+	await page.keyboard.press("Shift+Tab");
+	await expect(downloadOutput).toBeFocused();
 });
 test("cancels initialization then converts another file", async ({ page }) => {
 	let release: () => void = () => undefined;
 	const held = new Promise<void>((r) => {
 		release = r;
 	});
-	await page.route("**/engines/core/0.12.10/ffmpeg-core.wasm", async (route) => {
-		await held;
-		await route.continue().catch(() => undefined);
-	});
+	await page.route(
+		"**/engines/core/0.12.10/ffmpeg-core.wasm",
+		async (route) => {
+			await held;
+			await route.continue().catch(() => undefined);
+		},
+	);
 	await page.locator("input[type=file]").setInputFiles([wav(), csv]);
 	const card = page.locator(".job-card").first();
 	await card.getByLabel("Target format").selectOption("mp3");
@@ -393,13 +431,11 @@ test("image dimensions are applied before export", async ({ page }) => {
 test("archive export can be cancelled without discarding converted files", async ({
 	page,
 }) => {
-	await page
-		.locator("input[type=file]")
-		.setInputFiles({
-			name: "archive.csv",
-			mimeType: "text/csv",
-			buffer: Buffer.from("name,value\nAda,42"),
-		});
+	await page.locator("input[type=file]").setInputFiles({
+		name: "archive.csv",
+		mimeType: "text/csv",
+		buffer: Buffer.from("name,value\nAda,42"),
+	});
 	const card = page.locator(".job-card");
 	await card.getByLabel("Target format").selectOption("json");
 	await card.getByRole("button", { name: "Convert", exact: true }).click();
@@ -480,16 +516,22 @@ test("Markdown to PDF preview identifies the PDF output and offers a valid downl
 	await card.getByRole("button", { name: "Preview", exact: true }).click();
 	const dialog = page.getByRole("dialog", { name: "Preview" });
 	await expect(dialog).toBeVisible();
-	await expect(dialog.getByText("Output is a PDF. Download it below.")).toBeVisible();
+	await expect(
+		dialog.getByText("Output is a PDF. Download it below."),
+	).toBeVisible();
 	await expect(dialog.getByText("Loading preview…")).toHaveCount(0);
 	const result = await output(page, () =>
 		dialog.getByRole("link", { name: "Download output PDF" }).click(),
 	);
-	const document = await PDFDocument.load(result.bytes, { updateMetadata: false });
+	const document = await PDFDocument.load(result.bytes, {
+		updateMetadata: false,
+	});
 	expect(document.getPageCount()).toBe(1);
 });
 
-test("PDF to PNG preview displays the generated output image", async ({ page }) => {
+test("PDF to PNG preview displays the generated output image", async ({
+	page,
+}) => {
 	const pdf = await PDFDocument.create();
 	pdf.addPage([120, 80]);
 	await page.locator("input[type=file]").setInputFiles({
@@ -505,7 +547,9 @@ test("PDF to PNG preview displays the generated output image", async ({ page }) 
 	const dialog = page.getByRole("dialog", { name: "Preview" });
 	const outputImage = dialog.getByRole("img", { name: /^Output:/ });
 	await expect(outputImage).toBeVisible();
-	expect(await outputImage.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+	expect(
+		await outputImage.evaluate((image: HTMLImageElement) => image.naturalWidth),
+	).toBeGreaterThan(0);
 	await page.keyboard.press("Escape");
 	await expect(dialog).toHaveCount(0);
 	const result = await output(page, () =>

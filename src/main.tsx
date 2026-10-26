@@ -20,22 +20,9 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
 		.register("/sw.js", { scope: "/" })
 		.then(() => navigator.serviceWorker.ready)
 		.then((registration) => {
-			const worker = registration.active;
-			if (!worker) return;
-			const requestControl = () => {
-				if (worker.state !== "activated" && worker.state !== "redundant")
-					return;
-				worker.removeEventListener("statechange", requestControl);
-				if (worker.state === "activated") {
-					try {
-						worker.postMessage("OMNICONVERT_CLAIM_CLIENTS");
-					} catch {
-						// Offline support remains an optional enhancement.
-					}
-				}
-			};
-			worker.addEventListener("statechange", requestControl);
-			requestControl();
+			// The worker checks its own activation state. A page-side worker wrapper
+			// can retain an outdated state when navigation overlaps activation.
+			registration.active?.postMessage("OMNICONVERT_CLAIM_CLIENTS");
 		})
 		.catch(() => {
 			// Offline support is an enhancement; failures do not block conversion.

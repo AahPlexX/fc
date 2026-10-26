@@ -30,7 +30,7 @@ const keepTabFocusInside = (event: KeyboardEvent<HTMLDialogElement>) => {
 	const dialog = event.currentTarget;
 	const candidates = Array.from(
 		dialog.querySelectorAll<HTMLElement>(
-			'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
+			'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], audio[controls], video[controls], [tabindex]:not([tabindex="-1"])',
 		),
 	).filter(
 		(element) =>
@@ -46,7 +46,10 @@ const keepTabFocusInside = (event: KeyboardEvent<HTMLDialogElement>) => {
 	const first = candidates[0];
 	const last = candidates[candidates.length - 1];
 	const active = document.activeElement;
-	if (event.shiftKey && (active === first || active === dialog || !dialog.contains(active))) {
+	if (
+		event.shiftKey &&
+		(active === first || active === dialog || !dialog.contains(active))
+	) {
 		event.preventDefault();
 		last?.focus();
 	} else if (
@@ -197,7 +200,10 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 						</section>
 					)}
 					{outputIsImage && domain !== "image" && (
-						<section className="preview-images" aria-label="Output image preview">
+						<section
+							className="preview-images"
+							aria-label="Output image preview"
+						>
 							<figure>
 								<figcaption>Output</figcaption>
 								{urls?.output ? (
@@ -243,6 +249,16 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 								<p>Output format: {outputFormat.toUpperCase()}</p>
 							) : (
 								<p>Output is not ready yet.</p>
+							)}
+							{job.outputBlob && urls?.output && (
+								<a
+									href={urls.output}
+									download={
+										job.outputFileName ?? `converted.${outputFormat || "media"}`
+									}
+								>
+									Download output
+								</a>
 							)}
 						</section>
 					)}
@@ -314,8 +330,8 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 					)}
 					{job.outputBlob && (
 						<p className="preview-size-delta">
-							Original size: {job.sourceFile.size.toLocaleString()} B → Converted size:{" "}
-							{job.outputBlob.size.toLocaleString()} B (
+							Original size: {job.sourceFile.size.toLocaleString()} B →
+							Converted size: {job.outputBlob.size.toLocaleString()} B (
 							{job.outputBlob.size - job.sourceFile.size >= 0 ? "+" : ""}
 							{(job.outputBlob.size - job.sourceFile.size).toLocaleString()} B)
 						</p>
