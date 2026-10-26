@@ -1,6 +1,6 @@
 # Production artifact and operations
 
-Updated 2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. The first candidate passed Validate40251947076, but a subsequent repeated gate found a dialog focus race; its corrective candidate is tracked in `TODO.md`, which records the exact resume state; `docs/verification.md` records measured scope. Automated artifact checks do not establish legal compliance, full accessibility conformance or field performance.
+Updated2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. TODO records the exact corrective source/CI; docs/verification.md records measured scope. Artifact checks do not establish legal compliance, full accessibility conformance or field performance.
 
 ## Build and inspect
 
@@ -39,7 +39,7 @@ The default single-thread core does not require COOP/COEP or SharedArrayBuffer. 
 
 Stage the complete artifact and verify the hosting contract before switching the live entry point. Preserve prior hashed assets and versioned engine directories while old clients can remain open. Retain the associated notices/source materials for every retained version. An old app can request a lazy worker it has never cached; a waiting service worker cannot recreate a file the host deleted.
 
-The worker now follows the normal waiting lifecycle. It does not force a reload or claim the next version while old controlled clients are active. Once those clients close, the next worker activates and removes obsolete OmniConvert caches. Runtime cache-open/read/write failures allow successful network reads to continue. Failed installation leaves the previous working registration available. Offline conversion requires previously loaded engine assets; never-loaded engines require a connection, and browser-specific cache behavior is not universally certified.
+The worker now follows the normal waiting lifecycle. It does not force a reload or claim the next version while old controlled clients are active. Once those clients close, the next worker removes obsolete OmniConvert caches and activates. The page requests initial control only after the worker is activated, using the fixed OMNICONVERT_CLAIM_CLIENTS message. Claiming runs in that message event and cannot hold activation open. If initial claiming fails, later navigation obtains normal service-worker control. Runtime cache-open/read/write failures allow successful network reads to continue. Failed installation leaves the previous working registration available. Offline conversion requires previously loaded engine assets; never-loaded engines require a connection, and browser-specific cache behavior is not universally certified.
 
 Before a public switch, verify both a fresh session and an old tab kept open across the staged update: import a synthetic file, use a previously unused conversion domain, cancel/retry, download and re-inspect output, then close the old tab and verify the new controller activates. Verify offline behavior after warming the specific domains being advertised. Inspect response headers and confirm file payloads are absent from network requests and CacheStorage.
 

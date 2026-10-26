@@ -54,7 +54,7 @@ Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while on
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
 
-Historical source `b43e2a1` passed Validate40214020264; Phase17 supersedes it:da35a79 passes Validate40251947076 with82 unit/72 browser cases, audit and artifact checks. No implementation task is active; TODO names the exact conditional next file. Earlier counts/CI runs in handoff/history are historical evidence, not newer source validation.
+Historical passes do not certify later source. The current82-unit/75-browser local candidate includes focus and activation corrections; TODO carries the exact corrective commit/CI and resume point.
 
 ## Production pass boundary (2026-10-26)
 Read docs/production.md before hosting/updating. Engine paths include exact package versions; do not restore unversioned URLs or forced SW activation. Retain prior hashed/versioned lazy assets for live clients. Live media probes/conversions allow only file,pipe protocols. ZIP worker accepts File/Blob with a size guard before arrayBuffer. Table limits cover all API paths; native JSON parse remains transient-memory dependent, but shape checks precede canonical expansion. Papa internal headers use a safe prefix so __proto__ values survive; missing JSON own properties are null.
@@ -62,3 +62,7 @@ Read docs/production.md before hosting/updating. Engine paths include exact pack
 Run release:check after build; it verifies copied FFmpeg bytes against installed packages and writes unsigned manifests/checksums. CI evidence also includes audit JSON. Preserve upstream license bytes, including CRLF/trailing whitespace; diff --check may exclude public/THIRD_PARTY_NOTICES.txt for those verbatim texts only. No package pins or PRD bytes changed. Root is sole gate; builders supply bounded work, not approvals.
 
 Dialog invariant: native close restores focus synchronously. Cleanup may restore manually only if it closes a still-open dialog; unconditional later focus steals rapid keyboard navigation. Keep the delayed-close regression (native notification replayed after Tab) and its assertions. This is a current source follow-up to the historical initial production CI success; TODO tracks its final gate.
+
+SW activation invariant: cache cleanup gates activation. main.tsx requests initial control with OMNICONVERT_CLAIM_CLIENTS only after the worker is activated; the SW claims in that message event. Never move clients.claim back into activation. Preserve the held-claim test: activation must complete before releasing the injected promise, then actual client control must succeed. This pins an API dependency boundary without claiming a proven browser implementation bug.
+
+PWA verification uses a fresh persistent browser profile/process per service-worker scenario; ephemeral automation sessions exposed WebKit internal NetworkProcess errors. Keep real activation/control/cache assertions and strict injected-write proof; do not add retries, swallow teardown errors or substitute missing observations for passes. Profiles are owned temporary directories removed after shutdown.

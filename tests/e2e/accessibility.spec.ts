@@ -1,8 +1,40 @@
-import { test, expect } from "@playwright/test";
+import {
+	test,
+	expect,
+	type BrowserType,
+	type LaunchOptions,
+} from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createServer } from "node:http";
-import { readFile, writeFile } from "node:fs/promises";
-import { extname, resolve as resolvePath, sep } from "node:path";
+import { readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { extname, join, resolve as resolvePath, sep } from "node:path";
+
+const createServiceWorkerSession = async (
+	browserType: BrowserType,
+	options: LaunchOptions,
+) => {
+	const profile = await mkdtemp(join(tmpdir(), "omniconvert-sw-"));
+	try {
+		const context = await browserType.launchPersistentContext(profile, {
+			...options,
+			serviceWorkers: "allow",
+		});
+		return {
+			context,
+			close: async () => {
+				try {
+					await context.close();
+				} finally {
+					await rm(profile, { recursive: true, force: true });
+				}
+			},
+		};
+	} catch (error) {
+		await rm(profile, { recursive: true, force: true });
+		throw error;
+	}
+};
 
 const startProductionHarness = async (
 	transformWorker: (source: string) => string = (source) => source,
@@ -22,10 +54,16 @@ const startProductionHarness = async (
 		".txt": "text/plain; charset=utf-8",
 	};
 	let quotaWriteAttempts = 0;
+	let claimRequests = 0;
 	const server = createServer(async (request, response) => {
 		try {
 			const url = new URL(request.url ?? "/", "http://127.0.0.1");
 			const pathname = decodeURIComponent(url.pathname);
+			if (pathname === "/__claim-requested" && request.method === "POST") {
+				claimRequests += 1;
+				response.writeHead(204).end();
+				return;
+			}
 			if (pathname === "/__quota-write-attempt" && request.method === "POST") {
 				quotaWriteAttempts += 1;
 				response.writeHead(204).end();
@@ -84,6 +122,9 @@ const startProductionHarness = async (
 		throw new Error("Test server did not bind a port");
 	return {
 		origin: `http://127.0.0.1:${address.port}`,
+		get claimRequests() {
+			return claimRequests;
+		},
 		get quotaWriteAttempts() {
 			return quotaWriteAttempts;
 		},
@@ -188,73 +229,85 @@ test("responsive workspace and dialogs pass automated WCAG checks and focus retu
 });
 
 test("production shell and a warmed table engine work offline without caching user files", async ({
-	browser,
+	playwright,
+	browserName,
+	launchOptions,
+	headless,
 }) => {
-	const context = await browser.newContext({ serviceWorkers: "allow" });
-	const page = await context.newPage();
-	await page.goto("/");
-	await page.evaluate(async () => {
-		await navigator.serviceWorker.ready;
+	const session = await createServiceWorkerSession(playwright[browserName], {
+		...launchOptions,
+		headless,
 	});
-	await page.reload();
-	await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-	await page.locator("input[type=file]").setInputFiles({
-		name: "online.csv",
-		mimeType: "text/csv",
-		buffer: Buffer.from("name,value\nAda,42"),
-	});
-	await page.locator(".job-card").locator("select").selectOption("json");
-	await page
-		.locator(".job-card")
-		.getByRole("button", { name: "Convert", exact: true })
-		.click();
-	await expect(page.locator(".job-card")).toHaveAttribute(
-		"data-status",
-		"completed",
-	);
-	await page.waitForFunction(async () => {
-		for (const key of await caches.keys()) {
-			const cache = await caches.open(key);
-			if ((await cache.keys()).some((r) => r.url.includes("tabular.worker")))
-				return true;
-		}
-		return false;
-	});
-	await context.setOffline(true);
-	await page.reload();
-	await expect(
-		page.getByRole("heading", { name: "OmniConvert", exact: true }),
-	).toBeVisible();
-	await page.locator("input[type=file]").setInputFiles({
-		name: "offline.csv",
-		mimeType: "text/csv",
-		buffer: Buffer.from("name,value\nOffline,7"),
-	});
-	await page.locator(".job-card").locator("select").selectOption("json");
-	await page
-		.locator(".job-card")
-		.getByRole("button", { name: "Convert", exact: true })
-		.click();
-	await expect(page.locator(".job-card")).toHaveAttribute(
-		"data-status",
-		"completed",
-	);
-	const cacheUrls = await page.evaluate(async () => {
-		const urls = [];
-		for (const key of await caches.keys()) {
-			for (const r of await (await caches.open(key)).keys()) urls.push(r.url);
-		}
-		return urls;
-	});
-	expect(
-		cacheUrls.every(
-			(u) =>
-				!u.includes("online.csv") &&
-				!u.includes("offline.csv") &&
-				!u.startsWith("blob:"),
-		),
-	).toBe(true);
-	await context.close();
+	const { context } = session;
+	try {
+		const page = await context.newPage();
+		await page.goto("/");
+		await page.evaluate(async () => {
+			await navigator.serviceWorker.ready;
+		});
+		await page.reload();
+		await page.waitForFunction(
+			() => navigator.serviceWorker.controller !== null,
+		);
+		await page.locator("input[type=file]").setInputFiles({
+			name: "online.csv",
+			mimeType: "text/csv",
+			buffer: Buffer.from("name,value\nAda,42"),
+		});
+		await page.locator(".job-card").locator("select").selectOption("json");
+		await page
+			.locator(".job-card")
+			.getByRole("button", { name: "Convert", exact: true })
+			.click();
+		await expect(page.locator(".job-card")).toHaveAttribute(
+			"data-status",
+			"completed",
+		);
+		await page.waitForFunction(async () => {
+			for (const key of await caches.keys()) {
+				const cache = await caches.open(key);
+				if ((await cache.keys()).some((r) => r.url.includes("tabular.worker")))
+					return true;
+			}
+			return false;
+		});
+		await context.setOffline(true);
+		await page.reload();
+		await expect(
+			page.getByRole("heading", { name: "OmniConvert", exact: true }),
+		).toBeVisible();
+		await page.locator("input[type=file]").setInputFiles({
+			name: "offline.csv",
+			mimeType: "text/csv",
+			buffer: Buffer.from("name,value\nOffline,7"),
+		});
+		await page.locator(".job-card").locator("select").selectOption("json");
+		await page
+			.locator(".job-card")
+			.getByRole("button", { name: "Convert", exact: true })
+			.click();
+		await expect(page.locator(".job-card")).toHaveAttribute(
+			"data-status",
+			"completed",
+		);
+		const cacheUrls = await page.evaluate(async () => {
+			const urls = [];
+			for (const key of await caches.keys()) {
+				for (const r of await (await caches.open(key)).keys()) urls.push(r.url);
+			}
+			return urls;
+		});
+		expect(
+			cacheUrls.every(
+				(u) =>
+					!u.includes("online.csv") &&
+					!u.includes("offline.csv") &&
+					!u.startsWith("blob:"),
+			),
+		).toBe(true);
+	} finally {
+		await session.close();
+	}
 });
 
 test("preview serves production security headers and the correct WASM MIME type", async ({
@@ -300,7 +353,10 @@ test("preview serves production security headers and the correct WASM MIME type"
 });
 
 test("a CacheStorage quota error does not fail a successful same-origin asset load", async ({
-	browser,
+	playwright,
+	browserName,
+	launchOptions,
+	headless,
 }, info) => {
 	let workerServed = false;
 	let cacheOpenCallCount = 0;
@@ -337,16 +393,27 @@ const __testCacheOpen = async (name) => {
 `;
 		return prelude + instrumentedWorker;
 	});
-	const context = await browser.newContext({ serviceWorkers: "allow" });
+	const session = await createServiceWorkerSession(playwright[browserName], {
+		...launchOptions,
+		headless,
+	});
+	const { context } = session;
 	try {
 		const page = await context.newPage();
 		await page.goto(server.origin);
 		await page.waitForFunction(async () => {
 			const registration = await navigator.serviceWorker.getRegistration("/");
-			return Boolean(
-				registration?.active && navigator.serviceWorker.controller,
+			return (
+				registration?.active?.state === "activated" &&
+				Boolean(navigator.serviceWorker.controller)
 			);
 		});
+		// Probe an already-controlled navigation rather than a document whose
+		// first client-claim notification may still be propagating.
+		await page.goto(`${server.origin}/?controlled=1`);
+		await page.waitForFunction(
+			() => navigator.serviceWorker.controller?.state === "activated",
+		);
 		expect(workerServed).toBe(true);
 		expect(cacheOpenCallCount).toBeGreaterThan(0);
 		const result = await page.evaluate(async () => {
@@ -368,7 +435,7 @@ const __testCacheOpen = async (name) => {
 			return { fetchResult };
 		});
 		const quotaResult = {
-			browser: browser.browserType().name(),
+			browser: browserName,
 			status:
 				server.quotaWriteAttempts > 0
 					? "injected-cache-write-rejection-observed"
@@ -390,9 +457,9 @@ const __testCacheOpen = async (name) => {
 		});
 		expect(server.quotaWriteAttempts).toBeGreaterThan(0);
 		expect(result.fetchResult).toEqual({
-			status:200,
-			type:"basic",
-			body:"small same-origin wasm probe",
+			status: 200,
+			type: "basic",
+			body: "small same-origin wasm probe",
 		});
 		const cached = await page.evaluate(async () => {
 			for (const name of await caches.keys()) {
@@ -403,13 +470,85 @@ const __testCacheOpen = async (name) => {
 		});
 		expect(cached).toBe(false);
 	} finally {
-		await context.close();
-		await server.close();
+		try {
+			await session.close();
+		} finally {
+			await server.close();
+		}
+	}
+});
+
+test("a pending client claim cannot block service-worker activation", async ({
+	playwright,
+	browserName,
+	launchOptions,
+	headless,
+}) => {
+	const server = await startProductionHarness((source) => {
+		if (!source.includes("self.clients.claim()"))
+			throw new Error("Client claim hook missing");
+		const body = source.replaceAll("self.clients.claim()", "__testClaim()");
+		// Hold the optional API promise until activation is observable. This
+		// models a claim operation pending on a client being created/navigated.
+		return `
+const __nativeClaim = self.clients.claim.bind(self.clients);
+let __resolveClaim;
+let __rejectClaim;
+const __testClaim = () => new Promise((resolve, reject) => {
+  void fetch("/__claim-requested", { method:"POST" });
+  __resolveClaim = resolve;
+  __rejectClaim = reject;
+});
+self.addEventListener("message", event => {
+  if (event.data !== "release-test-claim") return;
+  event.waitUntil(__nativeClaim().then(__resolveClaim, __rejectClaim));
+});
+${body}`;
+	});
+	const session = await createServiceWorkerSession(playwright[browserName], {
+		...launchOptions,
+		headless,
+	});
+	const { context } = session;
+	try {
+		const page = await context.newPage();
+		await page.goto(server.origin);
+		await expect
+			.poll(
+				() =>
+					page.evaluate(async () => {
+						const registration =
+							await navigator.serviceWorker.getRegistration("/");
+						return registration?.active?.state;
+					}),
+				{ timeout: 5_000 },
+			)
+			.toBe("activated");
+		await expect.poll(() => server.claimRequests).toBeGreaterThan(0);
+		await page.evaluate(async () => {
+			const registration = await navigator.serviceWorker.getRegistration("/");
+			registration?.active?.postMessage("release-test-claim");
+		});
+		await page.waitForFunction(() =>
+			Boolean(navigator.serviceWorker.controller),
+		);
+		await expect(
+			page.getByRole("heading", { name: "OmniConvert", exact: true }),
+		).toBeVisible();
+	} finally {
+		try {
+			await session.close();
+		} finally {
+			await server.close();
+		}
 	}
 });
 
 test("a new service worker waits for old clients before deleting their cache", async ({
-	browser,
+	playwright,
+	browserName,
+	launchOptions,
+	headless,
 }) => {
 	let revision = "v1";
 	const servedVersions: string[] = [];
@@ -424,7 +563,11 @@ test("a new service worker waits for old clients before deleting their cache", a
 			`const CACHE_NAME = "omniconvert-shell-e2e-${revision}";`,
 		);
 	});
-	const context = await browser.newContext({ serviceWorkers: "allow" });
+	const session = await createServiceWorkerSession(playwright[browserName], {
+		...launchOptions,
+		headless,
+	});
+	const { context } = session;
 	try {
 		const page = await context.newPage();
 		await page.goto(server.origin);
@@ -462,18 +605,28 @@ test("a new service worker waits for old clients before deleting their cache", a
 		await page.close();
 		const replacement = await context.newPage();
 		await replacement.goto(server.origin);
-		await expect.poll(() => replacement.evaluate(async () => {
-			const registration = await navigator.serviceWorker.getRegistration("/");
-			const names = await caches.keys();
-			return {
-				active: registration?.active?.state,
-				oldCache: names.includes("omniconvert-shell-e2e-v1"),
-				newCache: names.includes("omniconvert-shell-e2e-v2"),
-			};
-		}), { timeout: 10_000 }).toEqual({ active: "activated", oldCache: false, newCache: true });
+		await expect
+			.poll(
+				() =>
+					replacement.evaluate(async () => {
+						const registration =
+							await navigator.serviceWorker.getRegistration("/");
+						const names = await caches.keys();
+						return {
+							active: registration?.active?.state,
+							oldCache: names.includes("omniconvert-shell-e2e-v1"),
+							newCache: names.includes("omniconvert-shell-e2e-v2"),
+						};
+					}),
+				{ timeout: 10_000 },
+			)
+			.toEqual({ active: "activated", oldCache: false, newCache: true });
 	} finally {
-		await context.close();
-		await server.close();
+		try {
+			await session.close();
+		} finally {
+			await server.close();
+		}
 	}
 });
 
@@ -519,10 +672,14 @@ test("keyboard-only import, target selection, conversion, preview and download",
 	// subsequently take it away from the next control.
 	const previewElement = page.locator("dialog.preview-modal");
 	await previewElement.evaluate((element) => {
-		element.addEventListener("close", (event) => event.stopImmediatePropagation(), {
-			capture: true,
-			once: true,
-		});
+		element.addEventListener(
+			"close",
+			(event) => event.stopImmediatePropagation(),
+			{
+				capture: true,
+				once: true,
+			},
+		);
 	});
 	await page.keyboard.press("Escape");
 	await expect(preview).toBeFocused();
@@ -530,11 +687,16 @@ test("keyboard-only import, target selection, conversion, preview and download",
 	const download = card.getByRole("button", { name: "Download", exact: true });
 	await tabUntilFocused(page, download);
 	await expect(previewElement.locator("h2")).toHaveCount(1);
-	await previewElement.evaluate((element) => element.dispatchEvent(new Event("close")));
+	await previewElement.evaluate((element) =>
+		element.dispatchEvent(new Event("close")),
+	);
 	await expect(previewElement.locator("h2")).toHaveCount(0);
-	await page.evaluate(() => new Promise<void>((resolve) => {
-		requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-	}));
+	await page.evaluate(
+		() =>
+			new Promise<void>((resolve) => {
+				requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+			}),
+	);
 	await expect(download).toBeFocused();
 	const downloadPromise = page.waitForEvent("download", { timeout: 10_000 });
 	await page.keyboard.press("Enter");

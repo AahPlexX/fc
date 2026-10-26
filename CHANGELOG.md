@@ -5,11 +5,11 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Production readiness — 2026-10-26
-- Final-head CI40252342180 exposed deferred dialog cleanup stealing keyboard focus. Root reproduced one failure in15 natural runs and a deterministic delayed-close failure; both dialogs now preserve native restoration without refocusing an already-closed opener. The strengthened regression passed15 forced-order runs across3 engines; full82-unit/72-browser/check/build/artifact gates pass; corrective CI pending.
-- Fixed table allocation/output bounds and special-key data loss; ZIP pre-read allocation, synchronous worker cleanup and target/empty preview behavior.
-- Added waiting SW lifecycle, isolated cache lookups and cache-failure recovery, versioned engine URLs and local-only FFmpeg input protocols; tightened security/cache headers.
-- Added release:check with byte/hash/pin/header/notices/budget validation and stale-evidence invalidation; CI now audits dependencies and validates pull requests. Expanded exact runtime license texts, candidate native notices and portable launch/rollback documentation.
-- Root independently passes check/build,82 unit tests,72 browser scenarios and positive/seven-negative artifact checks; entry gzip85,765 bytes. Permanent Validate40251947076 passes on da35a79; documentation closeout introduces no executable changes. All manual/field/host/native-source limits stay explicit.
+- Bounded table input/canonical growth/output on every path; preserved special column names; moved ZIP reads off main and enforced pre-read limits; fixed target/empty previews and synchronous worker cleanup.
+- Added waiting/isolated-cache service-worker behavior, versioned engines, strict security/cache headers and local-only media protocols. Initial client control is requested only after activation and handled in a message event.
+- Fixed native-close cleanup stealing keyboard focus. Deterministic delayed-close and held-claim regressions preserve navigation and separate activation from optional control.
+- Added release:check, dependency/PR/artifact CI gates, exact runtime notices and a portable hosting/update/rollback runbook. Service-worker tests use owned persistent profiles/processes after captured automation-session errors; no fault assertions were weakened and retries remain0.
+- Root passes check/build,82 unit tests,75 browser scenarios and artifact/negative checks;45 lifecycle and15 keyboard stress cases pass. Entry gzip85,868 bytes. Permanent corrective CI pending. Native-source/manual/field/host limits remain explicit.
 
 ### Continuation — 2026-10-25
 - Added keyboard chooser-to-download, narrow drawer focus, effective zoom/display preference and phase-attributed lab performance cases. Root local check/build, 75 unit tests and 54 browser scenarios pass; permanent Validate40214020264 passes on b43e2a1 (prior continuation40213099341 also green).

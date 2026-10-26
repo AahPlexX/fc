@@ -24,8 +24,14 @@ self.addEventListener("activate", (event) => {
 						.map((key) => caches.delete(key)),
 				),
 			)
-			.then(() => self.clients.claim()),
+			.then(() => undefined),
 	);
+});
+
+// The page requests initial control only after activation has completed.
+self.addEventListener("message", (event) => {
+	if (event.data !== "OMNICONVERT_CLAIM_CLIENTS") return;
+	event.waitUntil(self.clients.claim().catch(() => undefined));
 });
 
 self.addEventListener("fetch", (event) => {
