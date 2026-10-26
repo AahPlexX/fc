@@ -3,9 +3,9 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**ACTIVE — corrective production candidate local gate green; permanent CI pending (2026-10-26).** Root independently passes check/build,82 unit tests,75 browser scenarios/retries0 and release:check; entry gzip85,843 bytes. Forty-five repeated lifecycle cases and15 deterministic keyboard stress cases also pass. PRD/package pins remain unchanged.
+**COMPLETE — Phase17 automated scope (2026-10-26).** Root independently passes check/build,82 unit tests,75 browser scenarios/retries0 and release:check; [permanent Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) passes on source `0c37b2d`. Entry gzip85,843 bytes. PRD/package pins remain unchanged. No deployment performed.
 
-Current active files:public/sw.js, src/main.tsx and existing browser regressions; next fileTODO.md records final combined gate/commit/CI. Exact next step: commit/push the locally verified candidate, require all Validate steps, then record the permanent result. Earlier green runs are historical evidence, not approval of later source.
+Current active code files:none. Exact next file:`LICENSES.md` to establish complete native corresponding-source/build materials before public binary distribution. Environment-specific hosting validation starts in `docs/production.md` once a host is selected. Manual accessibility/physical devices, field metrics and real-device memory remain explicitly UNVERIFIED; this automated checkpoint does not close those release criteria.
 
 The focus correction avoids refocusing natively closed dialogs; native media players are reachable with a final output-download boundary. Activation performs cache cleanup only. main posts a fixed control message after registration.ready; its handler waits on worker-local activated state before claiming. Root's500ms delay reproduced an outdated page-side activating snapshot despite worker-side activated in5/5 WebKit diagnostics. The strengthened test failed old code and18 held-claim/update cases now pass across3 engines. Persistent profiles isolate earlier automation-process faults; all cache/control outcomes remain mandatory.
 
@@ -24,7 +24,7 @@ Review focus: memory amplification/legacy bypass; archive preallocation; wrong-t
 - [x] PWA/hosting: successful network reads survive cache-quota failure, cache lookup stays within the active build, normal waiting lifecycle preserves live clients, security/cache headers match preview/emitted artifact. Test actual built SW; host must retain old lazy assets.
 - [x] Distribution: supply applicable npm/static-codec notice texts and immutable source evidence; no unsupported binary-source attestation claim.
 - [x] Release gate: audit pinned dependency graph; check complete built assets/headers/SW tokens/license artifacts/budget; retain checksums/audit/browser evidence in CI; do not publish binary artifacts. New file1: `scripts/check-release.mjs`; only after it passes create new file2: `docs/production.md`. Reserve file3 unless a concrete need arises.
-- [ ] Root integration: inspect each diff, run pinned check/unit/build/browser gates, verify no file egress and artifact checks, then commit+push with synchronized docs; require permanent Validate before marking complete.
+- [x] Root integration: independently inspected diffs, passed pinned check/unit/build/browser/artifact gates and request audits, committed/pushed synchronized docs, and verified permanent Validate40261796547 before marking the automated scope complete.
 
 Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E; pwa=SW/Vite/accessibility E2E; worker_builder=archive worker/minimal App intake/export tests/performance E2E; media=LICENSES/public notices; release_supply_chain=read-only primary audit (initial full+prod audit zero advisories). Root=all integration, CI/release check, governance/runbook and independent validation. No builder may commit or create new repository files.
 
@@ -51,7 +51,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 14 | Browser/a11y/viewport/budget gates | COMPLETE (automated scope) |54/54 Playwright scenarios in CI; axe/focus and320–3840px viewport checks;85,396-byte gzip entry. |
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
-| 17 | Final production-readiness corrections and release checks | ACTIVE (local gate green) |82 unit/75 browser cases;18 held-claim/update stress cases on final source; permanent corrective CI pending. |
+| 17 | Final production-readiness corrections and release checks | COMPLETE (automated scope) |82 unit/75 browser scenarios; Validate40261796547 green on0c37b2d;18 held-claim/update stress cases. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record
@@ -103,4 +103,4 @@ SW waiting/cache cleanup is exercised across all3 engines. The final named-cache
 
 Corrective CI40253738993 passed keyboard behavior but exposed an activation dependency. Source a387e13 then passed Validate40258988170 (82/75) with claiming outside activation and persistent SW profiles. A final preview check reproduced excluded native media controls; the corrected real WAV→MP3 cases traverse both players, verify byte-equal preview download and boundary wrapping.
 
-A subsequent full run passed74/75 and exposed stale page-side activation state. Root's500ms activation delay reproduced5/5 failures while worker-side activated beacons were observed. main now sends the fixed request after registration.ready; the message handler owns the activated-state wait. The new regression fails the prior main-side wait and18 repeated held-claim/update cases pass across3 engines. Native claim occurs only at worker-side activated; actual controller, waiting behavior and both cache outcomes remain required. Exact combined gate/CI is at the top of this tracker.
+A subsequent full run passed74/75 and exposed stale page-side activation state. Root's500ms activation delay reproduced5/5 failures while worker-side activated beacons were observed. main now sends the fixed request after registration.ready; the message handler owns the activated-state wait. The new regression fails the prior main-side wait and18 repeated held-claim/update cases pass across3 engines. Native claim occurs only at worker-side activated; actual controller, waiting behavior and both cache outcomes remain required. Final root gate passes82/75; Validate40261796547 is green on0c37b2d. Source-distribution/host/manual/field criteria above remain open.

@@ -1,6 +1,6 @@
 # Verification evidence — 2026-10-26
 
-Current corrective candidate:root passes check (39 linted files),82 unit tests/10 files, production build,75 browser scenarios across Chromium/Firefox/WebKit with retries0, and release:check. Entry gzip85,843 bytes/150,000. Permanent corrective commit/CI status is in TODO; earlier successes are historical.
+Current corrective candidate:root passes check (39 linted files),82 unit tests/10 files, production build,75 browser scenarios across Chromium/Firefox/WebKit with retries0, and release:check. Entry gzip85,843 bytes/150,000. [Permanent Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) passes on source `0c37b2d`; earlier successes are historical.
 
 ## Runtime and lifecycle corrections
 
@@ -32,6 +32,6 @@ Use pinned pnpm12.15.0:check, test, build, release:check, then test:e2e after in
 
 The release checker/runbook cover prepared static hosting, not a deployed host. Actual HTTPS/header/MIME/cache/rollback behavior, complete manual accessibility/physical devices, stable-browser certification, field metrics and device memory remain unverified. Native corresponding-source/material coverage remains open in LICENSES. PRD and package pins are unchanged. Do not infer99% assurance or full standards certification from these counts.
 
-Media keyboard correction: after lifecycle source a387e13 passed Validate40258988170, a targeted WAV→MP3 preview test failed on the old focus list (Tab stayed on Close). Native media hosts now participate and a download link follows them, so internal UA controls are not the last boundary. Three real conversion cases pass with both player hosts reached, preview export byte-equal and forward/backward boundary wrapping preserved. The combined gate and permanent CI status are recorded in TODO.
+Media keyboard correction: after lifecycle source a387e13 passed Validate40258988170, a targeted WAV→MP3 preview test failed on the old focus list (Tab stayed on Close). Native media hosts now participate and a download link follows them, so internal UA controls are not the last boundary. Three real conversion cases pass with both player hosts reached, preview export byte-equal and forward/backward boundary wrapping preserved. The combined82-unit/75-browser gate and permanent Validate40261796547 pass on0c37b2d.
 
 A later full gate passed74/75 and again exposed the update boundary. Root injected500ms of activation work: all5 WebKit diagnostic runs observed worker-side activated while the replacement page remained activating for10s. The strengthened native-claim regression failed the previous main-side wait. The worker now owns readiness;18 repeated held-claim/update cases pass across3 engines. The update test requires activated state at every native claim, actual page control, waiting-client protection and both cache outcomes. This moves the state observation to the executing worker; no missing activation or control is accepted. No general WebKit implementation root cause is claimed.

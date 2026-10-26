@@ -54,14 +54,14 @@ Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while on
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
 
-Historical passes do not certify later source. The current82-unit/75-browser local candidate includes focus and activation corrections; TODO carries the exact corrective commit/CI and resume point.
+Historical passes do not certify later source. Current source0c37b2d passes82 unit/75 browser scenarios and Validate40261796547. TODO carries the exact next file and unverified release criteria.
 
 ## Production pass boundary (2026-10-26)
 Read docs/production.md before hosting/updating. Engine paths include exact package versions; do not restore unversioned URLs or forced SW activation. Retain prior hashed/versioned lazy assets for live clients. Live media probes/conversions allow only file,pipe protocols. ZIP worker accepts File/Blob with a size guard before arrayBuffer. Table limits cover all API paths; native JSON parse remains transient-memory dependent, but shape checks precede canonical expansion. Papa internal headers use a safe prefix so __proto__ values survive; missing JSON own properties are null.
 
 Run release:check after build; it verifies copied FFmpeg bytes against installed packages and writes unsigned manifests/checksums. CI evidence also includes audit JSON. Preserve upstream license bytes, including CRLF/trailing whitespace; diff --check may exclude public/THIRD_PARTY_NOTICES.txt for those verbatim texts only. No package pins or PRD bytes changed. Root is sole gate; builders supply bounded work, not approvals.
 
-Dialog invariant: native close restores focus synchronously. Cleanup may restore manually only if it closes a still-open dialog; unconditional later focus steals rapid keyboard navigation. Keep the delayed-close regression (native notification replayed after Tab) and its assertions. This is a current source follow-up to the historical initial production CI success; TODO tracks its final gate.
+Dialog invariant: native close restores focus synchronously. Cleanup may restore manually only if it closes a still-open dialog; unconditional later focus steals rapid keyboard navigation. Keep the delayed-close regression (native notification replayed after Tab) and its assertions. The final source gate is0c37b2d/Validate40261796547; TODO tracks remaining release criteria.
 
 SW activation invariant: cache cleanup alone gates activation. main.tsx posts OMNICONVERT_CLAIM_CLIENTS after registration.ready; the message handler waits on worker-local activated state before claiming. Never move clients.claim into activation or wait on the page wrapper's state: a delayed-activation WebKit reproduction left that wrapper activating after worker-side activated was observed. Preserve held-claim and overlapping-navigation regressions, including activated-at-native-claim and actual controller/cache checks.
 

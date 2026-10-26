@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-The current candidate passes root check/build,82 unit tests,75 browser scenarios and release-artifact checks (2026-10-26). Entry JS/CSS is85,843 bytes gzipped against150,000. Corrective permanent CI is pending in [`TODO.md`](./TODO.md). Repository `AahPlexX/fc` stays on `main`; the portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
+The current candidate passes root check/build,82 unit tests,75 browser scenarios and release-artifact checks (2026-10-26). Entry JS/CSS is85,843 bytes gzipped against150,000. [Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) is green on source `0c37b2d`; [`TODO.md`](./TODO.md) records remaining release criteria. Repository `AahPlexX/fc` stays on `main`; the portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
