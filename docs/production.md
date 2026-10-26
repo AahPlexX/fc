@@ -1,6 +1,6 @@
 # Production artifact and operations
 
-Updated 2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. `TODO.md` records the exact validated source and CI run; `docs/verification.md` records measured scope. Automated artifact checks do not establish legal compliance, full accessibility conformance or field performance.
+Updated 2026-10-26. This is a portable static-hosting procedure. No production deployment has been performed. Executable source `da35a79` passed [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); `TODO.md` records the exact resume state; `docs/verification.md` records measured scope. Automated artifact checks do not establish legal compliance, full accessibility conformance or field performance.
 
 ## Build and inspect
 

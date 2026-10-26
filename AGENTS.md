@@ -54,7 +54,7 @@ Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while on
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
 
-Historical source `b43e2a1` passed Validate40214020264; Phase17 supersedes it with locally verified82/72 evidence. See TODO for the current candidate commit/CI gate and exact resume file. Earlier counts/CI runs in handoff/history are historical evidence, not newer source validation.
+Historical source `b43e2a1` passed Validate40214020264; Phase17 supersedes it:da35a79 passes Validate40251947076 with82 unit/72 browser cases, audit and artifact checks. No implementation task is active; TODO names the exact conditional next file. Earlier counts/CI runs in handoff/history are historical evidence, not newer source validation.
 
 ## Production pass boundary (2026-10-26)
 Read docs/production.md before hosting/updating. Engine paths include exact package versions; do not restore unversioned URLs or forced SW activation. Retain prior hashed/versioned lazy assets for live clients. Live media probes/conversions allow only file,pipe protocols. ZIP worker accepts File/Blob with a size guard before arrayBuffer. Table limits cover all API paths; native JSON parse remains transient-memory dependent, but shape checks precede canonical expansion. Papa internal headers use a safe prefix so __proto__ values survive; missing JSON own properties are null.

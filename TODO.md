@@ -3,9 +3,11 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**ACTIVE — Phase17 local gate green; permanent candidate CI pending (2026-10-26).** User authorized six Luna specialists with root as the sole validation/integration gate. Base head: `2f6c2c9`; last verified executable source `b43e2a1`, green Validate40214020264 (75 unit/54 browser cases). Current edits are not covered by that historical result.
+**COMPLETE — Phase17 automated production-hardening checkpoint (2026-10-26).** User authorized six Luna specialists with root as the sole validation/integration gate. Base head: `2f6c2c9`; last verified executable source `b43e2a1`, green Validate40214020264 (75 unit/54 browser cases). Current edits are not covered by that historical result.
 
-Current active file:TODO.md, recording the reviewed source commit and permanent CI result. Root independently passed check,82 unit tests, production build,72 browser scenarios and release:check; seven corrupted artifact copies were rejected. Entry gzip85,760 bytes. Two new files created sequentially: `scripts/check-release.mjs` (verified before the next file) then `docs/production.md`. Exact next step: commit/push the synchronized candidate and require Validate, then record its permanent URL. Portable static hosting is the working target; no deployment performed. The original PRD is unchanged.
+Promoted executable source:`da35a79` — [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076) passes frozen install, dependency audit, check,82 unit tests, production build, release-artifact checks and72 browser scenarios. Root also rejected seven damaged-artifact copies and measured85,760-byte gzip entry. No implementation task is active. This closeout changes documentation only; no executable change follows the validated source.
+
+Exact next file for a public binary distribution: `LICENSES.md`, resolving historical native corresponding-source/material coverage. For actual hosting, start `docs/production.md` and validate the chosen HTTPS origin's headers/MIME/cache/update/rollback behavior. Portable static hosting remains the working target; no deployment performed. Manual/field/device claims below remain unverified. The original PRD and package pins are unchanged.
 
 Six Luna specialists supplied bounded fixes/research and a seventh Luna performed the resumed native-engine research. Root reproduced and resolved integration defects, including JSON preallocation, prototype-like columns, preview test focus, notice line-ending preservation and engine-version cache separation.
 
@@ -22,7 +24,7 @@ Review focus: memory amplification/legacy bypass; archive preallocation; wrong-t
 - [x] PWA/hosting: successful network reads survive cache-quota failure, cache lookup stays within the active build, normal waiting lifecycle preserves live clients, security/cache headers match preview/emitted artifact. Test actual built SW; host must retain old lazy assets.
 - [x] Distribution: supply applicable npm/static-codec notice texts and immutable source evidence; no unsupported binary-source attestation claim.
 - [x] Release gate: audit pinned dependency graph; check complete built assets/headers/SW tokens/license artifacts/budget; retain checksums/audit/browser evidence in CI; do not publish binary artifacts. New file1: `scripts/check-release.mjs`; only after it passes create new file2: `docs/production.md`. Reserve file3 unless a concrete need arises.
-- [ ] Root integration: inspect each diff, run pinned check/unit/build/browser gates, verify no file egress and artifact checks, then commit+push with synchronized docs; require permanent Validate before marking complete.
+- [x] Root integration: inspect each diff, run pinned check/unit/build/browser gates, verify no file egress and artifact checks, then commit+push with synchronized docs; require permanent Validate before marking complete.
 
 Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E; pwa=SW/Vite/accessibility E2E; worker_builder=archive worker/minimal App intake/export tests/performance E2E; media=LICENSES/public notices; release_supply_chain=read-only primary audit (initial full+prod audit zero advisories). Root=all integration, CI/release check, governance/runbook and independent validation. No builder may commit or create new repository files.
 
@@ -49,7 +51,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 14 | Browser/a11y/viewport/budget gates | COMPLETE (automated scope) |54/54 Playwright scenarios in CI; axe/focus and320–3840px viewport checks;85,396-byte gzip entry. |
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
-| 17 | Final production-readiness fixes, bounded resources, PWA update safety, artifact/release checks | ACTIVE (local gate green) |82 unit/72 browser cases; release artifact/negative checks pass; permanent CI pending. |
+| 17 | Final production-readiness fixes, bounded resources, PWA update safety, artifact/release checks | COMPLETE (automated scope) |da35a79 / Validate40251947076 green;82 unit/72 browser cases, audit and artifact gates. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record

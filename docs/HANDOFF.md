@@ -3,19 +3,19 @@ artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
 updated_at: "2026-10-26T00:58:00Z"
 title: "OmniConvert production-hardening checkpoint"
-summary: "82 unit/72 browser gates, bounded resources, safe previews and worker cleanup, versioned/waiting PWA assets, release artifact checker; permanent CI pending."
+summary: "82 unit/72 browser gates, bounded resources, safe previews and worker cleanup, versioned/waiting PWA assets, release artifact checker; da35a79 / Validate40251947076 green."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
 branch: "main"
-resume_focus: "Record permanent candidate CI, then use TODO's exact distribution/hosting follow-up."
+resume_focus: "Use TODO's exact conditional source-distribution or hosting-validation follow-up."
 ---
 
 This is the durable current handoff. Read `AGENTS.md`, `TODO.md`, `README.md`, `docs/verification.md` and `docs/production.md`. Git history/CHANGELOG hold earlier checkpoints; older test counts are historical. `PRD.md` is the unchanged verbatim original product brief, not a progress report.
 
 The user requests cost-effective Luna orchestration, root as sole validation/integration gate, no github3, main only, exact pins/pnpm, at most3 new files per checkpoint, and synchronized internal documentation at every executable commit. Six Luna specialists plus a resumed Luna native researcher supplied bounded work; root reproduced integration defects and independently checked the combined candidate. No builder is a release approval gate. The final production pass creates only `scripts/check-release.mjs` (checked before the next file) and `docs/production.md`.
 
-Current local evidence: strict check/lint39 files;82 unit tests/10 files; production build;72 scenarios in Chromium/Firefox/WebKit, retries0; entry gzip85,760 bytes/150,000; release checker accepts the real artifact and rejects seven damaged copies. Persisted quota-probe JSON proves an injected cache-write rejection plus successful network response in all3 engines; missing injection fails. Permanent candidate commit/CI is recorded in TODO; do not infer current approval from the historical b43e2a1 run. Exact next file while that gate is pending:TODO.md.
+Current local evidence: strict check/lint39 files;82 unit tests/10 files; production build;72 scenarios in Chromium/Firefox/WebKit, retries0; entry gzip85,760 bytes/150,000; release checker accepts the real artifact and rejects seven damaged copies. Persisted quota-probe JSON proves an injected cache-write rejection plus successful network response in all3 engines; missing injection fails. Executable source da35a79 passes [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); this closeout changes documentation only. No implementation task is active. Exact next file is LICENSES.md for source-distribution coverage, or docs/production.md for the chosen host validation. Historical b43e2a1 evidence does not certify later source.
 
 Important boundaries:
 
