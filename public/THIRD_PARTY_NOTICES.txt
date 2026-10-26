@@ -4767,3 +4767,12 @@ SHA-256 of reproduced notice text: 7637386b5f81e8a719ca336233149005e5fa28b5e6054
 
   0. You just DO WHAT THE FUCK YOU WANT TO.
 
+
+
+--- ExifReader source access (2026-10-26) ---
+ExifReader 4.51.0, MPL-2.0: download /sources/exifreader-4.51.0.zip from this application origin.
+The archive contains all 87 unmodified published package files, including src/, dist/, LICENSE and build scripts/configuration; installed node_modules dependencies are excluded.
+Open /sources.html for source and license links. The application links this page without leaving your conversion workspace.
+Primary source package: https://registry.npmjs.org/exifreader/-/exifreader-4.51.0.tgz
+Upstream source commit: https://github.com/mattiasw/ExifReader/tree/59d50812546b9bd8884269fea23d59122b5fb9ff
+This ExifReader source delivery does not resolve the separate FFmpeg corresponding-source gate described above.

@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import {
+	lstatSync,
+	readFileSync,
+	readdirSync,
+	writeFileSync,
+} from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
@@ -62,6 +67,111 @@ const ffmpegAssetPaths = (): Array<{ fileName: string; source: string }> => {
 	return assets;
 };
 
+const exifReaderSourceArchive = async (): Promise<{
+	version: string;
+	fileName: string;
+	contents: Uint8Array;
+}> => {
+	const packageRoot = packageDirectory(
+		require.resolve("exifreader/package.json"),
+		"exifreader",
+	);
+	const packageMetadata = JSON.parse(
+		readFileSync(join(packageRoot, "package.json"), "utf8"),
+	) as { version: string };
+	const version = packageMetadata.version;
+	const rootStat = lstatSync(packageRoot);
+	if (rootStat.isSymbolicLink() || !rootStat.isDirectory())
+		throw new Error(`ExifReader package root is not a real directory: ${packageRoot}`);
+
+	const files: Array<{ archivePath: string; sourcePath: string }> = [];
+	const visit = (directory: string): void => {
+		for (const name of readdirSync(directory).sort()) {
+			const sourcePath = join(directory, name);
+			const stat = lstatSync(sourcePath);
+			if (stat.isSymbolicLink())
+				throw new Error(`ExifReader package contains symlink: ${sourcePath}`);
+			if (stat.isDirectory()) {
+				if (name === "node_modules") continue;
+				visit(sourcePath);
+				continue;
+			}
+			if (!stat.isFile())
+				throw new Error(`ExifReader package contains special file: ${sourcePath}`);
+			const packagePath = relative(packageRoot, sourcePath)
+				.split(sep)
+				.join("/");
+			files.push({
+				archivePath: `package/${packagePath}`,
+				sourcePath,
+			});
+		}
+	};
+	visit(packageRoot);
+	files.sort((left, right) =>
+		left.archivePath < right.archivePath
+			? -1
+			: left.archivePath > right.archivePath
+				? 1
+				: 0,
+	);
+
+	const JSZip = require("jszip") as typeof import("jszip");
+	const zip = new JSZip();
+	const fixedTimestamp = new Date("1980-01-01T00:00:00.000Z");
+	for (const file of files) {
+		zip.file(file.archivePath, readFileSync(file.sourcePath), {
+			date: fixedTimestamp,
+			createFolders: false,
+			compression: "DEFLATE",
+			compressionOptions: { level: 9 },
+		});
+	}
+	return {
+		version,
+		fileName: `sources/exifreader-${version}.zip`,
+		contents: await zip.generateAsync({
+			type: "uint8array",
+			compression: "DEFLATE",
+			compressionOptions: { level: 9 },
+			platform: "DOS",
+		}),
+	};
+};
+
+const sourcesIndex = (exifReaderVersion: string): string => `<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>OmniConvert source materials</title>
+	<style>
+		:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10131b; color: #f4f6fa; }
+		* { box-sizing: border-box; }
+		body { margin: 0; line-height: 1.6; }
+		main { width: min(100% - 2rem, 48rem); margin-inline: auto; padding-block: clamp(2rem, 8vw, 5rem); }
+		h1 { line-height: 1.2; }
+		li { margin-block: .5rem; }
+		a { display: inline-flex; align-items: center; min-height: 44px; padding: .5rem .75rem; color: #a9d2ff; overflow-wrap: anywhere; }
+		a:focus-visible { outline: 3px solid #ffdf80; outline-offset: 3px; border-radius: .25rem; }
+		code { overflow-wrap: anywhere; }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>OmniConvert source materials</h1>
+		<p>These materials describe third-party components included with this static application.</p>
+		<ul>
+			<li><a href="/THIRD_PARTY_NOTICES.txt">Third-party notices and license texts</a></li>
+			<li><a href="/sources/exifreader-${exifReaderVersion}.zip" download>ExifReader ${exifReaderVersion} package source archive</a></li>
+		</ul>
+		<p>The archive contains the unmodified regular files from the installed ExifReader ${exifReaderVersion} package, under a <code>package/</code> directory. ExifReader is distributed under MPL-2.0; see its included license and the notices above.</p>
+		<p>The FFmpeg source correspondence remains <strong>UNVERIFIED</strong>. The upstream <a href="https://github.com/ffmpegwasm/ffmpeg.wasm/commit/71aa99d37c02a7b4c435275ca9ef50e612f6efa1">71aa99d</a> commit is a candidate release source, not verification that it produced the distributed WASM.</p>
+	</main>
+</body>
+</html>
+`;
+
 const csp = (development: boolean): string =>
 	[
 		"default-src 'self'",
@@ -91,12 +201,14 @@ const noCachePath = (pathname: string): boolean =>
 	pathname === "/sw.js" ||
 	pathname === "/manifest.webmanifest" ||
 	pathname === "/icon.svg" ||
+	pathname === "/sources.html" ||
+	pathname === "/THIRD_PARTY_NOTICES.txt" ||
 	pathname.startsWith("/engines/");
 
 const cacheControl = (pathname: string): string | null =>
 	noCachePath(pathname)
 		? "no-cache"
-		: pathname.startsWith("/assets/")
+		: pathname.startsWith("/assets/") || pathname.startsWith("/sources/")
 			? "public, max-age=31536000, immutable"
 			: null;
 
@@ -112,9 +224,13 @@ const generatedHeaders = (): string =>
 			"/sw.js",
 			"/manifest.webmanifest",
 			"/icon.svg",
+			"/sources.html",
+			"/THIRD_PARTY_NOTICES.txt",
 			"/engines/*",
 		].flatMap((path) => [path, "  Cache-Control: no-cache"]),
 		"/assets/*",
+		"  Cache-Control: public, max-age=31536000, immutable",
+		"/sources/*",
 		"  Cache-Control: public, max-age=31536000, immutable",
 		"",
 	].join("\n");
@@ -170,8 +286,9 @@ const ffmpegAssetsPlugin = (): Plugin => {
 				next();
 			});
 		},
-		generateBundle(_options, bundle) {
+		async generateBundle(_options, bundle) {
 			const engineAssets = ffmpegAssetPaths();
+			const exifReaderArchive = await exifReaderSourceArchive();
 			for (const asset of engineAssets) {
 				this.emitFile({
 					type: "asset",
@@ -183,6 +300,16 @@ const ffmpegAssetsPlugin = (): Plugin => {
 				type: "asset",
 				fileName: "_headers",
 				source: generatedHeaders(),
+			});
+			this.emitFile({
+				type: "asset",
+				fileName: exifReaderArchive.fileName,
+				source: exifReaderArchive.contents,
+			});
+			this.emitFile({
+				type: "asset",
+				fileName: "sources.html",
+				source: sourcesIndex(exifReaderArchive.version),
 			});
 			const hash = createHash("sha256");
 			const addToHash = (

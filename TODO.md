@@ -3,13 +3,20 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**COMPLETE — Phase17 automated scope (2026-10-26).** Root independently passes check/build,82 unit tests,75 browser scenarios/retries0 and release:check; [permanent Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) passes on source `0c37b2d`. Entry gzip85,843 bytes. PRD/package pins remain unchanged. No deployment performed.
+**ACTIVE — Phase18 source delivery and release evidence (2026-10-26).** Baseline273bf4d/Validate40262156405 is green (82 unit/75 browser scenarios). Root is validating a same-origin ExifReader source archive/page, discoverable from the workspace, plus additional primary provenance evidence. Root check/build,82 unit,78 browser scenarios and14 negative artifact cases pass, with source timestamp checks in two timezones. Permanent CI pending. No PRD/package pin changes or deployment.
 
-Current active code files:none. Exact next file:`LICENSES.md` to establish complete native corresponding-source/build materials before public binary distribution. Environment-specific hosting validation starts in `docs/production.md` once a host is selected. Manual accessibility/physical devices, field metrics and real-device memory remain explicitly UNVERIFIED; this automated checkpoint does not close those release criteria.
+Current active file:TODO.md for final commit/CI evidence. Next step: commit/push the locally verified candidate and require permanent Validate before marking Phase18 complete. LICENSES.md now records verified source-delivery bytes and primary evidence; exact historical FFmpeg source/build inputs remain UNVERIFIED.
 
-The focus correction avoids refocusing natively closed dialogs; native media players are reachable with a final output-download boundary. Activation performs cache cleanup only. main posts a fixed control message after registration.ready; its handler waits on worker-local activated state before claiming. Root's500ms delay reproduced an outdated page-side activating snapshot despite worker-side activated in5/5 WebKit diagnostics. The strengthened test failed old code and18 held-claim/update cases now pass across3 engines. Persistent profiles isolate earlier automation-process faults; all cache/control outcomes remain mandatory.
+Plan (one new repository file:scripts/test-release.mjs; reuse installed JSZip only at build/check time):
+- [x] Emit deterministic ZIP of every published ExifReader4.51.0 package file excluding node_modules, plus a static source/license index; preserve source/license bytes and avoid entry/precache growth.
+- [x] Link source access from the workspace in a new tab so in-memory files remain; verify keyboard/open/download/axe behavior.
+- [x] Check full archive entry list and source bytes, source links, MIME and cache/header rules; reject missing/tampered materials.
+- [x] Preserve root-reviewed primary evidence: installed87-file package equals npm tarball; actual FFmpeg/Emscripten/libvpx versions; absence of a discovered npm attestation/matching build record. Exact FFmpeg binary-source correspondence stays UNVERIFIED.
+- [ ] Root integrated check/unit/build/browser/artifact gate, synchronized governance/handoff, permanent Validate.
 
-Two new files this checkpoint were created sequentially: scripts/check-release.mjs, verified before docs/production.md. No deployment performed. Conditional next files after the gate:LICENSES.md for exact native-source/material coverage; docs/production.md for the selected HTTPS host's header/MIME/cache/update/rollback validation. Portable static hosting is the current assumption.
+Ownership:hosting_release owns vite.config.ts; source_release owns scripts/check-release.mjs. Root owns UI, regressions, evidence/docs and all validation/integration. Five Luna researchers covered provenance, native records, source materials, hosting and accessibility. No builder may commit or create new repository files.
+
+Completed Phase17 remains historical evidence below. Only scripts/check-release.mjs and docs/production.md were created there, sequentially. Source-distribution verification for FFmpeg, a selected host, manual accessibility/physical devices, field metrics and device memory remain open. Current repository metadata has no configured Pages/deployments/environments or homepage target; no production host is inferred.
 
 ### Production implementation plan
 Goal: close reproduced runtime/deployment gaps and produce a verifiable static release candidate plus a portable launch/rollback procedure. Architecture: keep all processing local, use bounded workers/native browser APIs and standard service-worker lifecycle; no telemetry uploads, accounts or new runtime dependencies. Spec: immutable `PRD.md`, verified corrections in README/ADRs, and the user's final production-readiness instruction.
@@ -52,6 +59,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
 | 17 | Final production-readiness corrections and release checks | COMPLETE (automated scope) |82 unit/75 browser scenarios; Validate40261796547 green on0c37b2d;18 held-claim/update stress cases. |
+| 18 | ExifReader source access and retained release evidence | ACTIVE (local gate green) |82 unit/78 browser/14 negative artifact cases and two timezone checks pass; permanent CI pending. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record

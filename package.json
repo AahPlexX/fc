@@ -15,7 +15,8 @@
     "check": "pnpm lint && tsc --noEmit",
     "test": "vitest run tests/unit",
     "test:e2e": "playwright test",
-    "release:check": "node scripts/check-release.mjs"
+    "release:check": "node scripts/check-release.mjs",
+    "release:test": "node scripts/test-release.mjs"
   },
   "dependencies": {
     "@ffmpeg/core": "0.12.10",

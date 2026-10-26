@@ -13,6 +13,7 @@ pnpm check
 pnpm test
 pnpm build
 pnpm release:check
+pnpm release:test
 pnpm exec playwright install --with-deps chromium firefox webkit
 pnpm test:e2e
 ```
@@ -21,7 +22,7 @@ Serve only `dist/`, at the origin root `/`, over HTTPS. Vite preview is a local 
 
 `release:check` checks exact direct pins/installed versions/lock entries, entry gzip budget, entry/precache/manifest references, substituted service-worker tokens, security/cache header rules, FFmpeg bytes against the installed pinned packages, PDF worker presence and copied runtime notices. It rejects symlinks and references escaping the artifact. It writes `release-results/artifact-manifest.json` and `SHA256SUMS` only after success, invalidating older evidence on a failed recheck. Hashes cover all dist files, package.json, the lockfile and immutable PRD. Git revision and tracked-dirty state are recorded. This is an unsigned asset inventory, not signed build provenance or an attestation of the upstream WASM source.
 
-CI runs the same source gates on main pushes and pull requests, audits the pinned dependency graph, and retains browser results plus release manifests/audit JSON for 14 days. It does not publish binaries or deploy a site. Preserve the verified artifact and manifest together in your release storage before that retention expires. Rebuilding after validation creates a new candidate requiring fresh artifact checks.
+CI runs the same source gates on main pushes and pull requests, audits the pinned dependency graph, and retains browser results plus release manifests/audit JSON for 14 days. It does not publish binaries or deploy a site. The14-case negative artifact check runs sequentially on an isolated copy, requires specific failures without stale manifests, and restores the real positive manifest; its JSON report is retained too. Preserve the verified artifact and manifest together in your release storage before that retention expires. Rebuilding after validation creates a new candidate requiring fresh artifact checks.
 
 ## Hosting contract
 
@@ -30,7 +31,7 @@ CI runs the same source gates on main pushes and pull requests, audits the pinne
 - Enforce the emitted CSP on documents, worker scripts and assets. It permits same-origin application assets, local Blob previews and WASM compilation; connections remain same-origin. Forms, plugin objects, base URL changes and embedding are denied.
 - Return `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and the emitted disabled camera/microphone/geolocation permissions.
 - Serve WASM as `application/wasm`, JavaScript/module workers with a JavaScript MIME type, and the manifest as `application/manifest+json`. Return real 404 responses for missing assets; do not rewrite missing JS/WASM to HTML.
-- Revalidate `/`, `/index.html`, `/sw.js`, the manifest/icon and `/engines/*` using `Cache-Control: no-cache`. Hashed `/assets/*` files may use the emitted one-year immutable policy.
+- Revalidate `/`, `/index.html`, `/sw.js`, `/sources.html`, `/THIRD_PARTY_NOTICES.txt`, the manifest/icon and `/engines/*` using `Cache-Control: no-cache`. Hashed `/assets/*` and versioned `/sources/*` downloads may use the emitted one-year immutable policy. Serve source ZIPs as application/zip and retain them with their corresponding artifact.
 - Keep the exact same-origin `/engines/core/<version>/` and `/engines/wrapper/<version>/` paths. Versioned URLs prevent an old controller from supplying different engine versions to a new app. Core and wrapper files must come from the same verified artifact as the entry files.
 
 The default single-thread core does not require COOP/COEP or SharedArrayBuffer. Never add a CDN or conversion API fallback to recover a missing engine. HTTPS configuration and any HSTS policy belong to the selected host; they have not been validated here.
@@ -55,7 +56,7 @@ Expected failures appear on the affected job or import notice. There is no remot
 
 ## Distribution and verification limits
 
-The notice artifact includes exact installed license texts for the observed emitted npm modules and separately identified candidate native-library notices. Its upstream whitespace is intentionally preserved. `LICENSES.md` distinguishes verified package integrity from unresolved native corresponding-source coverage. Do not represent candidate recipe revisions as proven inputs to the published WASM binary; establish the applicable complete source/notice materials before public binary distribution.
+The built source page links the87-file ExifReader package archive and notices; the application opens it in a new tab to preserve queued files. Source bytes are verified against the pinned installed package and are excluded from SW precache. This does not resolve the separate FFmpeg source gate. The notice artifact includes exact installed license texts for the observed emitted npm modules and separately identified candidate native-library notices. Its upstream whitespace is intentionally preserved. `LICENSES.md` distinguishes verified package integrity from unresolved native corresponding-source coverage. Do not represent candidate recipe revisions as proven inputs to the published WASM binary; establish the applicable complete source/notice materials before public binary distribution.
 
 The bundled native engine reports FFmpeg 5.1.4; npm still reports core 0.12.10 as its latest official release on 2026-10-26. The bounded advisory review found no established direct route for the reviewed DASH/HLS/XBIN advisories through the accepted inputs. Local-protocol restrictions provide an additional boundary. This does not certify other decoder paths or replace a maintained native-engine security strategy. npm audit does not audit statically linked native codec code.
 

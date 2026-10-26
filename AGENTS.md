@@ -54,7 +54,7 @@ Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while on
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
 
-Historical passes do not certify later source. Current source0c37b2d passes82 unit/75 browser scenarios and Validate40261796547. TODO carries the exact next file and unverified release criteria.
+Historical passes do not certify later source. Phase17 source0c37b2d passes82 unit/75 browser scenarios and Validate40261796547; Phase18 source-delivery gates are in TODO. TODO carries the exact next file and unverified release criteria.
 
 ## Production pass boundary (2026-10-26)
 Read docs/production.md before hosting/updating. Engine paths include exact package versions; do not restore unversioned URLs or forced SW activation. Retain prior hashed/versioned lazy assets for live clients. Live media probes/conversions allow only file,pipe protocols. ZIP worker accepts File/Blob with a size guard before arrayBuffer. Table limits cover all API paths; native JSON parse remains transient-memory dependent, but shape checks precede canonical expansion. Papa internal headers use a safe prefix so __proto__ values survive; missing JSON own properties are null.
@@ -68,3 +68,6 @@ SW activation invariant: cache cleanup alone gates activation. main.tsx posts OM
 PWA verification uses a fresh persistent browser profile/process per service-worker scenario; ephemeral automation sessions exposed WebKit internal NetworkProcess errors. Keep real activation/control/cache assertions and strict injected-write proof; do not add retries, swallow teardown errors or substitute missing observations for passes. Profiles are owned temporary directories removed after shutdown.
 
 Media preview focus invariant: include native audio/video controls and keep an ordinary focus boundary after them (the output download link). UA shadow controls must remain reachable; treating a media host as the final boundary can prematurely wrap internal controls. The real WAV→MP3 test traverses both players and download, then verifies forward/backward wrapping and byte-identical export.
+
+## Source delivery boundary — Phase18
+Production Vite builds emit sources.html and a versioned ExifReader ZIP from every installed package regular file except node_modules, with fixed timestamps. Preserve source/license/build bytes; do not substitute only compiled dist files. The footer opens a new tab to preserve jobs, and is omitted in dev. Release verification compares87 exact entries and streamed bytes; JSZip's legacy nodeStream requires a native Readable wrapper, and timestamps must use UTC epoch comparison. Root primary-tarball and timezone checks are documented in LICENSES. No source archive/page is precached. Exact FFmpeg corresponding-source and actual host/manual/field criteria remain separate; publishing is not authorized by an artifact-check pass alone.

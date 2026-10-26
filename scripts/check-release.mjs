@@ -11,7 +11,8 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { gzipSync } from "node:zlib";
+import { gzipSync, crc32 } from "node:zlib";
+import { Readable } from "node:stream";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(process.argv[2] ?? join(root, "dist"));
@@ -100,7 +101,7 @@ function checkPins() {
 	}
 }
 
-function checkBuild() {
+async function checkBuild() {
 	const htmlPath = requiredArtifact("index.html");
 	if (!htmlPath) return;
 	const html = text(htmlPath);
@@ -213,11 +214,13 @@ function checkBuild() {
 		for (const [header, value] of [["X-Content-Type-Options", "nosniff"], ["Referrer-Policy", "no-referrer"], ["Permissions-Policy", "camera=(), microphone=(), geolocation=()"]])
 			if (!new RegExp(`^\\s*${header}:\\s*${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`, "im").test(headers))
 				fail(`Production _headers missing ${header}: ${value}`);
-		for (const path of ["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/icon.svg", "/engines/*"])
+		for (const path of ["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/icon.svg", "/engines/*", "/sources.html", "/THIRD_PARTY_NOTICES.txt"])
 			if (!new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\n\\s*Cache-Control:\\s*no-cache$`, "m").test(headers))
 				fail(`Production _headers must set no-cache for ${path}`);
 		if (!/^\/assets\/\*\s*\n\s*Cache-Control:\s*public,\s*max-age=31536000,\s*immutable\s*$/m.test(headers))
 			fail("Production _headers must make fingerprinted /assets/* immutable");
+		if (!/^\/sources\/\*\s*\n\s*Cache-Control:\s*public,\s*max-age=31536000,\s*immutable\s*$/m.test(headers))
+			fail("Production _headers must make versioned /sources/* archives immutable");
 	}
 
 	const noticePath = requiredArtifact("THIRD_PARTY_NOTICES.txt");
@@ -244,6 +247,114 @@ function checkBuild() {
 		if (!/GPL-2\.0-or-later/i.test(notices) || !/MIT License/i.test(notices))
 			fail("Third-party notices must include the pinned FFmpeg core GPL and wrapper MIT license texts");
 	}
+	await checkSourceArchive();
+}
+
+function collectPackageFiles(dir, prefix = "") {
+	const result = [];
+	for (const name of readdirSync(dir).sort()) {
+		const path = join(dir, name);
+		const stat = lstatSync(path);
+		if (stat.isSymbolicLink()) throw new Error(`Installed ExifReader package contains symlink: ${path}`);
+		if (name === "node_modules" && stat.isDirectory()) continue;
+		const rel = prefix ? `${prefix}/${name}` : name;
+		if (stat.isDirectory()) result.push(...collectPackageFiles(path, rel));
+		else if (stat.isFile()) result.push([rel, path, stat.size]);
+		else throw new Error(`Installed ExifReader package contains unsupported file type: ${path}`);
+	}
+	return result;
+}
+
+async function checkSourceArchive() {
+	try {
+		const exifreaderRoot = packageDirectory(require.resolve("exifreader"), "exifreader");
+		const installedManifest = JSON.parse(text(join(exifreaderRoot, "package.json")));
+		if (typeof installedManifest.version !== "string" || !installedManifest.version)
+			throw new Error("Installed ExifReader manifest has no version");
+		const archivePath = `/sources/exifreader-${installedManifest.version}.zip`;
+		const archiveFile = requiredArtifact(archivePath, "Missing ExifReader corresponding-source archive");
+		const sourcePage = requiredArtifact("sources.html", "Missing source and notices page");
+		if (sourcePage) {
+			const html = text(sourcePage);
+			for (const href of [archivePath, "/THIRD_PARTY_NOTICES.txt"]) {
+				const escaped = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+				if (!new RegExp(`<a\\b[^>]*\\bhref=["']${escaped}["']`, "i").test(html))
+					fail(`dist/sources.html must link ${href}`);
+			}
+		}
+		if (!archiveFile) return;
+
+		const maxArchiveBytes = 8 * 1024 * 1024;
+		const archiveSize = lstatSync(archiveFile).size;
+		if (archiveSize > maxArchiveBytes)
+			throw new Error(`ExifReader source archive is ${archiveSize} bytes; limit is ${maxArchiveBytes}`);
+		const archiveBytes = read(archiveFile);
+
+		const packageFiles = collectPackageFiles(exifreaderRoot)
+			.map(([path, file, size]) => [`package/${path}`, file, size])
+			.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+		const requiredEntries = [
+			"package/LICENSE",
+			"package/package.json",
+			"package/src/exif-reader.js",
+			"package/bin/build.js",
+			"package/babel.config.json",
+			"package/webpack.config.js",
+		];
+		for (const path of requiredEntries) {
+			if (!packageFiles.some(([entry]) => entry === path))
+				throw new Error(`Installed ExifReader package is missing required source file ${path}`);
+		}
+
+		const JSZip = require("jszip");
+		const zip = await JSZip.loadAsync(archiveBytes);
+		const actualEntries = Object.keys(zip.files).sort();
+		if (actualEntries.some((name) => zip.files[name].dir))
+			throw new Error("ExifReader source archive must not contain directory entries");
+		const expectedEntries = packageFiles.map(([name]) => name);
+		if (JSON.stringify(actualEntries) !== JSON.stringify(expectedEntries)) {
+			const missing = expectedEntries.filter((name) => !actualEntries.includes(name));
+			const extra = actualEntries.filter((name) => !expectedEntries.includes(name));
+			throw new Error(`ExifReader source archive entry list differs from installed package (missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"})`);
+		}
+
+		for (const [entry, installedFile, expectedSize] of packageFiles) {
+			const archived = zip.file(entry);
+			if (!archived || archived.dir) throw new Error(`ExifReader source archive entry is not a file: ${entry}`);
+			const unixType = (archived.unixPermissions ?? 0) & 0xf000;
+			if (unixType !== 0 && unixType !== 0x8000)
+				throw new Error(`ExifReader source archive entry is not a regular file: ${entry}`);
+			if (archived.unsafeOriginalName !== entry)
+				throw new Error(`ExifReader source archive entry has a noncanonical path: ${entry}`);
+			if (archived.date.getTime() !== Date.UTC(1980, 0, 1))
+				throw new Error(`ExifReader source archive timestamp is not fixed at 1980-01-01T00:00:00: ${entry}`);
+			if (archived._data?.compression?.magic !== "\x08\x00")
+				throw new Error(`ExifReader source archive entry is not DEFLATE-compressed: ${entry}`);
+			if (archived._data?.uncompressedSize !== expectedSize)
+				throw new Error(`ExifReader source archive size metadata differs for ${entry}`);
+			const expectedBytes = read(installedFile);
+			let offset = 0;
+			const source = archived.nodeStream("nodebuffer");
+			try {
+				for await (const chunk of new Readable().wrap(source)) {
+					if (!Buffer.isBuffer(chunk)) throw new Error(`ExifReader source archive emitted a non-buffer chunk for ${entry}`);
+					if (offset + chunk.length > expectedBytes.length)
+						throw new Error(`ExifReader source archive entry is longer than installed file: ${entry}`);
+					if (!expectedBytes.subarray(offset, offset + chunk.length).equals(chunk))
+						throw new Error(`ExifReader source archive bytes differ from installed package: ${entry}`);
+					offset += chunk.length;
+				}
+			} finally {
+				source.destroy();
+			}
+			if (offset !== expectedBytes.length)
+				throw new Error(`ExifReader source archive entry is shorter than installed file: ${entry}`);
+			if ((archived._data.crc32 >>> 0) !== crc32(expectedBytes))
+				throw new Error(`ExifReader source archive CRC differs from installed file: ${entry}`);
+		}
+	} catch (error) {
+		fail(`ExifReader corresponding-source verification failed: ${error.message}`);
+	}
 }
 
 function collectDist(dir, prefix = "") {
@@ -264,7 +375,7 @@ try {
 	const distStat = lstatSync(dist);
 	if (distStat.isSymbolicLink() || !distStat.isDirectory()) throw new Error(`dist must be a real directory: ${dist}`);
 	checkPins();
-	checkBuild();
+	await checkBuild();
 	if (errors.length) {
 		console.error("Release artifact check failed:");
 		for (const error of errors) console.error(`- ${error}`);

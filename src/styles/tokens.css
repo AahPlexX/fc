@@ -29,6 +29,7 @@
 }
 
 a { color: var(--info); text-underline-offset: .2em; }
+.workbench-footnote a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 input, select, textarea { caret-color: var(--info); }
 progress, .job-meta { font-variant-numeric: tabular-nums; }
 

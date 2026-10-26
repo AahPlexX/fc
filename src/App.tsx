@@ -569,6 +569,14 @@ export const App = () => {
 				<p className="workbench-footnote">
 					No accounts. No cloud conversion. Some codecs and large files depend
 					on your browser’s memory. Keep this tab open while converting.
+					{import.meta.env.PROD && (
+						<>
+							{" "}
+							<a href="/sources.html" target="_blank" rel="noopener noreferrer">
+								Licenses and source code (opens in a new tab)
+							</a>
+						</>
+					)}
 				</p>
 			</main>
 			<MetadataDrawer

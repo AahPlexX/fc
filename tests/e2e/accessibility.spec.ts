@@ -359,6 +359,54 @@ test("preview serves production security headers and the correct WASM MIME type"
 	expect(rules).toContain(
 		"/assets/*\n  Cache-Control: public, max-age=31536000, immutable",
 	);
+ });
+
+test("source downloads are accessible and preserve queued files", async ({ page }) => {
+	await page.goto("/");
+	await page.locator("input[type=file]").setInputFiles({
+		name: "keep-queued.csv",
+		mimeType: "text/csv",
+		buffer: Buffer.from("name,value\nLocal,1"),
+	});
+	const sourceLink = page.getByRole("link", { name: /Licenses and source code/ });
+	await expect(sourceLink).toBeVisible({ timeout: 3_000 });
+	await sourceLink.focus();
+	const popupPromise = page.waitForEvent("popup");
+	await page.keyboard.press("Enter");
+	const sources = await popupPromise;
+	await sources.waitForLoadState();
+	await expect(sources.getByRole("heading", { name: "OmniConvert source materials" })).toBeVisible();
+	await expect(page.locator(".job-card")).toContainText("keep-queued.csv");
+	await expect(page).toHaveURL(/\/$/);
+	expect((await new AxeBuilder({ page: sources })
+		.withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+	for (const width of [320, 768, 3840]) {
+		await sources.setViewportSize({ width, height: 900 });
+		expect(await sources.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+	}
+	const archiveLink = sources.getByRole("link", { name: /ExifReader .* package source archive/ });
+	const archivePath = await archiveLink.getAttribute("href");
+	expect(archivePath).toBe("/sources/exifreader-4.51.0.zip");
+	const [sourceHeaders, archiveHeaders, notices] = await Promise.all([
+		page.request.head("/sources.html"),
+		page.request.head(archivePath ?? "/"),
+		page.request.get("/THIRD_PARTY_NOTICES.txt"),
+	]);
+	for (const response of [sourceHeaders, archiveHeaders, notices]) expect(response.status()).toBe(200);
+	expect(sourceHeaders.headers()["cache-control"]).toContain("no-cache");
+	expect(sourceHeaders.headers()["content-type"]).toContain("text/html");
+	expect(notices.headers()["cache-control"]).toContain("no-cache");
+	expect(archiveHeaders.headers()["cache-control"]).toContain("immutable");
+	expect(archiveHeaders.headers()["content-type"]).toContain("application/zip");
+	expect(await notices.text()).toContain(archivePath ?? "missing archive link");
+	const downloadPromise = sources.waitForEvent("download");
+	await archiveLink.click();
+	const download = await downloadPromise;
+	const downloadedPath = await download.path();
+	if (!downloadedPath) throw new Error("Source archive download was not saved");
+	expect((await readFile(downloadedPath)).equals(await readFile(`dist${archivePath}`))).toBe(true);
+	await sources.close();
+	await expect(page.locator(".job-card")).toContainText("keep-queued.csv");
 });
 
 test("a CacheStorage quota error does not fail a successful same-origin asset load", async ({

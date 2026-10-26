@@ -48,6 +48,9 @@ jobs:
       - name: Validate release artifact and bundle budget
         run: pnpm release:check
 
+      - name: Reject malformed release artifacts
+        run: pnpm release:test
+
       - name: Install browser dependencies
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 

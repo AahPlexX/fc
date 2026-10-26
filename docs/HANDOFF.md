@@ -1,21 +1,23 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-26T03:03:00Z"
-title: "OmniConvert verified production-hardening checkpoint"
-summary: "82 unit/75 browser gates, bounded workers, safe focus/preview, explicit PWA control lifecycle, release checker and runbook; source0c37b2d/Validate40261796547 green; release limits explicit."
+updated_at: "2026-10-26T15:17:00Z"
+title: "OmniConvert Phase18 source-delivery candidate"
+summary: "Phase18 adds verified87-file ExifReader source delivery and14 negative artifact cases;82 unit/78 browser/14 negative artifact cases pass; CI pending; FFmpeg/host/manual/field gates remain open."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
 branch: "main"
-resume_focus: "Open LICENSES.md for exact native-source/material verification before distribution; use docs/production.md for selected-host validation."
+resume_focus: "Read TODO for Phase18 final integration/CI, then LICENSES for the unresolved native-source inputs and docs/production.md for selected-host verification."
 ---
 
 Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Git/CHANGELOG retain older snapshots; previous green CI does not certify newer corrections.
 
 The user requests effective cheap Luna orchestration, root as sole integration/validation gate, no github3, main only, exact pins/pnpm and synchronized documentation. At most3 new files per checkpoint, verified sequentially. This production pass creates only scripts/check-release.mjs (checked before the next file) and docs/production.md. Bounded Luna builders/researchers supplied work; root reproduced/fixed integration issues and independently checked the candidate. No builder is an approval gate.
 
-Current local gate:check/lint39 files,82 unit tests/10 files, build,75 browser scenarios/3 engines/retries0, entry gzip85,843 bytes/150,000 and release:check. Seven corrupted artifact copies were rejected.45 lifecycle stress cases and15 deterministic keyboard stress cases pass. [Permanent Validate40261796547](https://github.com/AahPlexX/fc/actions/runs/40261796547) is green on source `0c37b2d`; Phase17 automated scope is complete. Exact next file is LICENSES.md for native-source/material verification before public binary distribution.
+Phase18 current state: same-origin sources.html and an87-file ExifReader ZIP are generated from the pinned installed package, with a production footer link opening a new tab. Root verified the primary tarball, each ZIP member and identical timezone builds. Check/build/82 unit/78 browser/14 negative artifact checks and two timezone checks pass; permanent CI is pending in TODO. New file:scripts/test-release.mjs (the only Phase18 new file). Package scripts/CI add release:test; pins/lockfile/PRD remain unchanged. Entry gzip85,926 bytes;36 artifact files.
+
+Read LICENSES for source hashes/provenance and docs/verification.md for reproduced checker defects. Keep native Readable wrapping for JSZip's legacy stream, UTC timestamp comparison, bounded source reads, exact entry/byte/CRC/type checks and14 expected negative rejections. Run release:check/release:test sequentially; they share manifest outputs. No source page/archive is precached. The production-only footer link preserves files; development mode does not expose nonexistent build artifacts.
 
 Load-bearing boundaries:
 
@@ -31,7 +33,7 @@ History matters: initial da35a79 CI passed82/72; later repeats exposed a genuine
 
 release:check compares pinned/installed engine bytes and notices, validates headers/references/budget, and writes unsigned manifests/checksums. CI adds PR/audit/artifact checks and retains evidence14days; no binary publishing/deployment. Preserve upstream license whitespace/CRLF. LICENSES distinguishes observed npm modules/candidate codecs from unverified exact native corresponding-source. Actual FFmpeg5.1.4/latest core0.12.10 and bounded advisory scope are documented; npm audit does not audit native codec code.
 
-Remaining scope: actual host/HTTPS/rollback behavior, manual accessibility/physical devices, latest-two-stable certification, field CWV/device memory and exact native-source/material coverage. Next file is LICENSES.md for source-distribution verification; selected-host work starts in docs/production.md. No deployment performed.
+Remaining scope: actual host/HTTPS/rollback behavior, manual accessibility/physical devices, latest-two-stable certification, field CWV/device memory and exact native-source/material coverage. Exact next file is TODO.md to record the Phase18 combined gate/CI, then LICENSES.md for native-source verification; selected-host work starts in docs/production.md. No deployment performed.
 
 Machine-local notes: fallback pnpm11.x; use pnpm dlx pnpm@12.15.0 if necessary. Local WebKit uses supplemental libraries and PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1; real browsers were tested. CI installs --with-deps normally. Use unique Playwright output paths. Scratch research/browser caches are ephemeral; repository docs and retained CI artifacts carry durable evidence. Never upload private files for diagnostics.
 
