@@ -65,8 +65,8 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 		source: string;
 		output: string | null;
 	} | null>(null);
-	const [sourceText, setSourceText] = useState("");
-	const [outputText, setOutputText] = useState("");
+	const [sourceText, setSourceText] = useState<string | null>(null);
+	const [outputText, setOutputText] = useState<string | null>(null);
 	const isOpen = job !== null;
 	const sourceFile = job?.sourceFile;
 	const outputBlob = job?.outputBlob;
@@ -92,10 +92,10 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 	}, [isOpen]);
 
 	useEffect(() => {
+		setSourceText(null);
+		setOutputText(null);
 		if (!sourceFile) {
 			setUrls(null);
-			setSourceText("");
-			setOutputText("");
 			return;
 		}
 		const source = URL.createObjectURL(sourceFile);
@@ -110,8 +110,6 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 				.catch(() => {
 					if (active) setSourceText("Text preview could not be read.");
 				});
-		} else {
-			setSourceText("");
 		}
 		if (outputBlob && TEXT_FORMATS.has(targetFormat ?? "")) {
 			void textPreview(outputBlob)
@@ -121,7 +119,7 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 				.catch(() => {
 					if (active) setOutputText("Text preview could not be read.");
 				});
-		} else setOutputText("");
+		}
 		return () => {
 			active = false;
 			URL.revokeObjectURL(source);
@@ -194,6 +192,21 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 							</figure>
 						</section>
 					)}
+					{outputIsImage && domain !== "image" && (
+						<section className="preview-images" aria-label="Output image preview">
+							<figure>
+								<figcaption>Output</figcaption>
+								{urls?.output ? (
+									<img
+										src={urls.output}
+										alt={`Output: ${job.outputFileName ?? job.sourceFile.name}`}
+									/>
+								) : (
+									<p>Output is not ready yet.</p>
+								)}
+							</figure>
+						</section>
+					)}
 					{media && (
 						<section aria-label={`${domain} preview`}>
 							<h3>Source</h3>
@@ -235,14 +248,24 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 							<div className="preview-text-columns">
 								<section>
 									<h3>Source</h3>
-									<pre>{sourceText || "Loading preview…"}</pre>
+									<pre>
+										{sourceText === null
+											? "Loading preview…"
+											: sourceText || "No text content."}
+									</pre>
 								</section>
 								<section>
 									<h3>Output</h3>
 									<pre>
-										{job.outputBlob
-											? outputText || "Loading preview…"
-											: "Output is not ready yet."}
+										{!job.outputBlob
+											? "Output is not ready yet."
+											: outputIsPdf
+												? "Output is a PDF. Download it below."
+												: outputIsText
+													? outputText === null
+														? "Loading preview…"
+														: outputText || "No text content."
+													: `Output format: ${outputFormat.toUpperCase()}`}
 									</pre>
 								</section>
 							</div>
@@ -254,7 +277,11 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 					{!isText && outputIsText && job.outputBlob && (
 						<section aria-label="Output text preview">
 							<p>Plain text preview (first 50 lines)</p>
-							<pre>{outputText || "Loading preview…"}</pre>
+							<pre>
+								{outputText === null
+									? "Loading preview…"
+									: outputText || "No text content."}
+							</pre>
 							{outputFormat === "html" && (
 								<p>HTML is shown as text and is never run in the preview.</p>
 							)}

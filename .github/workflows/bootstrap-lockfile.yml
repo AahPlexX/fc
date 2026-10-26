@@ -1,6 +1,9 @@
 name: Validate
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -27,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit pinned dependency graph
+        run: |
+          mkdir -p release-results
+          pnpm audit --audit-level=high --json > release-results/dependency-audit.json
+          node --input-type=module -e 'import {readFileSync} from "node:fs"; console.log("Registry advisory counts:", JSON.parse(readFileSync("release-results/dependency-audit.json", "utf8")).metadata.vulnerabilities)'
+
       - name: Lint and typecheck
         run: pnpm check
 
@@ -36,29 +45,22 @@ jobs:
       - name: Production build
         run: pnpm build
 
+      - name: Validate release artifact and bundle budget
+        run: pnpm release:check
+
       - name: Install browser dependencies
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Production browser and accessibility tests
         run: pnpm test:e2e
 
-      - name: Initial bundle budget
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';
-          import {gzipSync} from 'node:zlib';
-          const html=readFileSync('dist/index.html','utf8');
-          const files=[...html.matchAll(/(?:src|href)="(\/assets\/[^" ]+\.(?:js|css))"/g)].map(match=>'dist'+match[1]);
-          const bytes=files.reduce((sum,file)=>sum+gzipSync(readFileSync(file)).length,0);
-          if(!files.length||bytes>150000) throw new Error(`Initial bundle exceeds budget: ${bytes}`);
-          console.log(`Initial JS/CSS gzip: ${bytes} bytes`);
-          JS
-
       - name: Retain browser verification evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, primary release verified 2026-10-25
         with:
           name: browser-verification
-          path: test-results/
+          path: |
+            test-results/
+            release-results/
           if-no-files-found: ignore
           retention-days: 14

@@ -1,5 +1,6 @@
-import { test, expect, type Page } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
+import { expect, type Page, test } from "@playwright/test";
+import JSZip from "jszip";
 
 interface BrowserMetrics {
 	support: Record<string, boolean>;
@@ -417,4 +418,55 @@ test("records initial shell timing and responsiveness during real worker table c
 	);
 	expect(unicodeBoundary).toEqual({ rows: 1, suffix: "🌍Z" });
 	expect(invalidRequests).toEqual([]);
+});
+
+test("oversized ZIP import rejects from File.size without buffering the archive", async ({
+	page,
+}) => {
+	const archive = await (async () => {
+		const zip = new JSZip();
+		zip.file("tiny.txt", "fixture");
+		return Buffer.from(await zip.generateAsync({ type: "uint8array" }));
+	})();
+	await page.goto("/");
+	await page.evaluate((bytes) => {
+		const file = new File([new Uint8Array(bytes)], "oversized.zip", {
+			type: "application/zip",
+		});
+		const input = document.querySelector('input[type="file"]');
+		if (!(input instanceof HTMLInputElement)) throw new Error("File input missing");
+		const transfer = new DataTransfer();
+		transfer.items.add(file);
+		input.files = transfer.files;
+		const selected = input.files?.[0];
+		if (!selected) throw new Error("File fixture missing");
+		Object.defineProperty(selected, "size", {
+			value: 256 * 1024 * 1024 + 1,
+		});
+		let reads = 0;
+		const arrayBuffer = selected.arrayBuffer.bind(selected);
+		Object.defineProperty(selected, "arrayBuffer", {
+			value: () => {
+				reads += 1;
+				return arrayBuffer();
+			},
+		});
+		const target = window as Window & { __zipArrayBufferReads?: number };
+		Object.defineProperty(target, "__zipArrayBufferReads", {
+			configurable: true,
+			get: () => reads,
+		});
+		input.dispatchEvent(new Event("change", { bubbles: true }));
+	}, Array.from(archive));
+	await expect(page.locator(".import-notice")).toContainText(
+		/256 MiB input limit|Added 1 file/i,
+	);
+	expect(
+		await page.evaluate(
+			() =>
+				(window as Window & { __zipArrayBufferReads?: number })
+					.__zipArrayBufferReads,
+		),
+	).toBe(0);
+	expect(await page.locator(".job-card").count()).toBe(0);
 });

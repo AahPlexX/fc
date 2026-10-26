@@ -4,6 +4,12 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ## [Unreleased]
 
+### Production readiness — 2026-10-26
+- Fixed table allocation/output bounds and special-key data loss; ZIP pre-read allocation, synchronous worker cleanup and target/empty preview behavior.
+- Added waiting SW lifecycle, isolated cache lookups and cache-failure recovery, versioned engine URLs and local-only FFmpeg input protocols; tightened security/cache headers.
+- Added release:check with byte/hash/pin/header/notices/budget validation and stale-evidence invalidation; CI now audits dependencies and validates pull requests. Expanded exact runtime license texts, candidate native notices and portable launch/rollback documentation.
+- Root independently passes check/build,82 unit tests,72 browser scenarios and positive/seven-negative artifact checks; entry gzip85,760 bytes. Permanent candidate CI pending. All manual/field/host/native-source limits stay explicit.
+
 ### Continuation — 2026-10-25
 - Added keyboard chooser-to-download, narrow drawer focus, effective zoom/display preference and phase-attributed lab performance cases. Root local check/build, 75 unit tests and 54 browser scenarios pass; permanent Validate40214020264 passes on b43e2a1 (prior continuation40213099341 also green).
 - Fixed multiline CSV/CRLF Markdown detection, pending/cached/queued media cancellation, single-engine access, misleading WebM inference, obscured focus, ZIP reentrancy/cancellation and metadata loading. Table input/Blob encoding now stays in the worker.

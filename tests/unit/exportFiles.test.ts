@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	createZipArchive,
 	DEFAULT_ZIP_LIMITS,
@@ -90,6 +90,20 @@ describe("Phase 12 export/archive contracts", () => {
 		await expect(
 			createZipArchive([file], { ...DEFAULT_ZIP_LIMITS, maxArchiveBytes: 1 }),
 		).rejects.toThrow(/output limit/i);
+	});
+
+	it("rejects an oversized Blob archive before reading its bytes", async () => {
+		const archive = new Blob(["small fixture"]);
+		const arrayBuffer = vi.fn(archive.arrayBuffer.bind(archive));
+		Object.defineProperties(archive, {
+			size: { value: DEFAULT_ZIP_LIMITS.maxArchiveBytes + 1 },
+			arrayBuffer: { value: arrayBuffer },
+		});
+
+		await expect(extractZipArchive(archive)).rejects.toThrow(
+			/256 MiB input limit/i,
+		);
+		expect(arrayBuffer).not.toHaveBeenCalled();
 	});
 
 	it("rejects traversal paths before extracting content", async () => {

@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { detectTextFormat } from "../../src/core/magicBytes";
 import {
 	convertTabular,
 	convertTabularBlob,
+	DEFAULT_TABULAR_LIMITS,
 	parseTabular,
 	renderTabular,
 } from "../../src/workers/tabular.worker";
@@ -77,6 +78,7 @@ describe("Phase 8 tabular worker contracts", () => {
 		const html = await renderTabular(table, "html");
 		expect(html).toContain("<!doctype html>");
 		expect(html).toContain("<style>");
+		expect(html).toContain("</tbody>");
 		expect(html).toContain("&lt;admin&gt;|pipe");
 		expect(html).not.toContain("<admin>");
 	});
@@ -85,6 +87,86 @@ describe("Phase 8 tabular worker contracts", () => {
 		await expect(
 			parseTabular("| a | b |\n| --- | --- |\n| only one |", "md"),
 		).rejects.toThrow(/column/i);
+	});
+
+	it("enforces row, column, canonical cell, and UTF-8 input limits", async () => {
+		const limits = { ...DEFAULT_TABULAR_LIMITS, maxRows: 1 };
+		await expect(
+			convertTabular("a,b\n1,2\n3,4", "csv", "json", limits),
+		).rejects.toThrow(/250,000 data rows|row limit/i);
+		await expect(
+			parseTabular('[{"a":1,"b":2}]', "json", {
+				...DEFAULT_TABULAR_LIMITS,
+				maxColumns: 1,
+			}),
+		).rejects.toThrow(/2,000 columns|column limit/i);
+		await expect(
+			parseTabular('[{"a":1},{"a":2}]', "json", {
+				...DEFAULT_TABULAR_LIMITS,
+				maxCells: 1,
+			}),
+		).rejects.toThrow(/2,000,000 cells|cell limit/i);
+		await expect(
+			parseTabular("abc", "json", {
+				...DEFAULT_TABULAR_LIMITS,
+				maxInputBytes: 2,
+			}),
+		).rejects.toThrow(/64 MiB input limit|input limit/i);
+	});
+
+	it("rejects JSON shape growth before normalizing nested cells", async () => {
+		const stringify = vi.spyOn(JSON, "stringify");
+		try {
+			await expect(
+				parseTabular('[{"first":{"large":"value"},"second":2}]', "json", {
+					...DEFAULT_TABULAR_LIMITS,
+					maxColumns: 1,
+				}),
+			).rejects.toThrow(/column limit/i);
+			expect(stringify).not.toHaveBeenCalled();
+		} finally {
+			stringify.mockRestore();
+		}
+	});
+
+	it("treats missing JSON `__proto__` keys as null instead of inherited data", async () => {
+		await expect(
+			parseTabular('[{"__proto__":"first","a":1},{"a":2}]', "json"),
+		).resolves.toEqual({
+			columns: ["__proto__", "a"],
+			rows: [
+				["first", 1],
+				[null, 2],
+			],
+		});
+	});
+
+	it("preserves special CSV headers and Papa duplicate-header renaming", async () => {
+		await expect(
+			parseTabular(
+				"__proto__,constructor,a,a\nfirst,one,3,4\nsecond,two,5,6",
+				"csv",
+			),
+		).resolves.toEqual({
+			columns: ["__proto__", "constructor", "a", "a_1"],
+			rows: [
+				["first", "one", "3", "4"],
+				["second", "two", "5", "6"],
+			],
+		});
+	});
+
+	it("caps UTF-8 output before retaining serialized parts", async () => {
+		const limits = { ...DEFAULT_TABULAR_LIMITS, maxOutputBytes: 32 };
+		await expect(
+			convertTabularBlob(
+				new Blob(["value\n<".repeat(8)]),
+				"csv",
+				"html",
+				undefined,
+				limits,
+			),
+		).rejects.toThrow(/64 MiB output limit|output limit/i);
 	});
 
 	it("decodes UTF-8 across Blob chunk boundaries while retaining quoted multiline records", async () => {

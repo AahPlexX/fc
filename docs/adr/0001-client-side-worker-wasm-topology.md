@@ -20,3 +20,5 @@ Cold media load needs roughly 32 MB of WASM (10.4 MB gzipped). Fresh engines tra
 2026-10-25 continuation: table File/Blob reading and output UTF-8 Blob construction now occur inside the worker; the UI receives an encoded Blob. SW cache IDs are derived from build content including fixed-path engine bytes. Root75-unit/54-browser evidence and lab limits are in `docs/verification.md`.
 
 The table worker additionally decodes CSV/TSV incrementally, retaining native UTF-8 state across 1MiB slices and pinned Papa 5.7.0 ParserHandle CSV state. Progress is measured from bytes/rows and precedes final Blob delivery. The64MiB input cap and full-output accumulation are explicit; no constant-memory full-JSON guarantee is claimed.
+
+Production2026-10-26: engine URLs include installed core/wrapper versions so an older controller cannot mix engine versions with a new entry. Live probes/transcodes allow only file,pipe. SW waits for old clients, isolates caches and treats runtime cache faults as best-effort; hosts must retain older lazy assets. Release checks hash the complete artifact and compare copied engine bytes, without claiming upstream source attestation.

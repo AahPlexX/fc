@@ -1,3 +1,17 @@
+# Current production verification — 2026-10-26
+
+Root local gate:check (39 linted files),82 unit tests/10 files, build,72 browser scenarios/3 engines/retries0, release:check and seven damaged-artifact rejections all pass. Entry JS/CSS gzip85,760 bytes;34 built files are hashed. Permanent source commit/CI status lives in TODO. This supersedes the historical gate below.
+
+The new browser cases re-inspect MD→PDF/PDF→PNG output, check archive size rejection before reading, verify security/cache headers and SW waiting/activation/old-cache cleanup. Quota fault simulation uses actual built SW code with an instrumented Cache API; The final named-cache implementation and instrumented probe show a rejected write, successful network response and no cached probe in all3 engines. The test requires observed injection; earlier pre-fix harness limitations are not counted as passes. Raw quota-probe JSON is written and attached for CI retention.
+
+Final lab sample,1280×720, synthetic3,145,787-byte/76,726-row CSV: Chromium LCP100ms, conversion437.2ms/43 heartbeat ticks/no conversion long task observed; Firefox LCP100ms,521ms/48 ticks; WebKit LCP125ms,1481ms/101 ticks. Firefox/WebKit long-task/CLS signals remain unsupported. No invalid network requests were observed. A266ms Chromium task belonged to fixture injection. WebKit pointer-event timing reached312ms; this is not an INP calculation. No field p75 or universal50ms claim follows.
+
+Release checker negative cases: missing core JS; WASM corruption retaining its magic; index traversal; SW token; wildcard connect-src; notice drift; artifact symlink. All rejected with exit1 and stale manifest removal, followed by a clean positive check. Root byte-verified13 npm license texts and unchanged original notice prefix; all package pins/PRD are unchanged.
+
+Native review: actual WASM identifies FFmpeg5.1.4. Primary npm latest core is0.12.10 on2026-10-26. Reviewed [FFmpeg security records](https://ffmpeg.org/security.html) and [CVE-2023-6605](https://www.cve.org/CVERecord?id=CVE-2023-6605), [6602](https://www.cve.org/CVERecord?id=CVE-2023-6602), [6604](https://www.cve.org/CVERecord?id=CVE-2023-6604). These include HIGH DASH and MEDIUM resource/parser reports; required playlist/XBIN inputs are outside the current detector, and live FFmpeg protocols are additionally limited to file,pipe. Codec paths in accepted containers were not exhaustively audited. Npm's clean advisory result does not cover statically linked native code or certify its safety. Exact native corresponding-source remains unverified; LICENSES distinguishes candidate source/notice evidence.
+
+## Historical continuation evidence
+
 # Verification continuation — 2026-10-25
 
 Base checkpoint: `e2a8a33`. Promoted source: `b43e2a1`; [Validate40214020264](https://github.com/AahPlexX/fc/actions/runs/40214020264) passed all gates, including artifact retention, on 2026-10-25. This document belongs to the continuation commit containing it. Root independently reviewed and ran the integrated candidate; individual builder reports were not release approval.

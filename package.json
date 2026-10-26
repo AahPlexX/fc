@@ -11,10 +11,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "biome lint src tests vite.config.ts playwright.config.ts",
+    "lint": "biome lint src tests scripts vite.config.ts playwright.config.ts",
     "check": "pnpm lint && tsc --noEmit",
     "test": "vitest run tests/unit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "release:check": "node scripts/check-release.mjs"
   },
   "dependencies": {
     "@ffmpeg/core": "0.12.10",

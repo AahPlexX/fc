@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Core format detection/routing, import/queue behavior, image/metadata workers, tabular conversion, and PDF/document operations are CI-verified. Conversion workers are now integrated with the queue, metadata drawer, previews, downloads, guarded ZIP import/export and offline shell; continuation Validate40214020264 passes 75 unit tests and 54 production-browser scenarios on b43e2a1 (2026-10-25); permanent CI evidence is recorded in TODO. The authoritative implementation tracker is [`TODO.md`](./TODO.md). Repository target: `AahPlexX/fc`; development stays on `main`.
+The production-hardening candidate passes root validation:82 unit tests,72 production-browser scenarios across Chromium/Firefox/WebKit, strict check/build and release-artifact checks (2026-10-26). Entry JS/CSS is85,760 bytes gzipped against150,000. Permanent candidate CI status is in [`TODO.md`](./TODO.md); current work is not certified by historical CI runs. Repository `AahPlexX/fc` stays on `main`. The portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
@@ -55,6 +55,7 @@ pnpm dev
 pnpm check
 pnpm test
 pnpm build
+pnpm release:check
 ```
 
 ## Privacy invariant
@@ -68,12 +69,12 @@ Multi-threaded FFmpeg requires cross-origin isolation headers. The MVP defaults 
 ## Integrated workbench (2026-10-25)
 Choose compatible targets, convert one file or run the queue sequentially, cancel the active engine, inspect/edit supported metadata, preview completed output, download individually or export a ZIP. Retry cancelled/failed jobs with Convert. Matching-domain batch settings do not affect running/completed outputs. PDF page numbers are 1-based comma-separated; PDF-to-image exports one selected page (first by default). Compile / merge PDF combines queued images/PDFs in queue order.
 
-Workers perform detection, metadata inspection, raster encoding, tables, PDF operations and ZIP packaging/extraction. FFmpeg runs in its own worker and is terminated after each conversion to release WASM memory; the existing MediaAdapter remains a separately tested reusable lifecycle contract. FFmpeg assets are copied from exact installed packages to same-origin `/engines/` paths; no CDN fetches. Main-thread work is UI updates and asynchronous byte transfers. Text imports are capped at 64 MiB; individual files at 1.5 GB with a 500 MB warning. ZIP input/output expansion is bounded to 256 MiB / 1,000 entries / 100:1 ratio. ZIP64, encryption, nested archives, symlinks, traversal, and legacy non-UTF-8 names are rejected.
+Workers perform detection, metadata inspection, raster encoding, tables, PDF operations and ZIP packaging/extraction. FFmpeg runs in its own worker and is terminated after each conversion to release WASM memory; the existing MediaAdapter remains a separately tested reusable lifecycle contract. FFmpeg assets are copied from exact installed packages to same-origin versioned `/engines/core/<version>/` and `/engines/wrapper/<version>/` paths; no CDN fetches. Main-thread work is UI updates and asynchronous byte transfers. Text input and table UTF-8 output are capped at64MiB; tables allow250,000 rows,2,000 columns and2,000,000 canonical cells; individual files at 1.5 GB with a 500 MB warning. ZIP input/output expansion is bounded to 256 MiB / 1,000 entries / 100:1 ratio. ZIP64, encryption, nested archives, symlinks, traversal, and legacy non-UTF-8 names are rejected.
 
 The production service worker precaches the shell and caches conversion assets only after use. A newly installed shell cannot convert a domain offline until that domain's assets have first loaded online. It never caches user files/results. Production `_headers` contains a CSP; hosts must honor those headers or configure the equivalent themselves. The default single-thread engine does not require cross-origin isolation. WASM core assets are distributed under their package license (GPL-2.0-or-later), separately from the MIT wrapper.
 
 ### Verification scope
-`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Final entry JS/CSS measured 85,396 bytes gzipped (budget 150,000) in this continuation. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
+`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Current entry JS/CSS measured85,760 bytes gzipped (budget 150,000) in this continuation. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
 
 ## Supported routes
 | Source | Output |
@@ -134,8 +135,15 @@ All 22 pinned runtime/development packages and the package-manager entry below w
 Concurrent upstream commits through 057f619 are merged, not overwritten. `exportManager` naming/native download functions are reused by the workbench; archive generation delegates to the bounded archive implementation. `ConversionOrchestrator` remains an exported compatibility API whose browser runtime delegates to the common `conversionRunner`, avoiding two diverging execution implementations.
 
 ## Verification continuation
-[Verification evidence](docs/verification.md) records 75 unit and 54 browser checks, reproducible lab measurements and unsupported signals. ZIP packing is cancellable and serialized with the active workspace operation; completed outputs survive cancellation and the prepared archive can be downloaded again. Metadata inspection displays loading/errors and closes cleanly. All media probes/transcodes share one abort-aware slot. Table input and output Blob encoding stay in the worker.
+[Verification evidence](docs/verification.md) records82 unit and72 browser checks, reproducible lab measurements and unsupported signals. ZIP packing is cancellable and serialized with the active workspace operation; completed outputs survive cancellation and the prepared archive can be downloaded again. Metadata inspection displays loading/errors and closes cleanly. All media probes/transcodes share one abort-aware slot. Table input and output Blob encoding stay in the worker.
 
 Service-worker cache names derive from build content including same-path FFmpeg assets; old caches are removed on activation. CI retains raw browser/measurement evidence for 14 days. `THIRD_PARTY_NOTICES.txt` ships in the build with core/wrapper license texts and pinned source pointers; the precise remaining redistribution audit is in LICENSES. Lab measurements and browser simulation do not establish manual/field conformance.
 
-The continuation also closes the explicit PDF date-inspection and chunked-table requirements: CSV/TSV uses stateful UTF-8 decoding across 1MiB slices with real byte/row progress, preventing Unicode corruption at byte boundaries. PDF creation/modification dates are inspected read-only. The live worker protocol carries File input, progress events and final Blob output. The64MiB cap bounds input size; the full table/output still accumulate in worker memory, with no separate output-expansion cap.
+The continuation also closes the explicit PDF date-inspection and chunked-table requirements: CSV/TSV uses stateful UTF-8 decoding across 1MiB slices with real byte/row progress, preventing Unicode corruption at byte boundaries. PDF creation/modification dates are inspected read-only. The live worker protocol carries File input, progress events and final Blob output. The64MiB cap now applies to both input and UTF-8 output. Output is retained as bounded parts; shape limits precede canonical table expansion. Native JSON parsing and individual-row serialization still require transient memory.
+
+## Production hardening — 2026-10-26
+Table limits apply to Blob, string and legacy worker paths; prototype-like column names retain their values and missing own properties become null. ZIP input travels as File to its worker and is rejected above256MiB before a full read. Previews now handle Markdown→PDF and PDF→image correctly, including loaded empty text. Synchronous worker message errors terminate immediately.
+
+Service workers wait for old clients, look up only their own cache and preserve successful network responses when cache access fails. Versioned engine paths prevent older controllers from supplying another release's engine. Keep old hashed/versioned assets available while old clients can remain open. Security/cache headers and static-host MIME requirements are tested locally; actual host enforcement still requires the production runbook.
+
+`pnpm release:check` checks the built artifact/pins/copied engine bytes/notices/budget and writes an unsigned file-hash manifest plus checksums in ignored `release-results/`. CI runs on main pushes and pull requests, adds a dependency audit, and retains verification evidence14days. Notice texts cover observed emitted npm modules and separately labeled candidate codec sources. The FFmpeg5.1.4 native engine, source-correspondence limits and bounded advisory review are recorded in LICENSES/verification; npm audit does not cover native codec code.

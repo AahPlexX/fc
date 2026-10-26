@@ -150,7 +150,7 @@ test("cancels initialization then converts another file", async ({ page }) => {
 	const held = new Promise<void>((r) => {
 		release = r;
 	});
-	await page.route("**/engines/ffmpeg-core.wasm", async (route) => {
+	await page.route("**/engines/core/0.12.10/ffmpeg-core.wasm", async (route) => {
 		await held;
 		await route.continue().catch(() => undefined);
 	});
@@ -321,14 +321,14 @@ test("ambiguous video container is stream-probed before audio extraction", async
 	page,
 }) => {
 	const fixture = await page.evaluate(async () => {
-		const url = "/engines/ffmpeg/index.js";
+		const url = "/engines/wrapper/0.12.15/index.js";
 		const { FFmpeg } = await import(/* @vite-ignore */ url);
 		const engine = new FFmpeg();
 		try {
 			await engine.load({
-				coreURL: "/engines/ffmpeg-core.js",
-				wasmURL: "/engines/ffmpeg-core.wasm",
-				classWorkerURL: "/engines/ffmpeg/worker.js",
+				coreURL: "/engines/core/0.12.10/ffmpeg-core.js",
+				wasmURL: "/engines/core/0.12.10/ffmpeg-core.wasm",
+				classWorkerURL: "/engines/wrapper/0.12.15/worker.js",
 			});
 			const code = await engine.exec([
 				"-f",
@@ -463,4 +463,53 @@ test("metadata inspection has a loading state and closes without blocking conver
 	} finally {
 		release();
 	}
+});
+
+test("Markdown to PDF preview identifies the PDF output and offers a valid download", async ({
+	page,
+}) => {
+	await page.locator("input[type=file]").setInputFiles({
+		name: "brief.md",
+		mimeType: "text/markdown",
+		buffer: Buffer.from("# Preview\n\nA short document."),
+	});
+	const card = page.locator(".job-card");
+	await card.getByLabel("Target format").selectOption("pdf");
+	await card.getByRole("button", { name: "Convert", exact: true }).click();
+	await expect(card).toHaveAttribute("data-status", "completed");
+	await card.getByRole("button", { name: "Preview", exact: true }).click();
+	const dialog = page.getByRole("dialog", { name: "Preview" });
+	await expect(dialog).toBeVisible();
+	await expect(dialog.getByText("Output is a PDF. Download it below.")).toBeVisible();
+	await expect(dialog.getByText("Loading preview…")).toHaveCount(0);
+	const result = await output(page, () =>
+		dialog.getByRole("link", { name: "Download output PDF" }).click(),
+	);
+	const document = await PDFDocument.load(result.bytes, { updateMetadata: false });
+	expect(document.getPageCount()).toBe(1);
+});
+
+test("PDF to PNG preview displays the generated output image", async ({ page }) => {
+	const pdf = await PDFDocument.create();
+	pdf.addPage([120, 80]);
+	await page.locator("input[type=file]").setInputFiles({
+		name: "page.pdf",
+		mimeType: "application/pdf",
+		buffer: Buffer.from(await pdf.save()),
+	});
+	const card = page.locator(".job-card");
+	await card.getByLabel("Target format").selectOption("png");
+	await card.getByRole("button", { name: "Convert", exact: true }).click();
+	await expect(card).toHaveAttribute("data-status", "completed");
+	await card.getByRole("button", { name: "Preview", exact: true }).click();
+	const dialog = page.getByRole("dialog", { name: "Preview" });
+	const outputImage = dialog.getByRole("img", { name: /^Output:/ });
+	await expect(outputImage).toBeVisible();
+	expect(await outputImage.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+	await page.keyboard.press("Escape");
+	await expect(dialog).toHaveCount(0);
+	const result = await output(page, () =>
+		card.getByRole("button", { name: "Download", exact: true }).click(),
+	);
+	expect([...result.bytes.subarray(0, 4)]).toEqual([137, 80, 78, 71]);
 });

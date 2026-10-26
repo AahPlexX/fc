@@ -170,6 +170,31 @@ describe("Phase 10 media adapter contracts", () => {
     expect(nextEngine.load).toHaveBeenCalledOnce();
   });
 
+  it("terminates a worker immediately when postMessage throws", async () => {
+    vi.useFakeTimers();
+    try {
+      const terminate = vi.fn();
+      const postMessage = vi.fn(() => {
+        throw new DOMException("Uncloneable message", "DataCloneError");
+      });
+      const worker = {
+        terminate,
+        postMessage,
+        onmessage: null,
+        onerror: null,
+      } as unknown as Worker;
+      const { workerRequest } = await import("../../src/core/conversionRunner");
+
+      await expect(
+        workerRequest(worker, { jobId: "clone-failure" }, new AbortController().signal),
+      ).rejects.toThrow(/uncloneable message/i);
+      expect(terminate).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("serializes media probes, settles a cancelled queued probe, and recovers", async () => {
     vi.resetModules();
     const instances: {
@@ -202,6 +227,7 @@ describe("Phase 10 media adapter contracts", () => {
     const makeFile = (name: string) => new File([name], name, { type: detected.mime });
     const first = probeMedia(makeFile("first.mkv"), detected, new AbortController().signal);
     await vi.waitFor(() => expect(instances[0]?.ffprobe).toHaveBeenCalledOnce());
+    expect(instances[0]?.ffprobe).toHaveBeenCalledWith(expect.arrayContaining(["-protocol_whitelist", "file,pipe"]));
 
     const queuedController = new AbortController();
     const queued = probeMedia(makeFile("queued.mkv"), detected, queuedController.signal);

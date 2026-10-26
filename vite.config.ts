@@ -35,15 +35,17 @@ const ffmpegAssetPaths = (): Array<{ fileName: string; source: string }> => {
 		require.resolve("@ffmpeg/ffmpeg/worker"),
 		"@ffmpeg/ffmpeg",
 	);
+	const coreVersion = JSON.parse(readFileSync(join(coreRoot, "package.json"), "utf8")).version as string;
+	const wrapperVersion = JSON.parse(readFileSync(join(wrapperRoot, "package.json"), "utf8")).version as string;
 	const coreDirectory = join(coreRoot, "dist", "esm");
 	const wrapperDirectory = join(wrapperRoot, "dist", "esm");
 	const assets = [
 		{
-			fileName: "engines/ffmpeg-core.js",
+			fileName: `engines/core/${coreVersion}/ffmpeg-core.js`,
 			source: join(coreDirectory, "ffmpeg-core.js"),
 		},
 		{
-			fileName: "engines/ffmpeg-core.wasm",
+			fileName: `engines/core/${coreVersion}/ffmpeg-core.wasm`,
 			source: join(coreDirectory, "ffmpeg-core.wasm"),
 		},
 	];
@@ -52,7 +54,7 @@ const ffmpegAssetPaths = (): Array<{ fileName: string; source: string }> => {
 		name.endsWith(".js"),
 	)) {
 		assets.push({
-			fileName: `engines/ffmpeg/${fileName}`,
+			fileName: `engines/wrapper/${wrapperVersion}/${fileName}`,
 			source: join(wrapperDirectory, fileName),
 		});
 	}
@@ -71,9 +73,51 @@ const csp = (development: boolean): string =>
 		"worker-src 'self' blob:",
 		"media-src 'self' blob:",
 		"object-src 'none'",
-		"base-uri 'self'",
+		"form-action 'none'",
+		"base-uri 'none'",
 		"frame-ancestors 'none'",
 	].join("; ");
+
+const securityHeaders = (development: boolean): Record<string, string> => ({
+	"Content-Security-Policy": csp(development),
+	"X-Content-Type-Options": "nosniff",
+	"Referrer-Policy": "no-referrer",
+	"Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+});
+
+const noCachePath = (pathname: string): boolean =>
+	pathname === "/" ||
+	pathname === "/index.html" ||
+	pathname === "/sw.js" ||
+	pathname === "/manifest.webmanifest" ||
+	pathname === "/icon.svg" ||
+	pathname.startsWith("/engines/");
+
+const cacheControl = (pathname: string): string | null =>
+	noCachePath(pathname)
+		? "no-cache"
+		: pathname.startsWith("/assets/")
+			? "public, max-age=31536000, immutable"
+			: null;
+
+const generatedHeaders = (): string =>
+	[
+		"/*",
+		...Object.entries(securityHeaders(false)).map(
+			([name, value]) => `  ${name}: ${value}`,
+		),
+		...[
+			"/",
+			"/index.html",
+			"/sw.js",
+			"/manifest.webmanifest",
+			"/icon.svg",
+			"/engines/*",
+		].flatMap((path) => [path, "  Cache-Control: no-cache"]),
+		"/assets/*",
+		"  Cache-Control: public, max-age=31536000, immutable",
+		"",
+	].join("\n");
 
 const ffmpegAssetsPlugin = (): Plugin => {
 	let cacheVersion: string | null = null;
@@ -110,13 +154,19 @@ const ffmpegAssetsPlugin = (): Plugin => {
 				response.end(request.method === "HEAD" ? undefined : buffer);
 			});
 			server.middlewares.use((_request, response, next) => {
-				response.setHeader("Content-Security-Policy", csp(true));
+				for (const [name, value] of Object.entries(securityHeaders(true)))
+					response.setHeader(name, value);
 				next();
 			});
 		},
 		configurePreviewServer(server) {
 			server.middlewares.use((_request, response, next) => {
-				response.setHeader("Content-Security-Policy", csp(false));
+				for (const [name, value] of Object.entries(securityHeaders(false)))
+					response.setHeader(name, value);
+				const pathname = new URL(_request.url ?? "/", "http://localhost")
+					.pathname;
+				const policy = cacheControl(pathname);
+				if (policy) response.setHeader("Cache-Control", policy);
 				next();
 			});
 		},
@@ -132,7 +182,7 @@ const ffmpegAssetsPlugin = (): Plugin => {
 			this.emitFile({
 				type: "asset",
 				fileName: "_headers",
-				source: `/*\n  Content-Security-Policy: ${csp(false)}\n`,
+				source: generatedHeaders(),
 			});
 			const hash = createHash("sha256");
 			const addToHash = (

@@ -1,5 +1,98 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { createServer } from "node:http";
+import { readFile, writeFile } from "node:fs/promises";
+import { extname, resolve as resolvePath, sep } from "node:path";
+
+const startProductionHarness = async (
+	transformWorker: (source: string) => string = (source) => source,
+) => {
+	const distRoot = resolvePath(process.cwd(), "dist");
+	const headerFile = await readFile(`${distRoot}/_headers`, "utf8");
+	const csp = headerFile.match(/^\s*Content-Security-Policy:\s*(.+)$/m)?.[1];
+	if (!csp) throw new Error("Built static headers do not include a CSP");
+	const contentTypes: Record<string, string> = {
+		".css": "text/css; charset=utf-8",
+		".html": "text/html; charset=utf-8",
+		".js": "text/javascript; charset=utf-8",
+		".mjs": "text/javascript; charset=utf-8",
+		".svg": "image/svg+xml",
+		".wasm": "application/wasm",
+		".webmanifest": "application/manifest+json",
+		".txt": "text/plain; charset=utf-8",
+	};
+	let quotaWriteAttempts = 0;
+	const server = createServer(async (request, response) => {
+		try {
+			const url = new URL(request.url ?? "/", "http://127.0.0.1");
+			const pathname = decodeURIComponent(url.pathname);
+			if (pathname === "/__quota-write-attempt" && request.method === "POST") {
+				quotaWriteAttempts += 1;
+				response.writeHead(204).end();
+				return;
+			}
+			let body: Buffer;
+			let filePath: string | null = null;
+			if (pathname === "/engines/quota-probe.wasm") {
+				body = Buffer.from("small same-origin wasm probe");
+			} else {
+				const relativePath =
+					pathname === "/" ? "index.html" : pathname.slice(1);
+				filePath = resolvePath(distRoot, relativePath);
+				if (!filePath.startsWith(`${distRoot}${sep}`)) {
+					response.writeHead(403).end();
+					return;
+				}
+				body = await readFile(filePath);
+				if (pathname === "/sw.js")
+					body = Buffer.from(transformWorker(body.toString()));
+			}
+			response.setHeader("Content-Security-Policy", csp);
+			response.setHeader("X-Content-Type-Options", "nosniff");
+			response.setHeader("Referrer-Policy", "no-referrer");
+			response.setHeader(
+				"Permissions-Policy",
+				"camera=(), microphone=(), geolocation=()",
+			);
+			response.setHeader(
+				"Content-Type",
+				pathname === "/engines/quota-probe.wasm"
+					? "application/wasm"
+					: (contentTypes[
+							extname(pathname === "/" ? "/index.html" : pathname)
+						] ?? "application/octet-stream"),
+			);
+			response.setHeader(
+				"Cache-Control",
+				pathname.startsWith("/assets/")
+					? "public, max-age=31536000, immutable"
+					: "no-cache",
+			);
+			response.setHeader("Content-Length", body.length);
+			response.writeHead(200);
+			response.end(request.method === "HEAD" ? undefined : body);
+		} catch {
+			response.writeHead(404).end();
+		}
+	});
+	await new Promise<void>((resolve, reject) => {
+		server.once("error", reject);
+		server.listen(0, "127.0.0.1", resolve);
+	});
+	const address = server.address();
+	if (!address || typeof address === "string")
+		throw new Error("Test server did not bind a port");
+	return {
+		origin: `http://127.0.0.1:${address.port}`,
+		get quotaWriteAttempts() {
+			return quotaWriteAttempts;
+		},
+		close: () =>
+			new Promise<void>((resolve, reject) =>
+				server.close((error) => (error ? reject(error) : resolve())),
+			),
+	};
+};
 import { createPdfFixture } from "../fixtures/pdf";
 
 const tabUntilFocused = async (
@@ -162,6 +255,226 @@ test("production shell and a warmed table engine work offline without caching us
 		),
 	).toBe(true);
 	await context.close();
+});
+
+test("preview serves production security headers and the correct WASM MIME type", async ({
+	page,
+}) => {
+	const documentResponse = await page.goto("/");
+	expect(documentResponse?.status()).toBe(200);
+	const html = await documentResponse?.text();
+	const entryPath = html?.match(/src="([^"]+\.js)"/)?.[1];
+	expect(entryPath).toBeTruthy();
+	const [wasmResponse, workerResponse, entryResponse] = await Promise.all([
+		page.request.head("/engines/core/0.12.10/ffmpeg-core.wasm"),
+		page.request.head("/sw.js"),
+		page.request.head(entryPath ?? "/"),
+	]);
+	expect(wasmResponse.status()).toBe(200);
+	expect(wasmResponse.headers()["content-type"]).toBe("application/wasm");
+	expect(workerResponse.status()).toBe(200);
+	expect(workerResponse.headers()["content-type"]).toContain("javascript");
+	for (const response of [documentResponse, wasmResponse, workerResponse])
+		expect(response?.headers()["cache-control"]).toContain("no-cache");
+	expect(workerResponse.headers()["cache-control"]).toContain("no-cache");
+	expect(entryResponse.headers()["cache-control"]).toContain("immutable");
+
+	for (const response of [documentResponse, wasmResponse, workerResponse]) {
+		if (!response) throw new Error("Document response missing");
+		const headers = response.headers();
+		expect(headers["x-content-type-options"]).toBe("nosniff");
+		expect(headers["referrer-policy"]).toBe("no-referrer");
+		expect(headers["permissions-policy"]).toContain("camera=()");
+		expect(headers["permissions-policy"]).toContain("microphone=()");
+		expect(headers["permissions-policy"]).toContain("geolocation=()");
+		expect(headers["content-security-policy"]).toContain("form-action 'none'");
+		expect(headers["content-security-policy"]).toContain("base-uri 'none'");
+	}
+	const staticRules = await page.request.get("/_headers");
+	expect(staticRules.status()).toBe(200);
+	const rules = await staticRules.text();
+	expect(rules).toContain("/engines/*\n  Cache-Control: no-cache");
+	expect(rules).toContain(
+		"/assets/*\n  Cache-Control: public, max-age=31536000, immutable",
+	);
+});
+
+test("a CacheStorage quota error does not fail a successful same-origin asset load", async ({
+	browser,
+}, info) => {
+	let workerServed = false;
+	let cacheOpenCallCount = 0;
+	const server = await startProductionHarness((source) => {
+		workerServed = true;
+		const matches = source.match(/caches\.open\(CACHE_NAME\)/g) ?? [];
+		cacheOpenCallCount = matches.length;
+		if (cacheOpenCallCount === 0)
+			throw new Error("Built worker has no cache open to instrument");
+		const instrumentedWorker = source.replaceAll(
+			"caches.open(CACHE_NAME)",
+			"__testCacheOpen(CACHE_NAME)",
+		);
+		const prelude = `
+const __nativeCacheOpen = caches.open.bind(caches);
+const __testCacheOpen = async (name) => {
+  const nativeCache = await __nativeCacheOpen(name);
+  return new Proxy(nativeCache, {
+    get(target, property) {
+      if (property === "put") return (request, response) => {
+        const url = typeof request === "string" ? request : request.url;
+        if (new URL(url, self.location.href).pathname === "/engines/quota-probe.wasm") {
+          return fetch("/__quota-write-attempt", { method: "POST" }).then(() => {
+            throw new DOMException("Storage is full", "QuotaExceededError");
+          });
+        }
+        return target.put(request, response);
+      };
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+};
+`;
+		return prelude + instrumentedWorker;
+	});
+	const context = await browser.newContext({ serviceWorkers: "allow" });
+	try {
+		const page = await context.newPage();
+		await page.goto(server.origin);
+		await page.waitForFunction(async () => {
+			const registration = await navigator.serviceWorker.getRegistration("/");
+			return Boolean(
+				registration?.active && navigator.serviceWorker.controller,
+			);
+		});
+		expect(workerServed).toBe(true);
+		expect(cacheOpenCallCount).toBeGreaterThan(0);
+		const result = await page.evaluate(async () => {
+			let fetchResult:
+				| { status: number; type: string; body: string }
+				| { error: string };
+			try {
+				const response = await fetch("/engines/quota-probe.wasm");
+				fetchResult = {
+					status: response.status,
+					type: response.type,
+					body: await response.text(),
+				};
+			} catch (error) {
+				fetchResult = {
+					error: error instanceof Error ? error.name : String(error),
+				};
+			}
+			return { fetchResult };
+		});
+		const quotaResult = {
+			browser: browser.browserType().name(),
+			status:
+				server.quotaWriteAttempts > 0
+					? "injected-cache-write-rejection-observed"
+					: "unsupported-no-cache-write-observed",
+			reason:
+				server.quotaWriteAttempts > 0
+					? null
+					: "This browser did not invoke Cache.put for the controlled same-origin WASM request.",
+			workerServed,
+			cacheOpenCallCount,
+			quotaWriteAttempts: server.quotaWriteAttempts,
+			fetchResult: result.fetchResult,
+		};
+		const quotaPath = info.outputPath("cache-quota-probe.json");
+		await writeFile(quotaPath, JSON.stringify(quotaResult, null, 2));
+		await info.attach("cache-quota-probe.json", {
+			path: quotaPath,
+			contentType: "application/json",
+		});
+		expect(server.quotaWriteAttempts).toBeGreaterThan(0);
+		expect(result.fetchResult).toEqual({
+			status:200,
+			type:"basic",
+			body:"small same-origin wasm probe",
+		});
+		const cached = await page.evaluate(async () => {
+			for (const name of await caches.keys()) {
+				if (await (await caches.open(name)).match("/engines/quota-probe.wasm"))
+					return true;
+			}
+			return false;
+		});
+		expect(cached).toBe(false);
+	} finally {
+		await context.close();
+		await server.close();
+	}
+});
+
+test("a new service worker waits for old clients before deleting their cache", async ({
+	browser,
+}) => {
+	let revision = "v1";
+	const servedVersions: string[] = [];
+	const server = await startProductionHarness((source) => {
+		if (!/const CACHE_NAME = "omniconvert-shell-[^"]+";/.test(source))
+			throw new Error(
+				"Expected the built service worker with an injected cache version",
+			);
+		servedVersions.push(revision);
+		return source.replace(
+			/const CACHE_NAME = "omniconvert-shell-[^"]+";/,
+			`const CACHE_NAME = "omniconvert-shell-e2e-${revision}";`,
+		);
+	});
+	const context = await browser.newContext({ serviceWorkers: "allow" });
+	try {
+		const page = await context.newPage();
+		await page.goto(server.origin);
+		await page.waitForFunction(async () => {
+			const registration = await navigator.serviceWorker.getRegistration("/");
+			return Boolean(
+				registration?.active && navigator.serviceWorker.controller,
+			);
+		});
+		await expect
+			.poll(() => page.evaluate(() => caches.keys()), { timeout: 10_000 })
+			.toContain("omniconvert-shell-e2e-v1");
+		revision = "v2";
+		await page.evaluate(async () => {
+			const registration = await navigator.serviceWorker.ready;
+			await registration.update();
+		});
+		await expect
+			.poll(
+				() =>
+					page.evaluate(async () => {
+						const registration =
+							await navigator.serviceWorker.getRegistration("/");
+						return {
+							waiting: registration?.waiting?.state ?? null,
+							oldCache: (await caches.keys()).includes(
+								"omniconvert-shell-e2e-v1",
+							),
+						};
+					}),
+				{ timeout: 10_000 },
+			)
+			.toEqual({ waiting: "installed", oldCache: true });
+		expect(servedVersions).toContain("v2");
+		await page.close();
+		const replacement = await context.newPage();
+		await replacement.goto(server.origin);
+		await expect.poll(() => replacement.evaluate(async () => {
+			const registration = await navigator.serviceWorker.getRegistration("/");
+			const names = await caches.keys();
+			return {
+				active: registration?.active?.state,
+				oldCache: names.includes("omniconvert-shell-e2e-v1"),
+				newCache: names.includes("omniconvert-shell-e2e-v2"),
+			};
+		}), { timeout: 10_000 }).toEqual({ active: "activated", oldCache: false, newCache: true });
+	} finally {
+		await context.close();
+		await server.close();
+	}
 });
 
 test("keyboard-only import, target selection, conversion, preview and download", async ({

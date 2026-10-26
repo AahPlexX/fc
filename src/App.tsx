@@ -11,11 +11,11 @@ import {
 	runConversion,
 	workerRequest,
 } from "./core/conversionRunner";
-import { createQueuedJob } from "./core/jobStore";
 import {
 	buildOutputFileName,
 	triggerBlobDownload as downloadBlob,
 } from "./core/exportManager";
+import { createQueuedJob } from "./core/jobStore";
 import type {
 	ConversionJob,
 	DetectedFormat,
@@ -97,6 +97,8 @@ export const App = () => {
 						if (!detected)
 							throw new Error("Unsupported or unrecognized file content");
 						if (detected.domain === "archive") {
+							if (file.size > 256 * 1024 * 1024)
+								throw new Error("ZIP archive exceeds the 256 MiB input limit");
 							const { entries: extracted } = await workerRequest<{
 								entries: { filename: string; blob: Blob }[];
 							}>(
@@ -106,7 +108,7 @@ export const App = () => {
 								{
 									type: "zip-import",
 									jobId: "import-zip",
-									bytes: new Uint8Array(await file.arrayBuffer()),
+									file,
 								},
 								controller.signal,
 							);

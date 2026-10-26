@@ -16,3 +16,5 @@ PDF image export uses one chosen page (first by default); PDF output accepts an 
 
 ## Rollback
 Change a matrix entry and its tests to disable a broken route. Keep source probing before target selection. A stronger decoder/renderer can replace a route without exposing incompatible domains or uploading payloads.
+
+Production2026-10-26: tables cap input/output at64MiB,250k rows,2k columns and2M canonical cells. Shape checks precede rectangular JSON expansion; output bytes are counted before parts retention. Safe internal Papa header keys preserve __proto__ and other source column names. ZIP File intake rejects oversized archives before reading, inside the worker. Preview selects output handling by target format.

@@ -1,3 +1,4 @@
+import { dependencies } from "../../package.json";
 import { getCompatibleTargets } from "./compatibilityMatrix";
 import type {
 	ConversionJob,
@@ -12,9 +13,9 @@ interface WorkerProgress {
 	readonly message: string;
 }
 export const engineConfig = {
-	coreURL: "/engines/ffmpeg-core.js",
-	wasmURL: "/engines/ffmpeg-core.wasm",
-	classWorkerURL: "/engines/ffmpeg/worker.js",
+	coreURL: `/engines/core/${dependencies["@ffmpeg/core"]}/ffmpeg-core.js`,
+	wasmURL: `/engines/core/${dependencies["@ffmpeg/core"]}/ffmpeg-core.wasm`,
+	classWorkerURL: `/engines/wrapper/${dependencies["@ffmpeg/ffmpeg"]}/worker.js`,
 };
 export const workerRequest = <T>(
 	worker: Worker,
@@ -23,9 +24,14 @@ export const workerRequest = <T>(
 	onProgress?: (progress: WorkerProgress) => void,
 ): Promise<T> =>
 	new Promise((resolve, reject) => {
+		let settled = false;
 		const finish = (error?: Error, result?: T) => {
+			if (settled) return;
+			settled = true;
 			clearTimeout(timer);
 			signal.removeEventListener("abort", abort);
+			worker.onmessage = null;
+			worker.onerror = null;
 			worker.terminate();
 			if (error) reject(error);
 			else resolve(result as T);
@@ -72,7 +78,15 @@ export const workerRequest = <T>(
 		};
 		worker.onerror = (event) =>
 			finish(new Error(event.message || "Conversion worker could not load"));
-		worker.postMessage(message);
+		try {
+			worker.postMessage(message);
+		} catch (error) {
+			finish(
+				error instanceof Error
+					? error
+					: new Error("Worker could not receive the request"),
+			);
+		}
 	});
 const metadataWorker = () =>
 	new Worker(new URL("../workers/metadata.worker.ts", import.meta.url), {
@@ -184,6 +198,8 @@ export const probeMedia = async (
 		await engine.writeFile("input", new Uint8Array(await file.arrayBuffer()));
 		mediaSignal.throwIfAborted();
 		const code = await engine.ffprobe([
+			"-protocol_whitelist",
+			"file,pipe",
 			"-v",
 			"error",
 			"-show_streams",
@@ -378,7 +394,7 @@ export const runConversion = async (
 			mediaSignal.throwIfAborted();
 			await engine.writeFile("input", inputBytes);
 			mediaSignal.throwIfAborted();
-			const args = ["-i", "input"];
+			const args = ["-protocol_whitelist", "file,pipe", "-i", "input"];
 			const audio = ["mp3", "wav", "flac", "ogg", "aac", "m4a"].includes(
 				target,
 			);

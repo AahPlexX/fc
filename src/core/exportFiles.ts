@@ -373,9 +373,16 @@ const inspectCentralDirectory = (
 };
 
 export const extractZipArchive = async (
-	bytes: Uint8Array,
+	source: Uint8Array | Blob,
 	limits: ZipLimits = DEFAULT_ZIP_LIMITS,
 ): Promise<ExtractedArchiveEntry[]> => {
+	if (source instanceof Blob && source.size > limits.maxArchiveBytes) {
+		throw new Error("ZIP archive exceeds the 256 MiB input limit");
+	}
+	const bytes =
+		source instanceof Uint8Array
+			? source
+			: new Uint8Array(await source.arrayBuffer());
 	const manifest = inspectCentralDirectory(bytes, limits);
 	const { default: JSZip } = await import("jszip");
 	const zip = await JSZip.loadAsync(bytes, {
@@ -493,6 +500,11 @@ export type ExportWorkerRequest =
 			readonly type: "zip-import";
 			readonly jobId: string;
 			readonly bytes: Uint8Array;
+	  }
+	| {
+			readonly type: "zip-import";
+			readonly jobId: string;
+			readonly file: Blob;
 	  };
 
 export type ExportWorkerResponse =
@@ -533,7 +545,9 @@ if (isDedicatedWorkerScope()) {
 				return {
 					type: "zip-import-result",
 					jobId: request.jobId,
-					entries: await extractZipArchive(request.bytes),
+					entries: await extractZipArchive(
+						"file" in request ? request.file : request.bytes,
+					),
 				};
 			})()
 				.then((response) => scope.postMessage(response))
