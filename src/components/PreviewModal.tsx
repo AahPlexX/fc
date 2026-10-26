@@ -85,9 +85,13 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 		}
 		if (!isOpen && dialog.open) dialog.close();
 		return () => {
-			if (dialog.open) dialog.close();
-			const opener = openerRef.current;
-			if (opener?.isConnected) opener.focus();
+			// Native close already restores focus. Only a forced cleanup close
+			// needs a fallback; a later effect must not steal the user's next Tab.
+			if (dialog.open) {
+				dialog.close();
+				const opener = openerRef.current;
+				if (opener?.isConnected) opener.focus();
+			}
 		};
 	}, [isOpen]);
 

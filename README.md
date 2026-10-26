@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-The production-hardening candidate passes root validation:82 unit tests,72 production-browser scenarios across Chromium/Firefox/WebKit, strict check/build and release-artifact checks (2026-10-26). Entry JS/CSS is85,760 bytes gzipped against150,000. Executable source `da35a79` passes [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); exact remaining scope is in [`TODO.md`](./TODO.md). Repository `AahPlexX/fc` stays on `main`. The portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
+The production-hardening candidate passes root validation:82 unit tests,72 production-browser scenarios across Chromium/Firefox/WebKit, strict check/build and release-artifact checks (2026-10-26). Entry JS/CSS is85,765 bytes gzipped against150,000. The preceding source passed Validate40251947076; a later CI repetition found a keyboard-focus race that is now fixed locally. Permanent validation for that fix is pending; exact current scope is in [`TODO.md`](./TODO.md). Repository `AahPlexX/fc` stays on `main`. The portable launch/update/rollback procedure is [`docs/production.md`](./docs/production.md). No deployment has been performed.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
@@ -74,7 +74,7 @@ Workers perform detection, metadata inspection, raster encoding, tables, PDF ope
 The production service worker precaches the shell and caches conversion assets only after use. A newly installed shell cannot convert a domain offline until that domain's assets have first loaded online. It never caches user files/results. Production `_headers` contains a CSP; hosts must honor those headers or configure the equivalent themselves. The default single-thread engine does not require cross-origin isolation. WASM core assets are distributed under their package license (GPL-2.0-or-later), separately from the MIT wrapper.
 
 ### Verification scope
-`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Current entry JS/CSS measured85,760 bytes gzipped (budget 150,000) in this continuation. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
+`pnpm test` runs unit contracts only; browser tests run via `pnpm exec playwright test` after `pnpm build` and `pnpm exec playwright install chromium firefox webkit`. Lint targets source/tests/config rather than generated `dist` code. Current entry JS/CSS measured85,765 bytes gzipped (budget 150,000) in this continuation. Field CWV percentiles, current/previous stable browser coverage, complete manual WCAG evaluation and 99% confidence remain UNVERIFIED; automated axe and lab checks are narrower evidence.
 
 ## Supported routes
 | Source | Output |

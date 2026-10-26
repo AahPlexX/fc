@@ -3,9 +3,9 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**COMPLETE — Phase17 automated production-hardening checkpoint (2026-10-26).** User authorized six Luna specialists with root as the sole validation/integration gate. Base head: `2f6c2c9`; last verified executable source `b43e2a1`, green Validate40214020264 (75 unit/54 browser cases). Current edits are not covered by that historical result.
+**ACTIVE — final-head CI exposed a dialog focus race (2026-10-26).** User authorized six Luna specialists with root as the sole validation/integration gate. Base head: `2f6c2c9`; last verified executable source `b43e2a1`, green Validate40214020264 (75 unit/54 browser cases). Current edits are not covered by that historical result.
 
-Promoted executable source:`da35a79` — [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076) passes frozen install, dependency audit, check,82 unit tests, production build, release-artifact checks and72 browser scenarios. Root also rejected seven damaged-artifact copies and measured85,760-byte gzip entry. No implementation task is active. This closeout changes documentation only; no executable change follows the validated source.
+Promoted executable source:`da35a79` — [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076) passes frozen install, dependency audit, check,82 unit tests, production build, release-artifact checks and72 browser scenarios. Root also rejected seven damaged-artifact copies and measured85,765-byte gzip entry. A subsequent docs-only run40252342180 exposed a nondeterministic Chromium keyboard-download failure (71/72 pass). Root reproduced Preview reopening after Download had focus. Current active file:TODO.md. Both dialog cleanups now restore focus only if cleanup itself closes an open dialog. Root verified the old-code deterministic failure,82 unit tests, check/build/artifact checks,15 deterministic browser stress runs and the full72-scenario suite. Exact next step: commit/push the corrective candidate and require permanent CI. Historical success remains recorded, but current closure is reopened.
 
 Exact next file for a public binary distribution: `LICENSES.md`, resolving historical native corresponding-source/material coverage. For actual hosting, start `docs/production.md` and validate the chosen HTTPS origin's headers/MIME/cache/update/rollback behavior. Portable static hosting remains the working target; no deployment performed. Manual/field/device claims below remain unverified. The original PRD and package pins are unchanged.
 
@@ -51,7 +51,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 14 | Browser/a11y/viewport/budget gates | COMPLETE (automated scope) |54/54 Playwright scenarios in CI; axe/focus and320–3840px viewport checks;85,396-byte gzip entry. |
 | 15 | Three ADRs | COMPLETE | Current topology, routing and privacy/archive decisions with rollback paths. |
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
-| 17 | Final production-readiness fixes, bounded resources, PWA update safety, artifact/release checks | COMPLETE (automated scope) |da35a79 / Validate40251947076 green;82 unit/72 browser cases, audit and artifact gates. |
+| 17 | Final production-readiness fixes, bounded resources, PWA update safety, artifact/release checks | ACTIVE (focus correction local gate green) |Old green da35a79; repeated final CI found a race, now fixed with deterministic regression; corrective CI pending. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record

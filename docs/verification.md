@@ -1,6 +1,11 @@
+## Follow-up focus regression — 2026-10-26
+After the initial green source run, docs-only Validate40252342180 failed the Chromium keyboard download flow (71/72). Root reproduced1 failure/15 natural attempts; the trace showed Preview reopened after Download had focus. Native dialog close had already restored the opener, then passive effect cleanup refocused it after the next Tab.
+
+The regression now holds/replays the native close notification after keyboard navigation and requires focus to stay on Download. It failed deterministically on the old code. Both dialogs now perform fallback focus restoration only when cleanup itself closes an open dialog. Check/82 unit/build/release checks pass, and15 deterministic browser repetitions across3 engines pass; the full72-scenario browser suite also passes; corrective permanent CI is pending. Earlier CI remains historical evidence rather than approval of this follow-up.
+
 # Current production verification — 2026-10-26
 
-Root local gate:check (39 linted files),82 unit tests/10 files, build,72 browser scenarios/3 engines/retries0, release:check and seven damaged-artifact rejections all pass. Entry JS/CSS gzip85,760 bytes;34 built files are hashed. Executable source `da35a79` passes [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); its audit/artifact/browser evidence is retained14days. This documentation closeout changes no executable source. This supersedes the historical gate below.
+Root local gate:check (39 linted files),82 unit tests/10 files, build,72 browser scenarios/3 engines/retries0, release:check and seven damaged-artifact rejections all pass. Entry JS/CSS gzip85,765 bytes;34 built files are hashed. Executable source `da35a79` passes [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); its audit/artifact/browser evidence is retained14days. This documentation closeout changes no executable source. This supersedes the historical gate below.
 
 The new browser cases re-inspect MD→PDF/PDF→PNG output, check archive size rejection before reading, verify security/cache headers and SW waiting/activation/old-cache cleanup. Quota fault simulation uses actual built SW code with an instrumented Cache API; The final named-cache implementation and instrumented probe show a rejected write, successful network response and no cached probe in all3 engines. The test requires observed injection; earlier pre-fix harness limitations are not counted as passes. Raw quota-probe JSON is written and attached for CI retention.
 

@@ -3,19 +3,19 @@ artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
 updated_at: "2026-10-26T00:58:00Z"
 title: "OmniConvert production-hardening checkpoint"
-summary: "82 unit/72 browser gates, bounded resources, safe previews and worker cleanup, versioned/waiting PWA assets, release artifact checker; da35a79 / Validate40251947076 green."
+summary: "82 unit/72 browser gates, bounded resources, safe previews and worker cleanup, versioned/waiting PWA assets, release artifact checker; final focus-race fix awaiting permanent CI."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
 branch: "main"
-resume_focus: "Use TODO's exact conditional source-distribution or hosting-validation follow-up."
+resume_focus: "Finish permanent validation of the deterministic dialog focus regression; then use TODO follow-up."
 ---
 
 This is the durable current handoff. Read `AGENTS.md`, `TODO.md`, `README.md`, `docs/verification.md` and `docs/production.md`. Git history/CHANGELOG hold earlier checkpoints; older test counts are historical. `PRD.md` is the unchanged verbatim original product brief, not a progress report.
 
 The user requests cost-effective Luna orchestration, root as sole validation/integration gate, no github3, main only, exact pins/pnpm, at most3 new files per checkpoint, and synchronized internal documentation at every executable commit. Six Luna specialists plus a resumed Luna native researcher supplied bounded work; root reproduced integration defects and independently checked the combined candidate. No builder is a release approval gate. The final production pass creates only `scripts/check-release.mjs` (checked before the next file) and `docs/production.md`.
 
-Current local evidence: strict check/lint39 files;82 unit tests/10 files; production build;72 scenarios in Chromium/Firefox/WebKit, retries0; entry gzip85,760 bytes/150,000; release checker accepts the real artifact and rejects seven damaged copies. Persisted quota-probe JSON proves an injected cache-write rejection plus successful network response in all3 engines; missing injection fails. Executable source da35a79 passes [Validate40251947076](https://github.com/AahPlexX/fc/actions/runs/40251947076); this closeout changes documentation only. No implementation task is active. Exact next file is LICENSES.md for source-distribution coverage, or docs/production.md for the chosen host validation. Historical b43e2a1 evidence does not certify later source.
+Current local evidence: strict check/lint39 files;82 unit tests/10 files; production build;72 scenarios in Chromium/Firefox/WebKit, retries0; entry gzip85,765 bytes/150,000; release checker accepts the real artifact and rejects seven damaged copies. Persisted quota-probe JSON proves an injected cache-write rejection plus successful network response in all3 engines; missing injection fails. Initial source da35a79 passed Validate40251947076, but the later head repetition found the focus race described below. The corrective local82/72/check/build/artifact gate and15 forced-order browser stress cases pass. Exact next file is TODO.md to record corrective commit/permanent CI; do not treat historical runs as approval of newer source.
 
 Important boundaries:
 
@@ -28,3 +28,5 @@ Important boundaries:
 Remaining claims stay explicit: actual host header/HTTPS/rollback behavior, full manual accessibility/physical devices, latest-two-stable browser certification, field CWV and device memory. Native FFmpeg5.1.4 is confirmed in WASM; npm latest core is still0.12.10. The advisory review is bounded, not an exhaustive decoder clearance; npm audit does not cover static native codecs. Candidate codec notices/source links do not establish exact historical corresponding-source coverage. `LICENSES.md` owns that investigation; `docs/production.md` owns host preparation. No deployment performed.
 
 Machine-local reproduction: shell fallback pnpm is11.x; use `pnpm dlx pnpm@12.15.0 <command>` if needed. Local WebKit uses supplemental libraries in Playwright sys/lib and `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`; actual browsers were exercised. Normal CI installs dependencies with --with-deps and needs no workaround. Use unique Playwright output paths for parallel development. Scratch research/caches are ephemeral; durable evidence is in repository docs and retained CI artifacts. Never transmit private files to a diagnostic service.
+
+Current follow-up: docs-only CI40252342180 found a real keyboard race after the earlier green run. Root reproduced it naturally and deterministically: close restored native focus, but later effect cleanup stole the next Tab. Both dialog cleanups now restore manually only if cleanup closes an open dialog. Preserve the delayed-close keyboard regression;15 stress repetitions/3 engines pass. Exact active file/next gate is TODO; do not claim the historical da35a79 CI certifies this newer fix.

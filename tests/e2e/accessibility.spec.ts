@@ -514,12 +514,29 @@ test("keyboard-only import, target selection, conversion, preview and download",
 	await expect(
 		dialog.getByText("Plain text preview (first 50 lines)"),
 	).toBeVisible();
+	// Model a native close notification arriving after the user's next Tab.
+	// The browser already restores focus during close(); React cleanup must not
+	// subsequently take it away from the next control.
+	const previewElement = page.locator("dialog.preview-modal");
+	await previewElement.evaluate((element) => {
+		element.addEventListener("close", (event) => event.stopImmediatePropagation(), {
+			capture: true,
+			once: true,
+		});
+	});
 	await page.keyboard.press("Escape");
 	await expect(preview).toBeFocused();
 
 	const download = card.getByRole("button", { name: "Download", exact: true });
 	await tabUntilFocused(page, download);
-	const downloadPromise = page.waitForEvent("download");
+	await expect(previewElement.locator("h2")).toHaveCount(1);
+	await previewElement.evaluate((element) => element.dispatchEvent(new Event("close")));
+	await expect(previewElement.locator("h2")).toHaveCount(0);
+	await page.evaluate(() => new Promise<void>((resolve) => {
+		requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+	}));
+	await expect(download).toBeFocused();
+	const downloadPromise = page.waitForEvent("download", { timeout: 10_000 });
 	await page.keyboard.press("Enter");
 	const result = await downloadPromise;
 	expect(result.suggestedFilename()).toMatch(/\.json$/);
