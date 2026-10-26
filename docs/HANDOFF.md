@@ -1,7 +1,7 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-26T15:17:00Z"
+updated_at: "2026-10-26T15:27:19Z"
 title: "OmniConvert verified source-delivery checkpoint"
 summary: "Phase18 adds verified87-file ExifReader source delivery and14 negative artifact cases;82 unit/78 browser/14 negative artifact cases pass; source5ea6d5a/Validate40348252463 green; FFmpeg/host/manual/field gates remain open."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]

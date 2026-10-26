@@ -26,3 +26,5 @@ Production2026-10-26: engine URLs include installed core/wrapper versions so an 
 Lifecycle correction: main posts OMNICONVERT_CLAIM_CLIENTS after registration.ready. The message handler waits for worker-local activated state before claiming; cache cleanup alone gates activation. A delayed-activation WebKit reproduction observed worker-side activated while the page wrapper remained activating, so page-side state is not the readiness gate. Held-claim and overlapping-navigation regressions require activation, native client control and cache outcomes. Real PWA tests use isolated persistent browser profiles/processes; retries remain zero.
 
 Final automated evidence: source0c37b2d/Validate40261796547 passes82 unit and75 browser scenarios; distribution/host/manual/field limits remain in TODO and docs/production.md.
+
+Phase18 source5ea6d5a/Validate40348252463 adds static source delivery: versioned ExifReader package ZIP plus a source index/notice link, excluded from initial imports and precache. Root82-unit/78-browser/14-negative artifact gates and timezone checks pass; FFmpeg corresponding-source and real-host/manual/field claims remain separate.
