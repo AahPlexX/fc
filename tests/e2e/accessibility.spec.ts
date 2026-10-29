@@ -359,6 +359,11 @@ test("preview serves production security headers and the correct WASM MIME type"
 	expect(rules).toContain(
 		"/assets/*\n  Cache-Control: public, max-age=31536000, immutable",
 	);
+	for (const path of ["/__missing_asset.js", "/__missing_asset.wasm"]) {
+		const response = await page.request.get(path);
+		expect(response.status()).toBe(404);
+		expect(response.headers()["cache-control"]).toBe("no-store");
+	}
  });
 
 test("source downloads are accessible and preserve queued files", async ({ page }) => {

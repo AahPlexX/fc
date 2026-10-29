@@ -4,6 +4,9 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ## [Unreleased]
 
+### Host verification — 2026-10-29
+- Added a read-only deployed-host verifier with HTTPS/TLS, full artifact/hash/header/MIME/cache and real404 checks. Fixed Vite preview to return non-cacheable404s for missing static assets. Root passes108 unit/78 browser/14 negative artifact cases, trusted/untrusted local TLS and artifact identity checks; CI requires curl and OpenSSL for its TLS fixture. Permanent CI pending. Actual host, FFmpeg provenance, manual/device and field claims remain UNVERIFIED.
+
 ### Source delivery — 2026-10-26
 - Refreshed current test counts, source-delivery architecture and exact handoff timestamp after the permanent gate.
 - Added same-origin ExifReader4.51.0 source archive/index and workspace link, with full87-file byte verification, CRC/type checks and timezone-stable archives. Added release:test/CI with14 negative artifact cases and stale-evidence checks. Root check/build/82 unit/78 browser/14 negative artifact cases and two timezone checks pass; [Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green on5ea6d5a. FFmpeg corresponding-source verification remains separate and UNVERIFIED; no dependency pins or PRD bytes changed.

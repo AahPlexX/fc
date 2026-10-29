@@ -1,21 +1,23 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-26T15:27:19Z"
-title: "OmniConvert verified source-delivery checkpoint"
-summary: "Phase18 adds verified87-file ExifReader source delivery and14 negative artifact cases;82 unit/78 browser/14 negative artifact cases pass; source5ea6d5a/Validate40348252463 green; FFmpeg/host/manual/field gates remain open."
+updated_at: "2026-10-29T20:18:10Z"
+title: "OmniConvert host-verification candidate"
+summary: "Phase19 adds portable host verification;108 unit/78 browser/14 negative artifact checks pass locally, CI pending. Actual host, FFmpeg source, manual/device and field evidence remain open."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
 branch: "main"
-resume_focus: "Read TODO; host validation needs an HTTPS origin, native source validation needs new build records, and manual/device checks need those environments."
+resume_focus: "Read TODO Phase19: finish the portable host verifier and CI; actual host, native provenance, manual/device and field measurements remain open."
 ---
 
 Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Git/CHANGELOG retain older snapshots; previous green CI does not certify newer corrections.
 
 The user requests effective cheap Luna orchestration, root as sole integration/validation gate, no github3, main only, exact pins/pnpm and synchronized documentation. At most3 new files per checkpoint, verified sequentially. This production pass creates only scripts/check-release.mjs (checked before the next file) and docs/production.md. Bounded Luna builders/researchers supplied work; root reproduced/fixed integration issues and independently checked the candidate. No builder is an approval gate.
 
-Phase18 current state: same-origin sources.html and an87-file ExifReader ZIP are generated from the pinned installed package, with a production footer link opening a new tab. Root verified the primary tarball, each ZIP member and identical timezone builds. Check/build/82 unit/78 browser/14 negative artifact checks and two timezone checks pass; [permanent Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green on source5ea6d5a. New file:scripts/test-release.mjs (the only Phase18 new file). Package scripts/CI add release:test; pins/lockfile/PRD remain unchanged. Entry gzip85,926 bytes;36 artifact files.
+Phase19 active on2026-10-29: test-first portable read-only verification of a selected HTTPS origin against all local artifact hashes, security headers, MIME/cache rules, and real404s; local HTTP allowed only with an explicit loopback test switch. New files in order: tests/unit/hostVerification.test.ts, then scripts/verify-host.mjs; maximum three. Root validates/integrates and updates TODO/CHANGELOG/README/runbook. No deployment performed; no host origin discovered in repository metadata. The Luna CLI returned an authentication failure; no alternate identity/login attempted. Root passes108 unit/78 browser/14 negative artifact checks and trusted/untrusted local TLS; the final36-file build matches the browser-tested artifact. Permanent CI remains pending.
+
+Phase18 recorded state: same-origin sources.html and an87-file ExifReader ZIP are generated from the pinned installed package, with a production footer link opening a new tab. Root verified the primary tarball, each ZIP member and identical timezone builds. Check/build/82 unit/78 browser/14 negative artifact checks and two timezone checks pass; [permanent Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green on source5ea6d5a. New file:scripts/test-release.mjs (the only Phase18 new file). Package scripts/CI add release:test; pins/lockfile/PRD remain unchanged. Entry gzip85,926 bytes;36 artifact files.
 
 Read LICENSES for source hashes/provenance and docs/verification.md for reproduced checker defects. Keep native Readable wrapping for JSZip's legacy stream, UTC timestamp comparison, bounded source reads, exact entry/byte/CRC/type checks and14 expected negative rejections. Run release:check/release:test sequentially; they share manifest outputs. No source page/archive is precached. The production-only footer link preserves files; development mode does not expose nonexistent build artifacts.
 

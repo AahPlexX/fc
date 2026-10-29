@@ -39,6 +39,11 @@ jobs:
       - name: Lint and typecheck
         run: pnpm check
 
+      - name: Check host-verifier test tools
+        run: |
+          curl --version
+          openssl req -help 2>&1 | node -e 'let s="";process.stdin.setEncoding("utf8");process.stdin.on("data",c=>s+=c);process.stdin.on("end",()=>{if(!s.includes("-addext")){console.error("OpenSSL req -addext is required for the CI TLS test");process.exitCode=1;}})'
+
       - name: Unit tests
         run: pnpm test
 

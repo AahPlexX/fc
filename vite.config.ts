@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+	existsSync,
 	lstatSync,
 	readFileSync,
 	readdirSync,
@@ -276,13 +277,33 @@ const ffmpegAssetsPlugin = (): Plugin => {
 			});
 		},
 		configurePreviewServer(server) {
-			server.middlewares.use((_request, response, next) => {
+			const outputRoot = resolve(server.config.root, server.config.build.outDir);
+			server.middlewares.use((request, response, next) => {
 				for (const [name, value] of Object.entries(securityHeaders(false)))
 					response.setHeader(name, value);
-				const pathname = new URL(_request.url ?? "/", "http://localhost")
-					.pathname;
+				let pathname: string;
+				try {
+					pathname = decodeURIComponent(
+						new URL(request.url ?? "/", "http://localhost").pathname,
+					);
+				} catch {
+					response.statusCode = 400;
+					response.end();
+					return;
+				}
 				const policy = cacheControl(pathname);
 				if (policy) response.setHeader("Cache-Control", policy);
+				const assetPath = /^\/(?:assets|engines|sources)\//.test(pathname) ||
+					/\.[^/]+$/.test(pathname);
+				if ((request.method === "GET" || request.method === "HEAD") && assetPath) {
+					const candidate = resolve(outputRoot, `.${pathname}`);
+					if (!candidate.startsWith(outputRoot + sep) || !existsSync(candidate)) {
+						response.statusCode = 404;
+						response.setHeader("Cache-Control", "no-store");
+						response.end();
+						return;
+					}
+				}
 				next();
 			});
 		},

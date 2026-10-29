@@ -3,9 +3,18 @@
 Last updated:2026-10-26. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
-**COMPLETE — Phase18 automated source-delivery scope (2026-10-26).** Baseline273bf4d/Validate40262156405 is green (82 unit/75 browser scenarios). Root is validating a same-origin ExifReader source archive/page, discoverable from the workspace, plus additional primary provenance evidence. Root check/build,82 unit,78 browser scenarios and14 negative artifact cases pass, with source timestamp checks in two timezones. [Permanent Validate40348252463](https://github.com/AahPlexX/fc/actions/runs/40348252463) is green on source `5ea6d5a`. No PRD/package pin changes or deployment.
+**ACTIVE — Phase19 portable host verification (2026-10-29).** Baseline source5ea6d5a passed82 unit/78 browser/14 artifact-rejection cases; main23406a0 passed Validate40349481980. The local gate passes108 unit,78 browser and14 negative artifact checks, plus trusted/untrusted loopback HTTPS checks. The rebuilt36-file artifact matches the browser-tested bytes. Permanent CI is pending; no hosting target or deployment is assumed.
 
-Current active code files:none. Exact next file:`docs/production.md` once a deployment HTTPS origin is supplied, to verify real response headers/MIME/cache behavior and staged update/rollback. Native source work resumes in `LICENSES.md` when retained publisher/build records or a fully controlled source reconstruction are available. No matching provenance was discovered in this bounded search; repeating the same endpoints without new evidence is not the next step. Manual assistive-technology/physical-device checks and field/device-memory measurements require those environments. No deployment performed.
+Current active file:`TODO.md` for commit/CI evidence; next step: commit and push the locally verified candidate, then require permanent Validate before marking Phase19 complete. Twenty-six host tests cover TLS, provenance flags, local inventory, malicious/misconfigured responses and the pnpm argument separator. No real host was contacted. Maximum two new files this checkpoint; test file first, completed and red-verified before the implementation file starts. Root remains sole validation gate. The previous Luna launcher returned an authentication failure in this environment; no alternate identity or interactive login was attempted.
+
+Phase19 plan:
+- [x] Verify an operator-supplied HTTPS origin against every locally validated static artifact, streamed content hashes and the built security/MIME/cache contract. Exclude hosting configuration file `_headers` from remote delivery expectations.
+- [x] Require real404 responses for nonexistent JS/WASM, reject redirects and unsafe origins/paths, and keep user file data out of requests. An explicit loopback-only HTTP switch exists only for test fixtures.
+- [x] Prove the contract using a real local HTTP server and meaningful adversarial responses before implementation; use inherited proxy/CA configuration for actual HTTPS hosts.
+- [ ] Add a pnpm command/runbook and synchronize governance, then pass unit/build/browser/artifact tests and pinned CI. Source provenance, host-specific results, physical accessibility and field metrics remain separate, explicitly UNVERIFIED.
+
+### Historical Phase18 checkpoint
+**COMPLETE — automated source-delivery scope (2026-10-26).** Root check/build,82 unit/78 browser/14 negative artifact cases and two timezone checks passed; Validate40348252463 green on5ea6d5a. ExifReader package source and notices are supplied; exact FFmpeg source correspondence remains unverified. No production deployment was performed.
 
 Plan (one new repository file:scripts/test-release.mjs; reuse installed JSZip only at build/check time):
 - [x] Emit deterministic ZIP of every published ExifReader4.51.0 package file excluding node_modules, plus a static source/license index; preserve source/license bytes and avoid entry/precache growth.
@@ -60,6 +69,7 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 16 | Continued verification, resource/cancel fixes, worker Blob boundary, cache/source evidence | COMPLETE (automated scope) |75 unit/54 browser tests; Validate40214020264 green on b43e2a1. |
 | 17 | Final production-readiness corrections and release checks | COMPLETE (automated scope) |82 unit/75 browser scenarios; Validate40261796547 green on0c37b2d;18 held-claim/update stress cases. |
 | 18 | ExifReader source access and retained release evidence | COMPLETE (automated scope) |82 unit/78 browser/14 negative artifact cases and two timezone checks; Validate40348252463 green on5ea6d5a. |
+| 19 | Portable deployed-host verification | ACTIVE (local gate green) |108 unit/78 browser/14 negative artifact cases, local TLS and artifact identity checks; permanent CI pending. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record
