@@ -5,6 +5,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Host verification — 2026-10-29
+- CI40947865244 exposed a WebKit quota-test timeout after navigation while waiting for the page-side controller state. Root reproduced the page-side stale-state assumption and corrected the test to require real control, worker-side activation, observed cache rejection and a successful uncached response. Three-engine focused tests,45 repeated lifecycle cases and all78 browser scenarios pass locally; corrective CI pending. The trace does not establish whether its page-side value was stale or its controller absent.
 - Added a read-only deployed-host verifier with HTTPS/TLS, full artifact/hash/header/MIME/cache and real404 checks. Fixed Vite preview to return non-cacheable404s for missing static assets. Root passes108 unit/78 browser/14 negative artifact cases, trusted/untrusted local TLS and artifact identity checks; CI requires curl and OpenSSL for its TLS fixture. Permanent CI pending. Actual host, FFmpeg provenance, manual/device and field claims remain UNVERIFIED.
 
 ### Source delivery — 2026-10-26

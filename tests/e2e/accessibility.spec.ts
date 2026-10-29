@@ -54,6 +54,7 @@ const startProductionHarness = async (
 		".txt": "text/plain; charset=utf-8",
 	};
 	let quotaWriteAttempts = 0;
+	const quotaWorkerStates: string[] = [];
 	let claimRequests = 0;
 	const updateClaimStates: string[] = [];
 	const server = createServer(async (request, response) => {
@@ -72,6 +73,7 @@ const startProductionHarness = async (
 			}
 			if (pathname === "/__quota-write-attempt" && request.method === "POST") {
 				quotaWriteAttempts += 1;
+				quotaWorkerStates.push(url.searchParams.get("workerState") ?? "missing");
 				response.writeHead(204).end();
 				return;
 			}
@@ -136,6 +138,9 @@ const startProductionHarness = async (
 		},
 		get quotaWriteAttempts() {
 			return quotaWriteAttempts;
+		},
+		get quotaWorkerStates() {
+			return quotaWorkerStates;
 		},
 		close: () =>
 			new Promise<void>((resolve, reject) =>
@@ -441,7 +446,7 @@ const __testCacheOpen = async (name) => {
       if (property === "put") return (request, response) => {
         const url = typeof request === "string" ? request : request.url;
         if (new URL(url, self.location.href).pathname === "/engines/quota-probe.wasm") {
-          return fetch("/__quota-write-attempt", { method: "POST" }).then(() => {
+          return fetch("/__quota-write-attempt?workerState=" + encodeURIComponent(self.registration.active?.state ?? "missing"), { method: "POST" }).then(() => {
             throw new DOMException("Storage is full", "QuotaExceededError");
           });
         }
@@ -470,12 +475,31 @@ const __testCacheOpen = async (name) => {
 				Boolean(navigator.serviceWorker.controller)
 			);
 		});
+		await page.addInitScript(() => {
+			if (location.search !== "?controlled=1") return;
+			const descriptor = Object.getOwnPropertyDescriptor(ServiceWorker.prototype, "state");
+			if (!descriptor?.get || !descriptor.configurable) return;
+			Object.defineProperty(ServiceWorker.prototype, "state", {
+				...descriptor,
+				get() {
+					const state = descriptor.get?.call(this);
+					return state === "activated" ? "activating" : state;
+				},
+			});
+			(window as Window & { __staleWorkerStateInjected?: boolean }).__staleWorkerStateInjected = true;
+		});
 		// Probe an already-controlled navigation rather than a document whose
 		// first client-claim notification may still be propagating.
 		await page.goto(`${server.origin}/?controlled=1`);
 		await page.waitForFunction(
-			() => navigator.serviceWorker.controller?.state === "activated",
+			() => Boolean(navigator.serviceWorker.controller),
+			undefined,
+			{ timeout: 10_000 },
 		);
+		expect(await page.evaluate(() => ({
+			injected: (window as Window & { __staleWorkerStateInjected?: boolean }).__staleWorkerStateInjected === true,
+			state: navigator.serviceWorker.controller?.state,
+		}))).toEqual({ injected: true, state: "activating" });
 		expect(workerServed).toBe(true);
 		expect(cacheOpenCallCount).toBeGreaterThan(0);
 		const result = await page.evaluate(async () => {
@@ -509,6 +533,7 @@ const __testCacheOpen = async (name) => {
 			workerServed,
 			cacheOpenCallCount,
 			quotaWriteAttempts: server.quotaWriteAttempts,
+			quotaWorkerStates: server.quotaWorkerStates,
 			fetchResult: result.fetchResult,
 		};
 		const quotaPath = info.outputPath("cache-quota-probe.json");
@@ -518,6 +543,8 @@ const __testCacheOpen = async (name) => {
 			contentType: "application/json",
 		});
 		expect(server.quotaWriteAttempts).toBeGreaterThan(0);
+		expect(server.quotaWorkerStates.length).toBeGreaterThan(0);
+		expect(server.quotaWorkerStates.every((state) => state === "activated")).toBe(true);
 		expect(result.fetchResult).toEqual({
 			status: 200,
 			type: "basic",
