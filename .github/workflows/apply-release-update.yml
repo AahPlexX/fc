@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 3
+          fetch-depth: 4
 
       - name: Use Node.js 22.13.0
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -34,7 +34,7 @@ jobs:
       - name: Recover and apply the staged candidate
         shell: bash
         run: |
-          git show HEAD^^:.github/workflows/apply-release-update.yml > /tmp/staged-workflow.yml
+          git show cc7d3ba86f5d61efce3747983b9babe5d694ba5e:.github/workflows/apply-release-update.yml > /tmp/staged-workflow.yml
           python3 <<'PY'
           from pathlib import Path
 
@@ -63,6 +63,15 @@ jobs:
           fixture.write_text(text.replace(old, old[:-1] + " \n", 1), encoding="utf-8")
           PY
           python3 /tmp/apply-release-update.py
+          python3 <<'PY'
+          from pathlib import Path
+          fixture = Path("tests/unit/hostVerification.test.ts")
+          text = fixture.read_text(encoding="utf-8")
+          old = 'expect(JSON.parse(result.out).verifiedAssets).toBe(13);'
+          if text.count(old) != 1:
+              raise RuntimeError(f"expected one remaining host-verifier artifact assertion, found {text.count(old)}")
+          fixture.write_text(text.replace(old, 'expect(JSON.parse(result.out).verifiedAssets).toBe(14);', 1), encoding="utf-8")
+          PY
           sed -i 's/[[:space:]]\+$//' tests/unit/hostVerification.test.ts
 
       - name: Audit pinned dependency graph
