@@ -24,6 +24,136 @@ import type {
 
 const configurable = (job: ConversionJob) =>
 	["QUEUED", "FAILED", "CANCELLED"].includes(job.status);
+
+declare const __OMNICONVERT_VERSION__: string;
+
+const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+const compareVersions = (left: string, right: string): number => {
+	const leftParts = left.split(".").map(Number);
+	const rightParts = right.split(".").map(Number);
+	for (let index = 0; index < 3; index++) {
+		const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
+		if (difference !== 0) return difference;
+	}
+	return 0;
+};
+
+const ReleaseUpdateModal = () => {
+	const dialogRef = useRef<HTMLDialogElement>(null);
+	const cancelRef = useRef<HTMLButtonElement>(null);
+	const dismissedVersion = useRef<string | null>(null);
+	const [availableVersion, setAvailableVersion] = useState<string | null>(null);
+
+	const checkForUpdate = useCallback(async () => {
+		if (!import.meta.env.PROD) return;
+		try {
+			const response = await fetch("/version.json", {
+				cache: "no-store",
+				credentials: "same-origin",
+				headers: { Accept: "application/json" },
+			});
+			if (!response.ok) return;
+			const contentType = response.headers
+				.get("content-type")
+				?.split(";", 1)[0]
+				?.trim()
+				.toLowerCase();
+			if (contentType !== "application/json") return;
+			const payload = (await response.json()) as { version?: unknown };
+			const version = payload.version;
+			if (typeof version !== "string" || !VERSION_PATTERN.test(version)) return;
+			if (
+				compareVersions(version, __OMNICONVERT_VERSION__) <= 0 ||
+				dismissedVersion.current === version
+			) {
+				return;
+			}
+			setAvailableVersion((current) => (current === version ? current : version));
+			if ("serviceWorker" in navigator) {
+				void navigator.serviceWorker
+					.getRegistration("/")
+					.then((registration) => registration?.update())
+					.catch(() => undefined);
+			}
+		} catch {
+			// Version discovery is an enhancement and must never block conversion.
+		}
+	}, []);
+
+	useEffect(() => {
+		if (!import.meta.env.PROD) return;
+		void checkForUpdate();
+		const interval = window.setInterval(() => void checkForUpdate(), 60_000);
+		const onFocus = () => void checkForUpdate();
+		const onOnline = () => void checkForUpdate();
+		const onVisibilityChange = () => {
+			if (document.visibilityState === "visible") void checkForUpdate();
+		};
+		window.addEventListener("focus", onFocus);
+		window.addEventListener("online", onOnline);
+		document.addEventListener("visibilitychange", onVisibilityChange);
+		return () => {
+			window.clearInterval(interval);
+			window.removeEventListener("focus", onFocus);
+			window.removeEventListener("online", onOnline);
+			document.removeEventListener("visibilitychange", onVisibilityChange);
+		};
+	}, [checkForUpdate]);
+
+	useEffect(() => {
+		const dialog = dialogRef.current;
+		if (!dialog) return;
+		if (availableVersion && !dialog.open) {
+			dialog.showModal();
+			requestAnimationFrame(() => cancelRef.current?.focus());
+		}
+	}, [availableVersion]);
+
+	const dismiss = useCallback(() => {
+		if (availableVersion) dismissedVersion.current = availableVersion;
+		setAvailableVersion(null);
+	}, [availableVersion]);
+
+	return (
+		<dialog
+			ref={dialogRef}
+			className="release-update-modal"
+			aria-labelledby="release-update-title"
+			aria-describedby="release-update-description"
+			onClose={dismiss}
+			onCancel={(event) => {
+				event.preventDefault();
+				dialogRef.current?.close();
+			}}
+		>
+			<h2 id="release-update-title">Update available</h2>
+			<p className="release-update-version">
+				Version {availableVersion ?? __OMNICONVERT_VERSION__} is now available.
+			</p>
+			<p id="release-update-description">
+				Updating reloads OmniConvert. Finish or download any in-memory files you
+				want to keep before continuing.
+			</p>
+			<footer>
+				<button
+					ref={cancelRef}
+					type="button"
+					onClick={() => dialogRef.current?.close()}
+				>
+					Cancel
+				</button>
+				<button
+					className="primary-action"
+					type="button"
+					onClick={() => window.location.reload()}
+				>
+					Update
+				</button>
+			</footer>
+		</dialog>
+	);
+};
+
 export const App = () => {
 	const [avifEncode, setAvifEncode] = useState(false);
 	useEffect(() => {
@@ -579,6 +709,7 @@ export const App = () => {
 					)}
 				</p>
 			</main>
+			<ReleaseUpdateModal />
 			<MetadataDrawer
 				job={jobs.find((j) => j.id === metadataId) ?? null}
 				loading={metadataLoading}

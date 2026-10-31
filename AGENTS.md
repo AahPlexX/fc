@@ -23,6 +23,15 @@
 - UI must remain usable from 320px through 3840px+, keyboard-complete, reduced-motion aware, and WCAG 2.2 AA-oriented.
 - Do not mark a phase COMPLETE before the pinned `Validate` workflow passes its relevant checks.
 
+## Release version and client-update invariant (2026-10-31)
+- `package.json` is the canonical application version. The official baseline is `1.0.0`.
+- Every significant user-facing/runtime/release update increments the patch component by exactly `0.0.1` (`1.0.0` -> `1.0.1` -> `1.0.2`) before the production build. Do not silently skip or reuse a significant-release version.
+- Vite emits `/version.json` from that package version and compiles the same version into the client. Never hand-edit generated `dist/version.json`.
+- `/version.json` must remain `no-cache`, excluded from service-worker precache, and fetched by the client with `cache: "no-store"`. A numerically newer version may open the Update/Cancel modal; same/older/malformed values do not.
+- `Cancel` preserves the current tab and suppresses only that discovered version for the tab session. `Update` reloads the document; never add `skipWaiting()` or forced activation to implement this prompt.
+- The update modal shows the available version but no release-description requirement. Preserve native-modal keyboard/focus behavior and the in-memory-file warning.
+- Preferred production hosting is Netlify at the origin root. `netlify.toml` builds with pnpm and publishes `dist`; do not add an SPA catch-all because missing JS/WASM paths must remain real 404 responses.
+
 ## Architecture guardrails
 - Format routing is signature/domain driven; extension and browser MIME are corroborating inputs, never sole authority.
 - FFmpeg.wasm already owns its transcoding worker. Do not wrap it in another worker without measured need.

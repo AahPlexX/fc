@@ -611,6 +611,24 @@ dialog::backdrop {
 }
 .metadata-drawer footer button,
 .preview-modal > header button { min-width: 6rem; padding-inline: 0.85rem; }
+.release-update-modal {
+  width: min(32rem, calc(100vw - 1rem));
+  max-height: 90svh;
+  margin: auto;
+  padding: var(--space-3);
+  overflow: auto;
+}
+.release-update-modal h2 { margin-block-end: var(--space-1); }
+.release-update-version { font-weight: 800; }
+.release-update-modal footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-block-start: var(--space-3);
+}
+.release-update-modal footer button { min-width: 7rem; }
+
 .preview-modal {
   width: min(72rem, calc(100vw - 1rem));
   max-height: 90svh;
@@ -710,7 +728,10 @@ dialog::backdrop {
   .preview-text-columns { grid-template-columns: minmax(0, 1fr); }
   .metadata-drawer dl > div { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
   .metadata-drawer,
-  .preview-modal { padding: var(--space-2); }
+  .preview-modal,
+  .release-update-modal { padding: var(--space-2); }
+  .release-update-modal footer { display: grid; }
+  .release-update-modal footer button { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

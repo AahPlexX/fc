@@ -18,7 +18,7 @@ pnpm exec playwright install --with-deps chromium firefox webkit
 pnpm test:e2e
 ```
 
-Serve only `dist/`, at the origin root `/`, over HTTPS. Vite preview is a local verification server. Deployment under a subpath is unsupported. There is no backend, authentication or secret configuration.
+Preferred production host: Netlify project `omniconvert-sfya`. The project has been provisioned, while Git linkage and its first production deploy remain UNVERIFIED from the available integration surface. `netlify.toml` intentionally contains only the static build contract (`pnpm build`, publish `dist`); no SPA catch-all is added because OmniConvert requires genuine 404 responses for missing JS/WASM assets. Serve only `dist/`, at the origin root `/`, over HTTPS. Vite preview is a local verification server. Deployment under a subpath is unsupported. There is no backend, authentication or secret configuration.
 
 `release:check` checks exact direct pins/installed versions/lock entries, entry gzip budget, entry/precache/manifest references, substituted service-worker tokens, security/cache header rules, FFmpeg bytes against the installed pinned packages, PDF worker presence and copied runtime notices. It rejects symlinks and references escaping the artifact. It writes `release-results/artifact-manifest.json` and `SHA256SUMS` only after success, invalidating older evidence on a failed recheck. Hashes cover all dist files, package.json, the lockfile and immutable PRD. Git revision and tracked-dirty state are recorded. This is an unsigned asset inventory, not signed build provenance or an attestation of the upstream WASM source.
 
@@ -31,7 +31,7 @@ CI runs the same source gates on main pushes and pull requests, audits the pinne
 - Enforce the emitted CSP on documents, worker scripts and assets. It permits same-origin application assets, local Blob previews and WASM compilation; connections remain same-origin. Forms, plugin objects, base URL changes and embedding are denied.
 - Return `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and the emitted disabled camera/microphone/geolocation permissions.
 - Serve WASM as `application/wasm`, JavaScript/module workers with a JavaScript MIME type, and the manifest as `application/manifest+json`. Return real 404 responses for missing assets; do not rewrite missing JS/WASM to HTML.
-- Revalidate `/`, `/index.html`, `/sw.js`, `/sources.html`, `/THIRD_PARTY_NOTICES.txt`, the manifest/icon and `/engines/*` using `Cache-Control: no-cache`. Hashed `/assets/*` and versioned `/sources/*` downloads may use the emitted one-year immutable policy. Serve source ZIPs as application/zip and retain them with their corresponding artifact.
+- Revalidate `/`, `/index.html`, `/sw.js`, `/version.json`, `/sources.html`, `/THIRD_PARTY_NOTICES.txt`, the manifest/icon and `/engines/*` using `Cache-Control: no-cache`. `/version.json` is generated from the canonical `package.json` version, is excluded from service-worker precache, and is the client update-discovery marker. Hashed `/assets/*` and versioned `/sources/*` downloads may use the emitted one-year immutable policy. Serve source ZIPs as application/zip and retain them with their corresponding artifact.
 - Keep the exact same-origin `/engines/core/<version>/` and `/engines/wrapper/<version>/` paths. Versioned URLs prevent an old controller from supplying different engine versions to a new app. Core and wrapper files must come from the same verified artifact as the entry files.
 
 ### Verify a selected origin
@@ -44,7 +44,11 @@ A successful host check does not verify staged old-client updates, rollback, war
 
 The default single-thread core does not require COOP/COEP or SharedArrayBuffer. Never add a CDN or conversion API fallback to recover a missing engine. HTTPS configuration and any HSTS policy belong to the selected host; they have not been validated here.
 
-## Deploy, update and roll back
+## Deploy, update and recover
+
+OmniConvert starts at version `1.0.0`. Every significant release increments the patch component by exactly `0.0.1` before building. Open clients poll the revalidated version marker on startup, periodically, and when focus/connectivity returns. A newer marker opens the version-only Update/Cancel modal. Cancel leaves the current memory-resident jobs intact for that tab; Update reloads the document and may discard undownloaded in-memory work. The client may ask the service-worker registration to check for an update, but it does not call `skipWaiting()` or otherwise force activation.
+
+On Netlify, Git continuous deployment should publish the complete `dist` snapshot atomically after the repository is linked. For a bad published Netlify deploy, fix forward: revert or correct the source on `main` and let Git CD publish the corrected artifact. Do not use an agent/API restore or forced service-worker switch as a substitute for a verified source correction. Retain old fingerprinted/versioned assets long enough for open clients to finish their sessions.
 
 Stage the complete artifact and verify the hosting contract before switching the live entry point. Preserve prior hashed assets and versioned engine directories while old clients can remain open. Retain the associated notices/source materials for every retained version. An old app can request a lazy worker it has never cached; a waiting service worker cannot recreate a file the host deleted.
 
@@ -52,7 +56,7 @@ The worker now follows the normal waiting lifecycle. It does not force a reload 
 
 Before a public switch, verify both a fresh session and an old tab kept open across the staged update: import a synthetic file, use a previously unused conversion domain, cancel/retry, download and re-inspect output, then close the old tab and verify the new controller activates. Verify offline behavior after warming the specific domains being advertised. Inspect response headers and confirm file payloads are absent from network requests and CacheStorage.
 
-Rollback restores the complete prior artifact and its headers/notice materials atomically, retaining newer assets while their clients remain open. Deploy the prior `sw.js` with revalidation enabled; normal lifecycle rules still apply. Avoid deleting all origin storage or forcing reloads during conversion: that can discard queued files and completed outputs. Test the prior shell and a local conversion after rollback. This procedure is prepared but has not been exercised against a real hosting target.
+If a non-Netlify host uses an independently verified artifact-recovery mechanism, it must still preserve complete matching headers/notices and retained versioned assets. OmniConvert's preferred Netlify path is source-level fix-forward. Avoid deleting origin storage or forcing reloads during conversion: that can discard queued files and completed outputs. This procedure has not yet been exercised against the newly provisioned live hosting target.
 
 ## Resource and failure behavior
 

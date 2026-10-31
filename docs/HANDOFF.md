@@ -1,17 +1,19 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-31T00:23:13Z"
-title: "OmniConvert data preservation and worker cleanup"
-summary: "Phase20 automated scope passed on source b803b24;115 unit/81 browser/14 negative artifact checks passed locally. Host, source, manual/device and field evidence remain open."
+updated_at: "2026-10-31T22:49:39Z"
+title: "OmniConvert 1.0.0 versioned client update and Netlify handoff"
+summary: "Phase21 establishes 1.0.0 and a deployed-version Update/Cancel prompt; Netlify project is provisioned, while Git linkage and live-host verification remain open."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
 cwd: "/workspace/fc"
 repository: "AahPlexX/fc"
 branch: "main"
-resume_focus: "Read TODO Phase20: actual host verification, native provenance, manual/device and field measurements remain open."
+resume_focus: "Link AahPlexX/fc main to Netlify project omniconvert-sfya, verify the first deploy, then run release:verify-host against the HTTPS production origin."
 ---
 
 Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Git/CHANGELOG retain older snapshots; previous green CI does not certify newer corrections.
+
+Phase21 on 2026-10-31 establishes OmniConvert `1.0.0` and the permanent release-version rule: every significant update increments the patch by exactly `0.0.1`. Vite emits `/version.json` from `package.json`; the marker is no-cache, never precached, and checked with `cache: "no-store"`. A newer semantic version opens a native Update/Cancel dialog showing the available version. Cancel suppresses that version for the current tab; Update reloads without forcing service-worker activation. `netlify.toml` builds with pnpm and publishes `dist`. Netlify project `omniconvert-sfya` was created, but the available Netlify connector cannot link the GitHub repository, so Git CD, the first deploy and real-host verification remain explicitly open. For Netlify production recovery, fix forward from source rather than restoring an older deploy through an agent/API.
 
 Phase20 automated scope completed on2026-10-31: root reproduced silent deletion of empty/whitespace CSV/TSV rows and an orphaned PDF worker after image preparation failed or was cancelled. The fix preserves records/final separators and defers worker creation. Root passed115 unit/81 browser/14 negative artifact checks; source b803b24 passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). See TODO for the next file and remaining scope. Five bounded read-only Luna reviews supplied findings; root validated. No new files or package pins were added.
 

@@ -13,6 +13,15 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 
 const require = createRequire(import.meta.url);
+const repositoryRoot = dirname(fileURLToPath(import.meta.url));
+const appVersion = (
+	JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8")) as {
+		version?: unknown;
+	}
+).version;
+if (typeof appVersion !== "string" || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(appVersion)) {
+	throw new Error("package.json version must be an exact major.minor.patch release");
+}
 
 const packageDirectory = (entry: string, packageName: string): string => {
 	let current = dirname(entry);
@@ -200,6 +209,7 @@ const noCachePath = (pathname: string): boolean =>
 	pathname === "/" ||
 	pathname === "/index.html" ||
 	pathname === "/sw.js" ||
+	pathname === "/version.json" ||
 	pathname === "/manifest.webmanifest" ||
 	pathname === "/icon.svg" ||
 	pathname === "/sources.html" ||
@@ -223,6 +233,7 @@ const generatedHeaders = (): string =>
 			"/",
 			"/index.html",
 			"/sw.js",
+			"/version.json",
 			"/manifest.webmanifest",
 			"/icon.svg",
 			"/sources.html",
@@ -238,10 +249,7 @@ const generatedHeaders = (): string =>
 
 const ffmpegAssetsPlugin = (): Plugin => {
 	let cacheVersion: string | null = null;
-	const publicDirectory = join(
-		dirname(fileURLToPath(import.meta.url)),
-		"public",
-	);
+	const publicDirectory = join(repositoryRoot, "public");
 
 	return {
 		name: "omniconvert-ffmpeg-assets",
@@ -332,6 +340,11 @@ const ffmpegAssetsPlugin = (): Plugin => {
 				fileName: "sources.html",
 				source: sourcesIndex(exifReaderArchive.version),
 			});
+			this.emitFile({
+				type: "asset",
+				fileName: "version.json",
+				source: `${JSON.stringify({ version: appVersion })}\n`,
+			});
 			const hash = createHash("sha256");
 			const addToHash = (
 				fileName: string,
@@ -389,6 +402,9 @@ const ffmpegAssetsPlugin = (): Plugin => {
 };
 
 export default defineConfig({
+	define: {
+		__OMNICONVERT_VERSION__: JSON.stringify(appVersion),
+	},
 	plugins: [react(), ffmpegAssetsPlugin()],
 	build: {
 		target: "es2022",

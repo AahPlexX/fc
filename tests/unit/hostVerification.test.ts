@@ -28,6 +28,7 @@ const artifactContents: Record<string, Buffer> = Object.fromEntries(
 		"_headers": `/*\n  Content-Security-Policy: ${csp}\n`,
 		"index.html": '<html><link href="/assets/index-a1.css"><script src="/assets/index-a1.js"></script></html>',
 		"sw.js": "/* worker */",
+		"version.json": '{"version":"1.0.0"}',
 		"manifest.webmanifest": '{"name":"Fixture"}',
 		"icon.svg": "<svg></svg>",
 		"THIRD_PARTY_NOTICES.txt": "notice",
@@ -136,6 +137,7 @@ beforeAll(async () => {
 			js: "text/javascript; charset=utf-8",
 			mjs: "application/javascript",
 			css: "text/css",
+			json: "application/json",
 			wasm: "application/wasm",
 			webmanifest: "application/manifest+json",
 			svg: "image/svg+xml",
@@ -181,7 +183,7 @@ describe("deployed host verification", () => {
 		expect(result.code, result.err).toBe(0);
 		const report = JSON.parse(result.out) as { verifiedAssets: number; missingAssetChecks: number; origin: string; artifactTrackedDirty: boolean };
 		expect(report.origin).toBe(origin);
-		expect(report.verifiedAssets).toBe(13);
+		expect(report.verifiedAssets).toBe(14);
 		expect(report.missingAssetChecks).toBe(6);
 		expect(report.artifactTrackedDirty).toBe(false);
 		expect(requests.every((request) => request.method === "GET")).toBe(true);
@@ -284,7 +286,7 @@ describe("deployed host verification", () => {
 		await writeFile(join(project, "release-results", "artifact-manifest.json"), originalManifest);
 		const result = await runCommand([join(project, "scripts", "verify-host.mjs"), origin, "--allow-http-localhost"]);
 		expect(result.code, result.err).toBe(0);
-		expect(JSON.parse(result.out).verifiedAssets).toBe(13);
+		expect(JSON.parse(result.out).verifiedAssets).toBe(14);
 	});
 
 	it("accepts pnpm's argument separator", async () => {

@@ -3,6 +3,11 @@
 Last updated:2026-10-31. Repository: `AahPlexX/fc`. Branch: `main`.
 
 ## Current checkpoint
+**COMPLETE — Phase21 versioned deployed-update prompt and Netlify handoff, implementation gate (2026-10-31).** OmniConvert officially starts at `1.0.0`. Production builds generate `/version.json` from the canonical package version; it is revalidated, never precached, and checked by open clients with `cache: "no-store"`. A numerically newer release opens an accessible native modal showing the available version with `Update` and `Cancel`. Cancel preserves the current in-memory session and suppresses the same discovered version until reload; Update reloads without forcing service-worker activation. Netlify project `omniconvert-sfya` is provisioned and `netlify.toml` defines `pnpm build` -> `dist`. The one-time integration runner requires check/unit/build/release/browser gates before committing this checkpoint. Netlify Git linkage, first deploy, actual-host verification, manual/device and field measurements remain UNVERIFIED.
+
+Next environment-specific action: link `AahPlexX/fc` branch `main` to Netlify project `omniconvert-sfya`, let Git continuous deployment publish the verified artifact, then run `pnpm release:verify-host -- https://<production-origin>` against the exact release manifest. For a bad published Netlify release, fix forward by reverting/correcting the source and redeploying; do not force old clients onto another service worker.
+
+### Historical Phase20 checkpoint
 **COMPLETE — Phase20 tabular data preservation and worker cleanup, automated scope (2026-10-31).** Root reproduced two failures before fixing them: CSV/TSV parsing dropped all-empty or whitespace-only records, and a failed/cancelled image-to-PDF preparation left its already-created document worker unterminated. The revised parser preserves records and handles final separators, including chunk boundaries; the PDF worker is created only after image preparation succeeds. Root's local check/build,115 unit tests,81 browser scenarios, release check and14 negative artifact cases passed; registry audit reported zero advisories. Source `b803b24` passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). Five read-only Luna reviewers inspected independent privacy, routing, lifecycle and data paths; root reproduced and validated the changes. No new repository files or dependencies were added.
 
 Next environment-specific file: `docs/production.md`, once an HTTPS origin is selected; verify the actual host and update/rollback behavior. For FFmpeg source correspondence, resume at `LICENSES.md` only with new build evidence or a controlled reconstruction. Manual accessibility/physical-device and field evidence remain UNVERIFIED.
@@ -76,9 +81,12 @@ Ownership: exports=table worker/unit tests; dialogs=PreviewModal/conversion E2E;
 | 18 | ExifReader source access and retained release evidence | COMPLETE (automated scope) |82 unit/78 browser/14 negative artifact cases and two timezone checks; Validate40348252463 green on5ea6d5a. |
 | 19 | Portable deployed-host verification | COMPLETE (automated scope) |108 unit/78 browser/14 negative artifact cases, local TLS and artifact identity checks; Validate40949932105 green on381458b. |
 | 20 | Tabular record preservation and worker cleanup | COMPLETE (automated scope) |115 unit/81 browser/14 negative artifact cases; Validate41149485515 green on b803b24. |
+| 21 | Versioned deployed-update prompt and Netlify handoff | COMPLETE (implementation gate) | `1.0.0` baseline; generated/revalidated version marker; Update/Cancel modal; Netlify build config. Live Netlify Git CD/host verification remains UNVERIFIED. |
 | Handoff/tooling | Ignore outputs, distribution notes, durable handoff | COMPLETE | `.gitignore`, `LICENSES.md`, `docs/HANDOFF.md`; tracker/README/AGENTS/CHANGELOG current. |
 
 ## File-creation checkpoint record
+Phase21 creates `netlify.toml` and `tests/e2e/update.spec.ts`; its temporary one-time integration workflow is removed by the verified commit, keeping the checkpoint within the three-new-file ceiling. No ADR or dependency was added.
+
 This session: Phase 11 `MetadataDrawer.tsx`, `PreviewModal.tsx`, `conversionRunner.ts` (3); Phase 12 `exportFiles.ts`, archive unit tests (2); Phase 13 manifest/SW/icon (3); Phase 14 Playwright config + conversion/accessibility E2E (3); Phase 15 three ADRs (3); handoff/tooling `.gitignore`, LICENSES, HANDOFF (3). Concurrent upstream history has its own bounded checkpoints. No PRD edits.
 
 ## Integrated runtime and substantive corrections

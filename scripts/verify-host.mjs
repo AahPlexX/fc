@@ -19,6 +19,7 @@ const mimeTypes = {
 	js: /^(?:text|application)\/(?:x-)?(?:java|ecma)script$/,
 	mjs: /^(?:text|application)\/(?:x-)?(?:java|ecma)script$/,
 	css: /^text\/css$/,
+	json: /^application\/json$/,
 	wasm: /^application\/wasm$/,
 	webmanifest: /^application\/manifest\+json$/,
 	svg: /^image\/svg\+xml$/,
@@ -166,7 +167,7 @@ const validateManifest = async () => {
 		if (path !== "_headers" && !mimeTypes[path.split(".").at(-1).toLowerCase()])
 			fail(`No supported MIME type is defined for artifact: ${path}`);
 	}
-	for (const path of ["_headers", "index.html", "sw.js", "manifest.webmanifest", "icon.svg", "sources.html", "THIRD_PARTY_NOTICES.txt"])
+	for (const path of ["_headers", "index.html", "sw.js", "version.json", "manifest.webmanifest", "icon.svg", "sources.html", "THIRD_PARTY_NOTICES.txt"])
 		if (!artifacts.has(path)) fail(`Artifact manifest is missing ${path}`);
 	const paths = [...artifacts.keys()];
 	for (const [description, pattern] of [
@@ -269,7 +270,7 @@ const checkHeaders = (path, response, policy) => {
 	if (!cacheHeaders.length) fail(`Missing Cache-Control header: ${path}`);
 	const cache = cacheHeaders.flatMap((value) => value.toLowerCase().split(",")).map((part) => part.trim());
 	const immutable = path.startsWith("/assets/") || path.startsWith("/sources/");
-	const revalidate = ["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/icon.svg", "/sources.html", "/THIRD_PARTY_NOTICES.txt"].includes(path) || path.startsWith("/engines/");
+	const revalidate = ["/", "/index.html", "/sw.js", "/version.json", "/manifest.webmanifest", "/icon.svg", "/sources.html", "/THIRD_PARTY_NOTICES.txt"].includes(path) || path.startsWith("/engines/");
 	if (revalidate && !cache.includes("no-cache")) fail(`Cache-Control must revalidate ${path}.`);
 	if (immutable) {
 		const ages = cache.map((part) => /^max-age\s*=\s*"?(\d+)"?$/.exec(part)?.[1]).filter(Boolean);

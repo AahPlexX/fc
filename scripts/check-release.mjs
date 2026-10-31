@@ -136,6 +136,8 @@ async function checkBuild() {
 				}
 				if (path.startsWith("/engines/") || path.endsWith(".wasm"))
 					fail(`Heavy engine must not be precached: ${path}`);
+			if (path === "/version.json")
+				fail("Version discovery marker must not be precached");
 				const file = path === "/" ? "index.html" : path.slice(1);
 				requiredArtifact(file, `Broken service-worker precache reference ${path}`);
 			}
@@ -159,6 +161,19 @@ async function checkBuild() {
 	}
 	const icon = requiredArtifact("icon.svg");
 	if (icon && !text(icon).includes("<svg")) fail("dist/icon.svg is not an SVG document");
+	const versionPath = requiredArtifact("version.json");
+	if (versionPath) {
+		try {
+			const payload = JSON.parse(text(versionPath));
+			const packageVersion = JSON.parse(text(join(root, "package.json"))).version;
+			if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(packageVersion ?? ""))
+				fail("package.json version must be an exact major.minor.patch release");
+			if (payload?.version !== packageVersion)
+				fail(`dist/version.json version ${payload?.version ?? "<missing>"} does not match package.json ${packageVersion}`);
+		} catch (error) {
+			fail(`Invalid dist/version.json: ${error.message}`);
+		}
+	}
 
 	try {
 		const dependencies = JSON.parse(text(join(root, "package.json"))).dependencies;
@@ -214,7 +229,7 @@ async function checkBuild() {
 		for (const [header, value] of [["X-Content-Type-Options", "nosniff"], ["Referrer-Policy", "no-referrer"], ["Permissions-Policy", "camera=(), microphone=(), geolocation=()"]])
 			if (!new RegExp(`^\\s*${header}:\\s*${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`, "im").test(headers))
 				fail(`Production _headers missing ${header}: ${value}`);
-		for (const path of ["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/icon.svg", "/engines/*", "/sources.html", "/THIRD_PARTY_NOTICES.txt"])
+		for (const path of ["/", "/index.html", "/sw.js", "/version.json", "/manifest.webmanifest", "/icon.svg", "/engines/*", "/sources.html", "/THIRD_PARTY_NOTICES.txt"])
 			if (!new RegExp(`^${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\n\\s*Cache-Control:\\s*no-cache$`, "m").test(headers))
 				fail(`Production _headers must set no-cache for ${path}`);
 		if (!/^\/assets\/\*\s*\n\s*Cache-Control:\s*public,\s*max-age=31536000,\s*immutable\s*$/m.test(headers))
