@@ -30,3 +30,5 @@ Final automated evidence: source0c37b2d/Validate40261796547 passes82 unit and75 
 Phase18 source5ea6d5a/Validate40348252463 adds static source delivery: versioned ExifReader package ZIP plus a source index/notice link, excluded from initial imports and precache. Root82-unit/78-browser/14-negative artifact gates and timezone checks pass; FFmpeg corresponding-source and real-host/manual/field claims remain separate.
 
 Phase19 adds an operator-run, GET-only verifier for the selected origin: it checks local artifact inventory and streamed hosted hashes, security/MIME/cache headers and real404s under root, asset, engine, wrapper and source paths. It retains proxy/CA behavior and requires HTTPS outside explicit loopback fixtures. This prepares host validation; it is not proof of a deployment or source provenance.
+
+Phase20 defers the image-to-PDF document worker until the cancellable image preparation succeeds. Failure and cancellation regressions verify that every created worker terminates; no redundant source-image buffer is read before re-encoding.

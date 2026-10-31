@@ -5,7 +5,7 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 ## [Unreleased]
 
 ### Data preservation and worker cleanup — 2026-10-31
-- Preserve all-empty and whitespace-only CSV/TSV records, including final and streamed chunk boundaries; avoid leaving a document worker running when image-to-PDF preparation fails or is cancelled. Root passed check/build,115 unit/81 browser/14 negative artifact cases; permanent CI is pending. No new dependencies or files.
+- Preserve all-empty and whitespace-only CSV/TSV records, including final and streamed chunk boundaries; avoid leaving a document worker running when image-to-PDF preparation fails or is cancelled. Root passed check/build,115 unit/81 browser/14 negative artifact cases; source `b803b24` passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). No new dependencies or files.
 
 ### Host verification — 2026-10-29
 - CI40947865244 exposed a WebKit quota-test timeout after navigation while waiting for the page-side controller state. Root reproduced the page-side stale-state assumption and corrected the test to require real control, worker-side activation, observed cache rejection and a successful uncached response. Three-engine focused tests,45 repeated lifecycle cases and all78 browser scenarios pass locally. The trace does not establish whether its page-side value was stale or its controller absent.

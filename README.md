@@ -4,7 +4,7 @@ OmniConvert is a privacy-first browser conversion workbench for domain-valid fil
 
 ## Status
 
-Phase20 corrects lost empty CSV/TSV records and a cancelled image-to-PDF worker leak; root's local115-unit/81-browser/14-negative-artifact gate passed and permanent CI is pending. The previous `main` checkpoint `b9f7727` passed [Validate40950648705](https://github.com/AahPlexX/fc/actions/runs/40950648705). The portable host verifier checks a selected host against the built artifact; no actual host or deployment has been tested. [`TODO.md`](./TODO.md) records remaining release criteria, and [`docs/production.md`](./docs/production.md) provides the launch/update/rollback procedure. Repository `AahPlexX/fc` stays on `main`.
+Phase20 corrects lost empty CSV/TSV records and a cancelled image-to-PDF worker leak. Root's local115-unit/81-browser/14-negative-artifact gate passed, and source `b803b24` passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). The portable host verifier checks a selected host against the built artifact; no actual host or deployment has been tested. [`TODO.md`](./TODO.md) records remaining release criteria, and [`docs/production.md`](./docs/production.md) provides the launch/update/rollback procedure. Repository `AahPlexX/fc` stays on `main`.
 
 The complete original user-supplied product brief is preserved verbatim in [`PRD.md`](./PRD.md). That file is an immutable baseline: verified corrections, package/version updates, implementation deltas, and architecture refinements are documented in this README, `TODO.md`, `CHANGELOG.md`, and ADRs without rewriting the original PRD.
 
