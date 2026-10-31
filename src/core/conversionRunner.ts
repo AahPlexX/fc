@@ -487,11 +487,7 @@ export const runConversion = async (
 		);
 		return result.blob;
 	}
-	const worker = new Worker(
-		new URL("../workers/document.worker.ts", import.meta.url),
-		{ type: "module" },
-	);
-	let bytes = new Uint8Array(await rasterSource.arrayBuffer());
+	let bytes: Uint8Array;
 	let documentSource = source;
 	// Re-encode every image before PDF embedding: JPEG embedding otherwise retains private EXIF bytes.
 	if (domain === "image") {
@@ -507,8 +503,15 @@ export const runConversion = async (
 		);
 		bytes = new Uint8Array(await image.blob.arrayBuffer());
 		documentSource = "png";
+	} else {
+		bytes = new Uint8Array(await rasterSource.arrayBuffer());
 	}
+	signal.throwIfAborted();
 	patch({ status: "CONVERTING", statusMessage: "Processing document" });
+	const worker = new Worker(
+		new URL("../workers/document.worker.ts", import.meta.url),
+		{ type: "module" },
+	);
 	if (source === "pdf" && (target === "png" || target === "jpeg")) {
 		const result = await workerRequest<{ result: { blob: Blob } }>(
 			worker,

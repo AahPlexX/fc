@@ -534,6 +534,7 @@ const parseDelimitedBlob = async (
 	let newlineScanPosition = 0;
 	let newlineScanInQuotes = false;
 	let newlineScanAtFieldStart = true;
+	let recordSeparator = "\n";
 	// Papa Parse 5.7.0 exposes ParserHandle; reuse it to keep its RFC parser/header state while decoding UTF-8 across byte slices.
 	type ParserHandle = {
 		parse: (
@@ -599,10 +600,11 @@ const parseDelimitedBlob = async (
 		return null;
 	};
 	const createParser = (newline: string): void => {
+		recordSeparator = newline;
 		parser = new Handle({
 			delimiter,
 			header: true,
-			skipEmptyLines: "greedy",
+			skipEmptyLines: false,
 			dynamicTyping: false,
 			newline,
 			transformHeader: (header: string) => `${PAPA_FIELD_PREFIX}${header}`,
@@ -610,8 +612,17 @@ const parseDelimitedBlob = async (
 	};
 	const consumeChunk = (text: string, isFinal: boolean): void => {
 		if (!parser) throw new Error("Delimited parser was not initialized");
-		const aggregate = partialLine + text;
+		let aggregate = partialLine + text;
 		partialLine = "";
+		if (isFinal && aggregate.length === 0) return;
+		// A final record separator terminates the previous record; it does not
+		// introduce another empty one. Other empty records are meaningful data.
+		if (isFinal && aggregate.endsWith(recordSeparator)) {
+			aggregate = aggregate.slice(0, -recordSeparator.length);
+			// Papa treats an empty input as no record, even when the final
+			// separator itself represents an empty single-field record.
+			if (!aggregate) aggregate = '""';
+		}
 		const result = parser.parse(aggregate, baseIndex, !isFinal);
 		if (result.errors.length > 0) {
 			throw new Error(

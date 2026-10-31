@@ -12,6 +12,7 @@ import {
   createBatchArchive,
   deduplicateFileNames,
 } from "../../src/core/exportManager";
+import { runConversion } from "../../src/core/conversionRunner";
 import type { ConversionJob, DetectedFormat, FormatId, MediaDomain } from "../../src/core/types";
 
 const job = (
@@ -45,6 +46,37 @@ const job = (
 });
 
 describe("Phase 12 conversion and export contracts", () => {
+  it.each(["failure", "cancellation"] as const)("releases every worker when image preparation ends in %s", async (outcome) => {
+    const workers: { terminate: ReturnType<typeof vi.fn> }[] = [];
+    let markStarted: () => void = () => undefined;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
+    class TestWorker {
+      onmessage: ((event: MessageEvent) => void) | null = null;
+      onerror: ((event: ErrorEvent) => void) | null = null;
+      terminate = vi.fn();
+      constructor() { workers.push(this); }
+      postMessage(message: { request: { jobId: string } }) {
+        markStarted();
+        if (outcome === "failure") queueMicrotask(() => this.onmessage?.({
+          data: { jobId: message.request.jobId, type: "error", message: "Image decoding failed" },
+        } as MessageEvent));
+      }
+    }
+    vi.stubGlobal("Worker", TestWorker);
+    try {
+      const controller = new AbortController();
+      const pending = runConversion(job("png", "image", "pdf"), controller.signal, () => undefined);
+      const rejected = expect(pending).rejects.toThrow(outcome === "failure" ? /decoding failed/i : /cancel/i);
+      await started;
+      if (outcome === "cancellation") controller.abort();
+      await rejected;
+      expect(workers.length).toBeGreaterThan(0);
+      expect(workers.every((worker) => worker.terminate.mock.calls.length === 1)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("plans each implemented conversion domain and rejects invalid target pairs", () => {
     expect(planConversion(job("jpeg", "image", "webp", "portrait.jpg"))).toEqual({
       engine: "image",

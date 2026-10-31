@@ -54,6 +54,8 @@ Pinned Papa 5.7.0 ParserHandle supplies CSV header/logical-record carry while on
 
 Keep the incremental, quote-aware first-record separator sniff: Papa5.7 newline guessing sees only1MiB and can misclassify a longer header. Header capture waits for nonempty fields. The regression covers LF/CRLF/CR and split CRLF; do not treat the64MiB input cap as an output-expansion bound.
 
+Phase20: do not restore Papa's greedy empty-line skipping: empty and whitespace-only CSV/TSV records are data. Preserve terminal-record and parser-chunk-boundary regressions. The document worker starts only after image preparation and its cancellable image worker have succeeded; otherwise an interrupted image-to-PDF job can leak a worker. See TODO for the integrated/CI gate.
+
 Historical passes do not certify later source. Phase19 source381458b passed Validate40949932105; root's local gate passed108 unit/78 browser scenarios,14 negative artifact cases and two timezone checks. TODO records the exact next file and unverified release criteria.
 
 ## Production pass boundary (2026-10-26)

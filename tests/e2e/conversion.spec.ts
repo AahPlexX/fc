@@ -98,6 +98,25 @@ test("real image and table workers export valid outputs and ZIP without egress",
 	expect(Object.keys((await JSZip.loadAsync(zip.bytes)).files)).toHaveLength(2);
 	expect(invalid).toEqual([]);
 });
+test("CSV and TSV exports retain empty and whitespace-only records", async ({ page }) => {
+	await page.locator("input[type=file]").setInputFiles([
+		{ name: "empty-rows.csv", mimeType: "text/csv", buffer: Buffer.from("name,value\r\n,\r\n  , \r\nAda,42\r\n") },
+		{ name: "empty-rows.tsv", mimeType: "text/tab-separated-values", buffer: Buffer.from("name\tvalue\n\t\n  \t \nAda\t42\n") },
+	]);
+	const cards = page.locator(".job-card");
+	await expect(cards).toHaveCount(2);
+	for (const card of await cards.all()) await card.getByLabel("Target format").selectOption("json");
+	await page.getByRole("button", { name: "Convert all" }).click();
+	await expect(page.locator(".job-card[data-status=completed]")).toHaveCount(2);
+	for (const card of await cards.all()) {
+		const file = await output(page, () => card.getByRole("button", { name: "Download", exact: true }).click());
+		expect(JSON.parse(file.bytes.toString())).toEqual([
+			{ name: "", value: "" },
+			{ name: "  ", value: " " },
+			{ name: "Ada", value: "42" },
+		]);
+	}
+});
 test("PDF metadata strip and edit survive reinspection", async ({ page }) => {
 	const pdf = await PDFDocument.create();
 	pdf.addPage();

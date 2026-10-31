@@ -34,6 +34,55 @@ describe("Phase 8 tabular worker contracts", () => {
 		});
 	});
 
+	it("preserves empty and whitespace-only CSV and TSV records", async () => {
+		for (const [format, delimiter] of [["csv", ","], ["tsv", "\t"]] as const) {
+			for (const newline of ["\n", "\r\n", "\r"]) {
+				const records = [`a${delimiter}b`, delimiter, `""${delimiter}""`, `  ${delimiter} `, `1${delimiter}2`];
+				const input = `${records.join(newline)}${newline}`;
+				const expected = { columns: ["a", "b"], rows: [["", ""], ["", ""], ["  ", " "], ["1", "2"]] };
+				await expect(parseTabular(input, format)).resolves.toEqual(expected);
+				const output = await convertTabularBlob(new Blob([input]), format, "json");
+				expect(JSON.parse(await output.text())).toEqual(expected.rows.map(([a, b]) => ({ a, b })));
+			}
+		}
+	});
+
+	it("preserves single-column empty records without adding a row for a final terminator", async () => {
+		await expect(parseTabular('a\n""\n\n  \n1\n', "csv")).resolves.toEqual({
+			columns: ["a"], rows: [[""], [""], ["  "], ["1"]],
+		});
+		await expect(parseTabular("a,b\n", "csv")).resolves.toEqual({ columns: ["a", "b"], rows: [] });
+		await expect(parseTabular("", "csv")).resolves.toEqual({ columns: [], rows: [] });
+	});
+
+	it("keeps empty records after a streamed CSV chunk boundary", async () => {
+		const longCell = "x".repeat(1024 * 1024 - 5);
+		const input = `a,b\n${longCell},1\n,\n2,3\n`;
+		const output = await convertTabularBlob(new Blob([input]), "csv", "json");
+		const rows = JSON.parse(await output.text()) as { a: string; b: string }[];
+		expect(rows).toHaveLength(3);
+		expect(rows[0]?.a.length).toBe(longCell.length);
+		expect(rows[0]?.b).toBe("1");
+		expect(rows.slice(1)).toEqual([{ a: "", b: "" }, { a: "2", b: "3" }]);
+	});
+
+	it("keeps a final empty record when its terminator starts a parser chunk", async () => {
+		const longCell = "x".repeat(64 * 1024 - 3);
+		const table = await parseTabular(`a\n${longCell}\n\n`, "csv");
+		expect(table.rows).toHaveLength(2);
+		expect(table.rows[0]?.[0]?.toString().length).toBe(longCell.length);
+		expect(table.rows[1]).toEqual([""]);
+	});
+
+	it("handles a final CRLF split between parser chunks", async () => {
+		const header = "a,b\r\n";
+		const cell = "x".repeat(64 * 1024 - header.length - 3);
+		const table = await parseTabular(`${header}${cell},1\r\n`, "csv");
+		expect(table.rows).toHaveLength(1);
+		expect(table.rows[0]?.[0]?.toString().length).toBe(cell.length);
+		expect(table.rows[0]?.[1]).toBe("1");
+	});
+
 	it("renders safe delimited exports with spreadsheet formula escaping", async () => {
 		const table = await parseTabular(SAMPLE_CSV, "csv");
 		const csv = await renderTabular(table, "csv");
