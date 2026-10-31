@@ -1,7 +1,7 @@
 ---
 artifact_contract: "ce-handoff/v1"
 created_at: "2026-10-25T05:03:58Z"
-updated_at: "2026-10-31T22:49:39Z"
+updated_at: "2026-10-31T22:59:07Z"
 title: "OmniConvert 1.0.0 versioned client update and Netlify handoff"
 summary: "Phase21 establishes 1.0.0 and a deployed-version Update/Cancel prompt; Netlify project is provisioned, while Git linkage and live-host verification remain open."
 keywords: ["omniconvert", "privacy", "workers", "release", "handoff"]
@@ -13,7 +13,7 @@ resume_focus: "Link AahPlexX/fc main to Netlify project omniconvert-sfya, verify
 
 Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Git/CHANGELOG retain older snapshots; previous green CI does not certify newer corrections.
 
-Phase21 on 2026-10-31 establishes OmniConvert `1.0.0` and the permanent release-version rule: every significant update increments the patch by exactly `0.0.1`. Vite emits `/version.json` from `package.json`; the marker is no-cache, never precached, and checked with `cache: "no-store"`. A newer semantic version opens a native Update/Cancel dialog showing the available version. Cancel suppresses that version for the current tab; Update reloads without forcing service-worker activation. `netlify.toml` builds with pnpm and publishes `dist`. Netlify project `omniconvert-sfya` was created, but the available Netlify connector cannot link the GitHub repository, so Git CD, the first deploy and real-host verification remain explicitly open. For Netlify production recovery, fix forward from source rather than restoring an older deploy through an agent/API.
+Phase21 on 2026-10-31 establishes OmniConvert `1.0.0` and the permanent release-version rule: every significant update increments the patch by exactly `0.0.1`. Vite emits `/version.json` from `package.json`; the marker is no-cache, never precached, and checked with `cache: "no-store"`. A newer semantic version opens a native Update/Cancel dialog showing the available version. Cancel suppresses that version for the current tab; Update reloads without forcing service-worker activation. `netlify.toml` builds with pnpm and publishes `dist`. Netlify project `omniconvert-sfya` was created, but the available Netlify connector cannot link the GitHub repository, so Git CD, the first deploy and real-host verification remain explicitly open. For Netlify production recovery, fix forward from source rather than restoring an older deploy through an agent/API. Feature commit `6e1a5e4` is verified by tree-equivalent checkpoint `0de73d3` and green [Validate41250182231](https://github.com/AahPlexX/fc/actions/runs/41250182231): zero registry advisories, lint/typecheck, 115 unit tests, production build/release checks, 14 negative artifact cases, and 90/90 Chromium/Firefox/WebKit scenarios. Retained browser evidence artifact ID is `13060674888`.
 
 Phase20 automated scope completed on2026-10-31: root reproduced silent deletion of empty/whitespace CSV/TSV rows and an orphaned PDF worker after image preparation failed or was cancelled. The fix preserves records/final separators and defers worker creation. Root passed115 unit/81 browser/14 negative artifact checks; source b803b24 passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). See TODO for the next file and remaining scope. Five bounded read-only Luna reviews supplied findings; root validated. No new files or package pins were added.
 
