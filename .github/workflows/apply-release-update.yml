@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 2
+          fetch-depth: 3
 
       - name: Use Node.js 22.13.0
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -34,7 +34,7 @@ jobs:
       - name: Recover and apply the staged candidate
         shell: bash
         run: |
-          git show HEAD^:.github/workflows/apply-release-update.yml > /tmp/staged-workflow.yml
+          git show HEAD^^:.github/workflows/apply-release-update.yml > /tmp/staged-workflow.yml
           python3 <<'PY'
           from pathlib import Path
 
@@ -45,6 +45,14 @@ jobs:
           end = workflow.index(end_marker, start)
           lines = workflow[start:end].splitlines()
           script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines) + "\n"
+
+          old_if = r'\t\t\tif (path.startsWith("/engines/") || path.endsWith(".wasm"))'
+          new_if = r'\t\t\t\tif (path.startsWith("/engines/") || path.endsWith(".wasm"))'
+          old_fail = r'\t\t\t\tfail(`Heavy engine must not be precached: ${path}`);'
+          new_fail = r'\t\t\t\t\tfail(`Heavy engine must not be precached: ${path}`);'
+          if script.count(old_if) != 2 or script.count(old_fail) != 2:
+              raise RuntimeError("release-check staged anchor count changed")
+          script = script.replace(old_if, new_if).replace(old_fail, new_fail)
           Path("/tmp/apply-release-update.py").write_text(script, encoding="utf-8")
 
           fixture = Path("tests/unit/hostVerification.test.ts")
