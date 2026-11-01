@@ -1,0 +1,142 @@
+name: Phase22 Documentation Sync
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Synchronize Phase22 durable documentation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f"expected text missing in {path}: {old[:100]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          replace(
+              "README.md",
+              "OmniConvert is now version `1.0.0`. Phase21 adds a deployment-aware client update prompt: production builds publish a revalidated `/version.json`, open clients check for a numerically newer release without reusing the HTTP cache, and a native modal offers `Update` or `Cancel` while showing the available version. The prompt preserves the existing waiting service-worker lifecycle—there is no forced activation—and warns before a reload can discard in-memory files. Netlify is the preferred root-origin host; project `omniconverttool` has been provisioned and repository configuration builds with `pnpm build` and publishes `dist`. Git linkage, the first Netlify deploy, and actual-host verification remain UNVERIFIED until the environment-side connection is completed.",
+              "OmniConvert is now version `1.0.1`. Phase22 hardens device/viewport-agnostic UX after a RED regression proved that the former rem-scaled page minimum could widen a 320 CSS-pixel viewport to 640 CSS pixels at 200% text sizing. The workbench now binds to available space, long content and actions reflow safely, and dialogs remain usable in compact landscape layouts. The dedicated responsive suite exercises 320–3840px portrait/landscape viewports, 200% text sizing, long filenames, target sizing, preview and metadata-dialog containment in Chromium, Firefox and WebKit. The deployment-aware Update/Cancel prompt remains in place. Netlify production project `omniconverttool` is now deployed from `main` commit `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`; Netlify reports that production deploy ready with 12 header rules processed. The repository's full `release:verify-host` byte/header/MIME/cache/404 contract and manual physical-device/accessibility checks remain separate UNVERIFIED gates."
+          )
+
+          replace(
+              "TODO.md",
+              "Last updated:2026-10-31. Repository: `AahPlexX/fc`. Branch: `main`.",
+              "Last updated:2026-11-01. Repository: `AahPlexX/fc`. Branch: `main`."
+          )
+          old_checkpoint = """## Current checkpoint
+**COMPLETE — Phase21 versioned deployed-update prompt and Netlify handoff, implementation gate (2026-10-31).** OmniConvert officially starts at `1.0.0`. Production builds generate `/version.json` from the canonical package version; it is revalidated, never precached, and checked by open clients with `cache: \"no-store\"`. A numerically newer release opens an accessible native modal showing the available version with `Update` and `Cancel`. Cancel preserves the current in-memory session and suppresses the same discovered version until reload; Update reloads without forcing service-worker activation. Netlify project `omniconverttool` is provisioned and `netlify.toml` defines `pnpm build` -> `dist`. The verified feature commit is `6e1a5e4`; tree-equivalent checkpoint `0de73d3` passed [Validate41250182231](https://github.com/AahPlexX/fc/actions/runs/41250182231): zero registry advisories, lint/typecheck, 115 unit tests, production build, release artifact checks, 14 negative artifact cases, and all 90 Playwright scenarios across Chromium/Firefox/WebKit. Netlify Git linkage, first deploy, actual-host verification, manual/device and field measurements remain UNVERIFIED.
+
+Next environment-specific action: link `AahPlexX/fc` branch `main` to Netlify project `omniconverttool`, let Git continuous deployment publish the verified artifact, then run `pnpm release:verify-host -- https://<production-origin>` against the exact release manifest. For a bad published Netlify release, fix forward by reverting/correcting the source and redeploying; do not force old clients onto another service worker."""
+          new_checkpoint = """## Current checkpoint
+**IN VALIDATION — Phase22 device/viewport-agnostic responsive hardening (2026-11-01).** OmniConvert is `1.0.1`. A RED Chromium regression proved the prior rem-scaled `20rem` minimum widened a 320 CSS-pixel workspace to 640 CSS pixels at 200% text sizing. The implementation removes that viewport floor, makes queue actions and long content container-safe, bounds controls/modal actions, and keeps metadata/preview dialogs usable in short landscape layouts. `tests/e2e/responsive.spec.ts` covers 320–3840px portrait/landscape viewports, 200% text sizing, long filenames, >=24 CSS-pixel visible targets, preview containment and compact metadata dialogs across Chromium/Firefox/WebKit. The integration gate passed zero high-severity npm advisories, lint/typecheck, 115 unit tests, build/release checks, 14 negative artifact cases, 9/9 focused responsive scenarios and 99/99 complete browser scenarios. Feature commit: `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`. Permanent pinned `Validate` is still required before this phase may be marked COMPLETE.
+
+Netlify production project `omniconverttool` now has a ready production deploy built from branch `main` at exact feature commit `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`; Netlify reports 12 header rules processed without errors. Next environment-specific action: run `pnpm release:verify-host -- https://omniconverttool.netlify.app` against the exact release manifest. This full byte/header/MIME/cache/404 contract, manual accessibility/physical-device evaluation, field metrics and broad real-hardware coverage remain UNVERIFIED. For a bad published Netlify release, fix forward by reverting/correcting source and redeploying; do not force old clients onto another service worker."""
+          replace("TODO.md", old_checkpoint, new_checkpoint)
+          replace(
+              "TODO.md",
+              "| 21 | Versioned deployed-update prompt and Netlify handoff | COMPLETE (automated scope) | `1.0.0` baseline; Validate41250182231 green on tree-equivalent `0de73d3`; 115 unit/90 browser/14 negative artifact cases; live Netlify Git CD/host verification remains UNVERIFIED. |",
+              "| 21 | Versioned deployed-update prompt and Netlify handoff | COMPLETE (automated scope) | `1.0.0` baseline; Validate41250182231 green on tree-equivalent `0de73d3`; 115 unit/90 browser/14 negative artifact cases; historical handoff state. |\n| 22 | Device/viewport-agnostic responsive hardening | IN VALIDATION | `1.0.1`; RED 320px/200%-text overflow reproduced; 115 unit/99 browser/14 negative artifact cases plus 9/9 focused responsive scenarios pass; feature `70f8626`; permanent Validate pending. Netlify production deploy at the feature commit is ready; full host verifier/manual/physical-device/field evidence remains open. |"
+          )
+          replace(
+              "TODO.md",
+              "Phase21 creates `netlify.toml` and `tests/e2e/update.spec.ts`; its temporary one-time integration workflow is removed by the verified commit, keeping the checkpoint within the three-new-file ceiling. No ADR or dependency was added.",
+              "Phase22 creates only `tests/e2e/responsive.spec.ts`; temporary integration/documentation workflows are removed before checkpoint promotion, keeping the phase within the three-new-file ceiling. No ADR or dependency was added. Phase21 created `netlify.toml` and `tests/e2e/update.spec.ts` within its own bounded checkpoint."
+          )
+          replace(
+              "TODO.md",
+              "- Full manual WCAG 2.2 AA, screen readers, touch/physical smart-TV remote/real hardware. Axe/focus/viewports do not establish universal conformance.",
+              "- Full manual WCAG 2.2 AA, screen readers, touch/physical smart-TV remote/real hardware. Automated Chromium/Firefox/WebKit responsive, axe, focus and viewport tests do not establish universal device or conformance coverage."
+          )
+          replace(
+              "TODO.md",
+              "- Cold, never-loaded engines cannot operate air-gapped. Only shell and previously loaded engines are cached; warmed-table offline behavior is verified. A deployed host must enforce the emitted CSP; no deployment was tested.",
+              "- Cold, never-loaded engines cannot operate air-gapped. Only shell and previously loaded engines are cached; warmed-table offline behavior is verified. Netlify production is deployed from Phase22 feature commit `70f8626`, but the full `release:verify-host` contract has not yet been run against that HTTPS origin."
+          )
+
+          replace(
+              "docs/HANDOFF.md",
+              "updated_at: \"2026-10-31T22:59:07Z\"\ntitle: \"OmniConvert 1.0.0 versioned client update and Netlify handoff\"\nsummary: \"Phase21 establishes 1.0.0 and a deployed-version Update/Cancel prompt; Netlify project is provisioned, while Git linkage and live-host verification remain open.\"",
+              "updated_at: \"2026-11-01T17:10:00Z\"\ntitle: \"OmniConvert 1.0.1 device/viewport-agnostic responsive handoff\"\nsummary: \"Phase22 hardens reflow, text resizing, long-content actions and compact dialogs across three browser engines; Netlify production is deployed at the feature commit, with permanent Validate and full host-contract verification still gated.\""
+          )
+          replace(
+              "docs/HANDOFF.md",
+              "resume_focus: \"Link AahPlexX/fc main to Netlify project omniconverttool, verify the first deploy, then run release:verify-host against the HTTPS production origin.\"",
+              "resume_focus: \"Require permanent Validate for the Phase22 docs-current checkpoint, then run release:verify-host against https://omniconverttool.netlify.app; keep manual physical-device/accessibility and field evidence explicitly separate.\""
+          )
+          replace(
+              "docs/HANDOFF.md",
+              "Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Git/CHANGELOG retain older snapshots; previous green CI does not certify newer corrections.",
+              "Current authority is AGENTS.md, TODO.md, README.md, docs/verification.md and docs/production.md. PRD.md is the unchanged verbatim original brief. Phase22 feature commit is `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`; its integration gate is green but permanent pinned Validate is still required before COMPLETE. Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from that exact feature commit. Previous green CI does not certify newer corrections."
+          )
+          replace(
+              "docs/HANDOFF.md",
+              "Exact live-host and permanent Validate evidence remain separate gates.",
+              "The Phase22 integration gate passed 115/115 unit tests, 14/14 negative artifact cases, 9/9 focused responsive scenarios and 99/99 full Playwright scenarios across Chromium/Firefox/WebKit, with no high-severity npm advisories. Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from exact feature commit `70f8626`; its 12 header rules processed without errors. Permanent pinned Validate and the repository's full `release:verify-host` HTTPS byte/header/MIME/cache/404 contract remain separate gates; physical-device/manual accessibility and field evidence remain explicitly unverified."
+          )
+
+          replace(
+              "docs/verification.md",
+              "# Verification evidence — 2026-10-31",
+              "# Verification evidence — 2026-11-01"
+          )
+          replace(
+              "docs/verification.md",
+              "Exact live-host and permanent Validate evidence remain separate gates.",
+              "The RED case first failed with document `scrollWidth` 640 vs viewport `innerWidth` 320. After the fix, the integration gate passed 115/115 unit tests, 14/14 negative artifact cases, 9/9 focused responsive cases and 99/99 complete Playwright scenarios across Chromium 156, Firefox 157 and WebKit 27.2; lint/typecheck, build/release checks and the high-severity npm audit also passed. Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from exact feature commit `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb` with 12 header rules processed without errors. Permanent pinned Validate and full `release:verify-host` verification of the HTTPS production origin remain separate gates. Automated browser coverage does not establish complete manual WCAG conformance or universal physical-device equivalence."
+          )
+
+          replace(
+              "docs/production.md",
+              "Updated2026-10-31. This is a portable static-hosting procedure. No production deployment has been performed. Source `b803b24` passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515); TODO records remaining release criteria and docs/verification.md records measured scope. Artifact checks do not establish legal compliance, full accessibility conformance or field performance.",
+              "Updated 2026-11-01. This is the portable static-hosting and production-operations procedure. Netlify project `omniconverttool` now has a ready production deploy (`6ae6a7b2986ce8a32438a28d`) built from Phase22 feature commit `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`. The repository's full `release:verify-host` contract has not yet been run against that HTTPS origin, so host byte/header/MIME/cache/404 conformance remains UNVERIFIED. TODO records remaining release criteria and docs/verification.md records measured scope. Artifact checks do not establish legal compliance, full accessibility conformance or field performance."
+          )
+          replace(
+              "docs/production.md",
+              "Preferred production host: Netlify project `omniconverttool`. The project has been provisioned, while Git linkage and its first production deploy remain UNVERIFIED from the available integration surface.",
+              "Preferred production host: Netlify project `omniconverttool`. Git deployment is now active: production deploy `6ae6a7b2986ce8a32438a28d` is `ready`, branch `main`, exact commit `70f8626b59ba69900eb1ab7cdf5ea7c7c9b4a8eb`, and Netlify reports 12 header rules processed without errors. This deployment metadata does not substitute for the repository's full `release:verify-host` response/body verification."
+          )
+          replace(
+              "docs/production.md",
+              "A successful host check does not verify staged old-client updates, rollback, warm offline behavior, real-device accessibility, field metrics, FFmpeg corresponding source, or a deployed hostname's operational authorization. Complete the manual checks below for the selected host. No actual host was tested in this checkpoint.",
+              "A successful host check does not verify staged old-client updates, rollback, warm offline behavior, real-device accessibility, field metrics, FFmpeg corresponding source, or a deployed hostname's operational authorization. Complete the manual checks below for the selected host. The production Netlify deploy exists and is ready, but the full host-verifier check remains pending in this checkpoint."
+          )
+          replace(
+              "docs/production.md",
+              "This procedure has not yet been exercised against the newly provisioned live hosting target.",
+              "Netlify Git deployment is now exercised through a ready production publish at Phase22 feature commit `70f8626`; the deeper `release:verify-host` and old-client/manual recovery drills remain outstanding."
+          )
+          replace(
+              "docs/production.md",
+              "Exact live-host and permanent Validate evidence remain separate gates.",
+              "Phase22 integration passed the 9/9 focused responsive matrix and all 99/99 browser scenarios across Chromium/Firefox/WebKit. Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready at exact feature commit `70f8626` with 12 header rules processed. Permanent pinned Validate and full `release:verify-host` remain required before closing their respective gates; manual physical-device/accessibility and field checks remain explicitly separate."
+          )
+
+          replace(
+              "CHANGELOG.md",
+              "- Make update-modal browser tests derive current/next patch versions from `package.json` through `node:fs`, avoiding stale hard-coded release fixtures and Node JSON import-attribute coupling.",
+              "- Make update-modal browser tests derive current/next patch versions from `package.json` through `node:fs`, avoiding stale hard-coded release fixtures and Node JSON import-attribute coupling.\n- RED evidence showed 640px document width at a 320px viewport under 200% text sizing before the fix; the Phase22 integration gate then passed 115 unit, 14 negative artifact, 9 focused responsive and all 99 browser scenarios across Chromium/Firefox/WebKit.\n- Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from exact feature commit `70f8626`; full `release:verify-host` verification remains separate."
+          )
+          PY
+          rm .github/workflows/phase22-doc-sync.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md TODO.md CHANGELOG.md docs/HANDOFF.md docs/verification.md docs/production.md .github/workflows/phase22-doc-sync.yml
+          git diff --cached --check
+          git commit -m "docs: promote Phase22 responsive checkpoint"
+          git push origin HEAD:main
