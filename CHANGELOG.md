@@ -9,7 +9,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Add RED-proven Chromium/Firefox/WebKit responsive coverage from 320–3840px, portrait/landscape, 200% text sizing, long filenames, target sizing and compact-landscape dialogs.
 - Make update-modal browser tests derive current/next patch versions from `package.json` through `node:fs`, avoiding stale hard-coded release fixtures and Node JSON import-attribute coupling.
 - RED evidence showed 640px document width at a 320px viewport under 200% text sizing before the fix; the Phase22 integration gate then passed 115 unit, 14 negative artifact, 9 focused responsive and all 99 browser scenarios across Chromium/Firefox/WebKit.
-- Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from exact feature commit `70f8626`; full `release:verify-host` verification remains separate.
+- Netlify production deploy `6ae773ecede1a79225dc8053` is ready from exact checkpoint `84d6ea2e5b57d1dbc312644cf8a114ccada54b09` with 12 header rules processed; full `release:verify-host` verification remains separate.
+- Permanent [Validate41330627014](https://github.com/AahPlexX/fc/actions/runs/41330627014) passed on tree-equivalent `84d6ea2e5b57d1dbc312644cf8a114ccada54b09` with zero registry advisories, 115 unit tests, 14 negative artifact cases, and 99/99 Chromium/Firefox/WebKit browser scenarios; retained browser artifact ID `13093491076`.
 
 
 ### Versioned client update prompt and Netlify hosting — 2026-10-31
