@@ -30,9 +30,9 @@ jobs:
       - name: Install browser engines
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
-      - name: Expand and execute the temporary Phase22 runner
+      - name: Execute temporary Phase22 runner
         run: |
-          gzip -dc scripts/phase22-integrate.py.gz > scripts/phase22-integrate.py
+          base64 -d scripts/phase22-integrate.py.gz.b64 | gzip -dc > scripts/phase22-integrate.py
           git add scripts/phase22-integrate.py
-          git rm scripts/phase22-integrate.py.gz
+          git rm scripts/phase22-integrate.py.gz.b64
           python scripts/phase22-integrate.py
