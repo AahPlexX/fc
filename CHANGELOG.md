@@ -8,6 +8,8 @@ All notable OmniConvert changes follow Keep a Changelog semantics.
 - Remove rem-scaled page minimums that broke reflow under increased text sizing; make actions, long content and dialogs container-safe without device sniffing.
 - Add RED-proven Chromium/Firefox/WebKit responsive coverage from 320–3840px, portrait/landscape, 200% text sizing, long filenames, target sizing and compact-landscape dialogs.
 - Make update-modal browser tests derive current/next patch versions from `package.json` through `node:fs`, avoiding stale hard-coded release fixtures and Node JSON import-attribute coupling.
+- RED evidence showed 640px document width at a 320px viewport under 200% text sizing before the fix; the Phase22 integration gate then passed 115 unit, 14 negative artifact, 9 focused responsive and all 99 browser scenarios across Chromium/Firefox/WebKit.
+- Netlify production deploy `6ae6a7b2986ce8a32438a28d` is ready from exact feature commit `70f8626`; full `release:verify-host` verification remains separate.
 
 
 ### Versioned client update prompt and Netlify hosting — 2026-10-31
