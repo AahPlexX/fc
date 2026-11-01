@@ -20,7 +20,7 @@
 - `PRD.md` must remain verbatim. Do not normalize formatting, fix citations, update package versions, silently correct claims, or rewrite wording inside that file; put verified deltas elsewhere.
 - Never transmit user-selected file bytes off-device. Network access is for application assets only.
 - Heavy engines are lazy-loaded. Prefer browser/platform APIs before dependencies or custom abstractions.
-- UI must remain usable from 320px through 3840px+, keyboard-complete, reduced-motion aware, and WCAG 2.2 AA-oriented.
+- UI must remain device/viewport agnostic: usable without lost information or functionality from 320px through 3840px+, portrait or landscape, keyboard/pointer/touch input, zoom-equivalent narrow viewports, and increased text sizing. Preserve keyboard completion, reduced-motion support, visible focus, >=24 CSS-pixel pointer targets (44px controls where practical), and WCAG 2.2 AA-oriented reflow. Never use device-model sniffing to choose layout.
 - Do not mark a phase COMPLETE before the pinned `Validate` workflow passes its relevant checks.
 
 ## Release version and client-update invariant (2026-10-31)

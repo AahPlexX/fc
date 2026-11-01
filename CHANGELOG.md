@@ -3,12 +3,18 @@
 All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ## [Unreleased]
+### Device/viewport-agnostic responsive hardening — 2026-10-31
+- Increment OmniConvert to `1.0.1` for this significant client UX update.
+- Remove rem-scaled page minimums that broke reflow under increased text sizing; make actions, long content and dialogs container-safe without device sniffing.
+- Add RED-proven Chromium/Firefox/WebKit responsive coverage from 320–3840px, portrait/landscape, 200% text sizing, long filenames, target sizing and compact-landscape dialogs.
+- Make update-modal browser tests derive current/next patch versions from `package.json` through `node:fs`, avoiding stale hard-coded release fixtures and Node JSON import-attribute coupling.
+
 
 ### Versioned client update prompt and Netlify hosting — 2026-10-31
 - Establish OmniConvert `1.0.0` as the canonical release baseline. Future significant updates must increment the patch component by exactly `0.0.1` before release.
 - Production builds emit a non-pre-cached, revalidated `/version.json` from `package.json`. Open clients check it without HTTP-cache reuse and show a native modal only for a newer release, with `Update` and `Cancel` actions and the available version number.
 - `Cancel` preserves the current in-memory session and suppresses that same version until the page is reloaded; `Update` reloads without `skipWaiting` or forced service-worker activation.
-- Add Netlify static build configuration (`pnpm build` -> `dist`) and ignore local `.netlify/` state. Netlify project `omniconvert-sfya` is provisioned; Git repository linkage and the first live deploy remain environment-side verification work.
+- Add Netlify static build configuration (`pnpm build` -> `dist`) and ignore local `.netlify/` state. Netlify project `omniconverttool` is provisioned; Git repository linkage and the first live deploy remain environment-side verification work.
 
 ### Data preservation and worker cleanup — 2026-10-31
 - Preserve all-empty and whitespace-only CSV/TSV records, including final and streamed chunk boundaries; avoid leaving a document worker running when image-to-PDF preparation fails or is cancelled. Root passed check/build,115 unit/81 browser/14 negative artifact cases; source `b803b24` passed [Validate41149485515](https://github.com/AahPlexX/fc/actions/runs/41149485515). No new dependencies or files.

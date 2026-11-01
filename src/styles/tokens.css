@@ -23,7 +23,7 @@
   --space-4: clamp(1.5rem, 1rem + 1.5vw, 3rem);
   --body-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.25rem);
   --heading-size: clamp(1.35rem, 1.15rem + 1.1vw, 2.5rem);
-  --workbench-width: clamp(20rem, 94vw, 120rem);
+  --workbench-width: min(94vw, 120rem);
   background: var(--canvas);
   color: var(--text);
 }
@@ -44,7 +44,7 @@ html {
 }
 
 body {
-  min-width: 20rem;
+  min-width: 0;
   min-height: 100vh;
   margin: 0;
   background: var(--canvas);
@@ -64,6 +64,29 @@ button,
 select,
 input[type="file"] {
   min-height: 2.75rem;
+}
+
+button,
+select,
+input[type="file"],
+input[type="range"],
+textarea {
+  max-inline-size: 100%;
+}
+
+button,
+.import-notice,
+.job-progress-copy > :first-child,
+.workbench-footnote {
+  overflow-wrap: anywhere;
+}
+
+.workspace-toolbar > *,
+.aggregate-progress-copy > *,
+.job-progress-copy > *,
+.queue-heading-row > *,
+.job-card-header > * {
+  min-width: 0;
 }
 
 button,
@@ -497,15 +520,16 @@ h3 {
 }
 
 .job-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
   gap: var(--space-1);
-  justify-content: flex-end;
 }
 
 .job-actions button {
-  min-width: 6rem;
+  width: 100%;
+  min-width: 0;
   padding-inline: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 dialog {
@@ -546,9 +570,11 @@ dialog::backdrop {
 .metadata-drawer header,
 .preview-modal > header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
+  min-width: 0;
 }
 .metadata-drawer header p,
 .preview-modal > header p {
@@ -610,7 +636,7 @@ dialog::backdrop {
   background: var(--surface);
 }
 .metadata-drawer footer button,
-.preview-modal > header button { min-width: 6rem; padding-inline: 0.85rem; }
+.preview-modal > header button { min-width: min(6rem, 100%); max-width: 100%; padding-inline: 0.85rem; overflow-wrap: anywhere; }
 .release-update-modal {
   width: min(32rem, calc(100vw - 1rem));
   max-height: 90svh;
@@ -627,7 +653,7 @@ dialog::backdrop {
   gap: var(--space-1);
   margin-block-start: var(--space-3);
 }
-.release-update-modal footer button { min-width: 7rem; }
+.release-update-modal footer button { min-width: min(7rem, 100%); max-width: 100%; overflow-wrap: anywhere; }
 
 .preview-modal {
   width: min(72rem, calc(100vw - 1rem));
@@ -734,6 +760,18 @@ dialog::backdrop {
   .release-update-modal footer button { width: 100%; }
 }
 
+@media (max-height: 30rem) {
+  .metadata-drawer,
+  .preview-modal,
+  .release-update-modal {
+    max-height: calc(100svh - 0.5rem);
+  }
+
+  .metadata-drawer {
+    height: calc(100svh - 0.5rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -746,7 +784,7 @@ dialog::backdrop {
 
 .job-grid { list-style: none; margin: 0; padding: 0; }
 .job-grid > li { min-width: 0; }
-.job-actions { flex-wrap: wrap; gap: var(--space-1); }
+.job-actions { gap: var(--space-1); }
 .workbench-footnote { max-width: 75ch; color: var(--muted); font-size: .85em; }
 button:hover:not(:disabled) { border-color: var(--info); }
 
