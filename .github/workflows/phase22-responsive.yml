@@ -1,0 +1,38 @@
+name: Phase22 Responsive Integration
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22.13.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.13.0
+
+      - name: Install pinned pnpm and dependencies
+        run: |
+          npm install --global pnpm@12.15.0
+          pnpm install --frozen-lockfile
+
+      - name: Install browser engines
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Expand and execute the temporary Phase22 runner
+        run: |
+          gzip -dc scripts/phase22-integrate.py.gz > scripts/phase22-integrate.py
+          git add scripts/phase22-integrate.py
+          git rm scripts/phase22-integrate.py.gz
+          python scripts/phase22-integrate.py
