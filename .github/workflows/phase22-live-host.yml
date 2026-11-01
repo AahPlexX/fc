@@ -1,0 +1,37 @@
+name: Phase22 Live Host Verification
+
+'on':
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  verify-live-host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.13.0
+      - name: Install pinned package manager and dependencies
+        run: |
+          npm install --global pnpm@12.15.0
+          pnpm install --frozen-lockfile
+      - name: Build exact artifact and verify live Netlify origin
+        run: |
+          pnpm build
+          pnpm release:check
+          pnpm release:verify-host -- https://omniconverttool.netlify.app | tee release-results/host-verification.json
+          python scripts/phase22-live-host-doc-sync.py
+          rm .github/workflows/phase22-live-host.yml scripts/phase22-live-host-doc-sync.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add TODO.md CHANGELOG.md docs/HANDOFF.md docs/verification.md docs/production.md .github/workflows/phase22-live-host.yml scripts/phase22-live-host-doc-sync.py
+          git diff --cached --check
+          git commit -m "docs: record Netlify live-host verification"
+          git push origin HEAD:main
