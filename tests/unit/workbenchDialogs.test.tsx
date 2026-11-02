@@ -84,6 +84,24 @@ describe("Phase 11 workbench dialog contracts", () => {
 		expect(markup).toContain("Close");
 	});
 
+	it("does not expose unresolved aria-labelledby references while dialogs are closed", () => {
+		const metadataMarkup = renderToStaticMarkup(
+			<MetadataDrawer
+				job={null}
+				onClose={() => undefined}
+				onApply={() => undefined}
+			/>,
+		);
+		const previewMarkup = renderToStaticMarkup(
+			<PreviewModal job={null} onClose={() => undefined} />,
+		);
+
+		expect(metadataMarkup).not.toContain(
+			'aria-labelledby="metadata-drawer-title"',
+		);
+		expect(previewMarkup).not.toContain('aria-labelledby="preview-modal-title"');
+	});
+
 	it("exposes the required queue actions without hiding them behind pointer-only interaction", () => {
 		const markup = renderToStaticMarkup(
 			<JobCard
