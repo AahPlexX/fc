@@ -150,7 +150,7 @@ export const PreviewModal = ({ job, onClose }: PreviewModalProps) => {
 			ref={dialogRef}
 			tabIndex={-1}
 			className="preview-modal"
-			aria-labelledby="preview-modal-title"
+			aria-labelledby={job ? "preview-modal-title" : undefined}
 			onKeyDown={keepTabFocusInside}
 			onClose={onClose}
 			onCancel={(event) => {

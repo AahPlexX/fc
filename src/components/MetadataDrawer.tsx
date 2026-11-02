@@ -115,7 +115,7 @@ export const MetadataDrawer = ({
 			ref={dialogRef}
 			tabIndex={-1}
 			className="metadata-drawer"
-			aria-labelledby="metadata-drawer-title"
+			aria-labelledby={job ? "metadata-drawer-title" : undefined}
 			onKeyDown={keepTabFocusInside}
 			onClose={onClose}
 			onCancel={(event) => {

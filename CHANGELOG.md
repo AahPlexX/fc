@@ -3,6 +3,14 @@
 All notable OmniConvert changes follow Keep a Changelog semantics.
 
 ## [Unreleased]
+### Client-side accessibility audit remediation — 2026-11-01
+- Increment OmniConvert to `1.0.2` for the audit-driven client accessibility correction.
+- A real-browser Accessibility Repair scan (`591c5b44-e066-42a9-a218-f91fd86ae144`, axe 4.13.0 + IBM Equal Access 4.0.34) found four failures. Two were repository-owned: closed metadata/preview dialogs retained `aria-labelledby` IDREFs after their conditional headings were absent.
+- Add the regression first; [Validate41367434318](https://github.com/AahPlexX/fc/actions/runs/41367434318) failed exactly that new closed-dialog assertion while the 115 pre-existing unit tests passed.
+- Make each native dialog expose `aria-labelledby` only while its titled job content exists, preserving the open-dialog accessible name without a dormant dangling reference.
+- The scan's missing `lang` and focusable `IFRAME` findings remain host-side evidence, not source fixes: authored `index.html` already contains `lang="en"`. Post-deploy live re-scan and the existing strict host-byte verification remain pending.
+- Phase23 adds no dependency and no new repository file.
+
 ### Device/viewport-agnostic responsive hardening — 2026-10-31
 - Increment OmniConvert to `1.0.1` for this significant client UX update.
 - Remove rem-scaled page minimums that broke reflow under increased text sizing; make actions, long content and dialogs container-safe without device sniffing.
